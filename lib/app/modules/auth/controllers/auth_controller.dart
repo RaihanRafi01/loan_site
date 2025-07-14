@@ -8,6 +8,7 @@ enum AuthScreen {
   forgotPassword,
   verification,
   sendOtp,
+  createPassword,
 }
 
 enum ResetMethod {
@@ -34,6 +35,7 @@ class AuthController extends GetxController {
   final isTermsAccepted = false.obs;
   final isLoading = false.obs;
   final isRememberMe = false.obs;
+  var showConfirm = false.obs;
 
   // Navigation stack to track history
   final navigationStack = <AuthScreen>[AuthScreen.signup].obs;
@@ -50,6 +52,12 @@ class AuthController extends GetxController {
   void navigateToWelcome() {
     _addToNavigationStack(AuthScreen.welcome);
     currentScreen.value = AuthScreen.welcome;
+    clearForm();
+  }
+
+  void navigateToCreatePassword() {
+    _addToNavigationStack(AuthScreen.createPassword);
+    currentScreen.value = AuthScreen.createPassword;
     clearForm();
   }
 
@@ -74,7 +82,7 @@ class AuthController extends GetxController {
   void navigateToVerification() {
     _addToNavigationStack(AuthScreen.verification);
     currentScreen.value = AuthScreen.verification;
-    clearForm();
+    //clearForm();
   }
 
   void navigateToSendOtp() {
