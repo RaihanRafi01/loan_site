@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 enum AuthScreen {
-  welcome,
   login,
   signup,
   forgotPassword,
@@ -49,11 +48,6 @@ class AuthController extends GetxController {
   }
 
   // Navigation methods
-  void navigateToWelcome() {
-    _addToNavigationStack(AuthScreen.welcome);
-    currentScreen.value = AuthScreen.welcome;
-    clearForm();
-  }
 
   void navigateToCreatePassword() {
     _addToNavigationStack(AuthScreen.createPassword);
