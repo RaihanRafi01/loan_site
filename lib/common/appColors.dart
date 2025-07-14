@@ -9,6 +9,7 @@ class AppColors {
   static const Color textColor4 = Color(0xFF10589E);
   static const Color blurtext = Color(0xFF5D5D5D);
   static const Color blurtext2 = Color(0xFF808284);
+  static const Color blurtext3 = Color(0xFF6A707C);
   static const Color textInputField = Color.fromRGBO(30, 144, 255, 0.1);
 
 

@@ -19,6 +19,12 @@ class AuthController extends GetxController {
   final isTermsAccepted = false.obs;
   final isLoading = false.obs;
 
+  final isRememberMe = false.obs;
+
+  void toggleRememberMe(bool value) {
+    isRememberMe.value = value;
+  }
+
   // Navigation methods
   void navigateToWelcome() {
     currentScreen.value = AuthScreen.welcome;
@@ -42,6 +48,11 @@ class AuthController extends GetxController {
 
   void navigateToVerification() {
     currentScreen.value = AuthScreen.verification;
+    clearForm();
+  }
+
+  void navigateToSendOtp() {
+    currentScreen.value = AuthScreen.sendOtp;
     clearForm();
   }
 
@@ -426,4 +437,5 @@ enum AuthScreen {
   signup,
   forgotPassword,
   verification,
+  sendOtp,
 }

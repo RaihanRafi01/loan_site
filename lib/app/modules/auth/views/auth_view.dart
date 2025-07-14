@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
+import 'package:loan_site/common/widgets/customButton.dart';
 import 'package:loan_site/common/widgets/customTextField.dart';
 import '../../../../common/appColors.dart';
 import '../../../../common/customFont.dart';
@@ -56,6 +58,8 @@ class AuthView extends GetView<AuthController> {
           return const ForgotPasswordScreen();
         case AuthScreen.verification:
           return const VerificationScreen();
+        case AuthScreen.sendOtp:
+          return const SendOtpScreen();
         default:
           return const SignUpScreen();
       }
@@ -70,14 +74,6 @@ class LoginScreen extends GetView<AuthController> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => controller.navigateToWelcome(),
-        ),
-      ),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
@@ -86,135 +82,101 @@ class LoginScreen extends GetView<AuthController> {
             children: [
               const SizedBox(height: 20),
               TitleSubtitle(
-                title: 'Sign In',
-                subtitle: 'Welcome back! Please enter your credentials.',
+                title: 'Welcome Back!',
+                subtitle: 'Please login to continue',
               ),
               const SizedBox(height: 40),
-              TextField(
+              CustomTextField(
+                labelText: 'Enter full name',
+                prefixSvgPath: 'assets/images/auth/mail_icon.svg',
                 controller: controller.emailController,
-                decoration: InputDecoration(
-                  labelText: 'Enter full name',
-                  prefixIcon: const Icon(Icons.person),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.blue.shade600),
-                  ),
-                ),
               ),
-              const SizedBox(height: 20),
-              TextField(
-                controller: controller.emailController,
-                decoration: InputDecoration(
-                  labelText: 'Enter email address',
-                  prefixIcon: const Icon(Icons.email_outlined),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.blue.shade600),
-                  ),
-                ),
-                keyboardType: TextInputType.emailAddress,
-              ),
-              const SizedBox(height: 20),
-              Obx(() => TextField(
+              CustomTextField(
+                obscureText: true,
+                labelText: 'Password',
+                prefixSvgPath: 'assets/images/auth/lock_icon.svg',
+                suffixSvgPath: 'assets/images/auth/eye_icon.svg',
                 controller: controller.passwordController,
-                obscureText: controller.isPasswordHidden.value,
-                decoration: InputDecoration(
-                  labelText: 'Password',
-                  prefixIcon: const Icon(Icons.lock_outline),
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      controller.isPasswordHidden.value
-                          ? Icons.visibility_outlined
-                          : Icons.visibility_off_outlined,
+              ),
+              Row(
+                children: [
+                  Obx(
+                    () => Checkbox(
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      activeColor: AppColors.appColor,
+                      checkColor: Colors.white,
+                      value: controller.isRememberMe.value,
+                      onChanged: (bool? value) {
+                        controller.toggleRememberMe(value ?? false);
+                      },
                     ),
-                    onPressed: controller.togglePasswordVisibility,
                   ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.blue.shade600),
-                  ),
-                ),
-              )),
-              const SizedBox(height: 20),
-              Obx(() => TextField(
-                controller: controller.confirmPasswordController,
-                obscureText: controller.isConfirmPasswordHidden.value,
-                decoration: InputDecoration(
-                  labelText: 'Confirm Password',
-                  prefixIcon: const Icon(Icons.lock_outline),
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      controller.isConfirmPasswordHidden.value
-                          ? Icons.visibility_outlined
-                          : Icons.visibility_off_outlined,
-                    ),
-                    onPressed: controller.toggleConfirmPasswordVisibility,
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.blue.shade600),
-                  ),
-                ),
-              )),
-              const SizedBox(height: 32),
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: Obx(() => ElevatedButton(
-                  onPressed: controller.isLoading.value ? null : controller.signIn,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue.shade600,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    elevation: 2,
-                  ),
-                  child: controller.isLoading.value
-                      ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                    ),
-                  )
-                      : const Text(
-                    'Sign In',
-                    style: TextStyle(
+                  Text(
+                    'Remember me',
+                    style: h4.copyWith(
                       fontSize: 16,
-                      fontWeight: FontWeight.w600,
+                      color: AppColors.textColor,
                     ),
                   ),
-                )),
+                ],
+              ),
+              const SizedBox(height: 20),
+              CustomButton(label: 'Log In', onPressed: () {}),
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  Expanded(child: Divider(color: Colors.grey[300])),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16),
+                    child: Text(
+                      'Or Login with',
+                      style: h4.copyWith(
+                        fontSize: 16,
+                        color: AppColors.blurtext3,
+                      ),
+                    ),
+                  ),
+                  Expanded(child: Divider(color: Colors.grey[300])),
+                ],
               ),
               const SizedBox(height: 24),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(
-                    "Don't have an account? ",
-                    style: TextStyle(color: Colors.grey.shade600),
+                  SvgPicture.asset('assets/images/auth/google_icon.svg'),
+                  const SizedBox(width: 24),
+                  SvgPicture.asset('assets/images/auth/apple_icon.svg'),
+                ],
+              ),
+              const SizedBox(height: 50),
+              Center(
+                child: GestureDetector(
+                  onTap: () => controller.navigateToForgotPassword(),
+                  child: Text(
+                    'Forgot Password?',
+                    style: h3.copyWith(fontSize: 18),
                   ),
-                  TextButton(
-                    onPressed: () => controller.navigateToSignUp(),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    "Don’t have an account?",
+                    style: h4.copyWith(
+                      color: AppColors.textColor,
+                      fontSize: 18,
+                    ),
+                  ),
+                  SizedBox(width: 10),
+                  GestureDetector(
+                    onTap: () => controller.navigateToLogin(),
                     child: Text(
-                      'Sign Up',
-                      style: TextStyle(
-                        color: Colors.blue.shade600,
-                        fontWeight: FontWeight.w600,
+                      'Register',
+                      style: h4.copyWith(
+                        color: AppColors.appColor2,
+                        fontSize: 18,
                       ),
                     ),
                   ),
@@ -248,98 +210,82 @@ class SignUpScreen extends GetView<AuthController> {
                   subtitle: 'Please register to start browsing',
                 ),
                 const SizedBox(height: 40),
-                CustomTextField(labelText: 'Enter full name', prefixSvgPath: 'assets/images/auth/person_icon.svg', controller: controller.nameController),
-                CustomTextField(labelText: 'Enter email address', prefixSvgPath: 'assets/images/auth/mail_icon.svg', controller: controller.emailController),
-                CustomTextField(labelText: 'Enter phone number', prefixSvgPath: 'assets/images/auth/phone_icon.svg', controller: controller.phoneController),
-                CustomTextField(obscureText: true, labelText: 'Password', prefixSvgPath: 'assets/images/auth/lock_icon.svg', suffixSvgPath: 'assets/images/auth/eye_icon.svg', controller: controller.passwordController),
-                CustomTextField(obscureText: true, labelText: 'Confirm Password', prefixSvgPath: 'assets/images/auth/lock_icon.svg', suffixSvgPath: 'assets/images/auth/eye_icon.svg', controller: controller.confirmPasswordController),
-
+                CustomTextField(
+                  labelText: 'Enter full name',
+                  prefixSvgPath: 'assets/images/auth/person_icon.svg',
+                  controller: controller.nameController,
+                ),
+                CustomTextField(
+                  labelText: 'Enter email address',
+                  prefixSvgPath: 'assets/images/auth/mail_icon.svg',
+                  controller: controller.emailController,
+                ),
+                CustomTextField(
+                  labelText: 'Enter phone number',
+                  prefixSvgPath: 'assets/images/auth/phone_icon.svg',
+                  controller: controller.phoneController,
+                ),
+                CustomTextField(
+                  obscureText: true,
+                  labelText: 'Password',
+                  prefixSvgPath: 'assets/images/auth/lock_icon.svg',
+                  suffixSvgPath: 'assets/images/auth/eye_icon.svg',
+                  controller: controller.passwordController,
+                ),
+                CustomTextField(
+                  obscureText: true,
+                  labelText: 'Confirm Password',
+                  prefixSvgPath: 'assets/images/auth/lock_icon.svg',
+                  suffixSvgPath: 'assets/images/auth/eye_icon.svg',
+                  controller: controller.confirmPasswordController,
+                ),
+                SizedBox(height: 30),
+                CustomButton(label: 'Register', onPressed: () {}),
                 const SizedBox(height: 24),
                 Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Obx(() => Checkbox(
-                      value: controller.isTermsAccepted.value,
-                      onChanged: (value) => controller.toggleTermsAcceptance(),
-                      activeColor: Colors.blue.shade600,
-                    )),
-                    Expanded(
-                      child: RichText(
-                        text: TextSpan(
-                          style: TextStyle(
-                            color: Colors.grey.shade600,
-                            fontSize: 14,
-                          ),
-                          children: [
-                            const TextSpan(text: 'I agree to the '),
-                            TextSpan(
-                              text: 'Terms of Service',
-                              style: TextStyle(
-                                color: Colors.blue.shade600,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            const TextSpan(text: ' and '),
-                            TextSpan(
-                              text: 'Privacy Policy',
-                              style: TextStyle(
-                                color: Colors.blue.shade600,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ],
+                    Expanded(child: Divider(color: Colors.grey[300])),
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 16),
+                      child: Text(
+                        'Or Login with',
+                        style: h4.copyWith(
+                          fontSize: 16,
+                          color: AppColors.blurtext3,
                         ),
                       ),
                     ),
+                    Expanded(child: Divider(color: Colors.grey[300])),
                   ],
                 ),
-                const SizedBox(height: 32),
-                SizedBox(
-                  width: double.infinity,
-                  height: 50,
-                  child: Obx(() => ElevatedButton(
-                    onPressed: controller.isLoading.value ? null : controller.signUp,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue.shade600,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      elevation: 2,
-                    ),
-                    child: controller.isLoading.value
-                        ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                      ),
-                    )
-                        : const Text(
-                      'Create Account',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  )),
+                const SizedBox(height: 24),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    SvgPicture.asset('assets/images/auth/google_icon.svg'),
+                    const SizedBox(width: 24),
+                    SvgPicture.asset('assets/images/auth/apple_icon.svg'),
+                  ],
                 ),
                 const SizedBox(height: 24),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      "Already have an account? ",
-                      style: TextStyle(color: Colors.grey.shade600),
+                      "Already have an account?",
+                      style: h4.copyWith(
+                        color: AppColors.textColor,
+                        fontSize: 18,
+                      ),
                     ),
-                    TextButton(
-                      onPressed: () => controller.navigateToLogin(),
+                    SizedBox(width: 10),
+                    GestureDetector(
+                      onTap: () => controller.navigateToLogin(),
                       child: Text(
                         'Sign In',
-                        style: TextStyle(
-                          color: Colors.blue.shade600,
-                          fontWeight: FontWeight.w600,
+                        style: h4.copyWith(
+                          color: AppColors.appColor2,
+                          fontSize: 18,
                         ),
                       ),
                     ),
@@ -361,14 +307,6 @@ class ForgotPasswordScreen extends GetView<AuthController> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => controller.navigateToLogin(),
-        ),
-      ),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
@@ -377,77 +315,52 @@ class ForgotPasswordScreen extends GetView<AuthController> {
             children: [
               const SizedBox(height: 20),
               TitleSubtitle(
-                title: 'Forgot Password?',
-                subtitle: 'Don\'t worry! Enter your email address and we\'ll send you a link to reset your password.',
+                title: 'Forgot Password',
+                subtitle:
+                    'Select which contact details should we use to  reset your password',
               ),
               const SizedBox(height: 40),
-              TextField(
+              GestureDetector(
+                onTap: ()=> controller.navigateToSendOtp(),
+                child: SvgPicture.asset('assets/images/auth/via_email.svg'),
+              ),
+              const SizedBox(height: 10),
+              SvgPicture.asset('assets/images/auth/via_sms.svg'),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class SendOtpScreen extends GetView<AuthController> {
+  const SendOtpScreen ({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 20),
+              TitleSubtitle(
+                title: 'Forgot Password',
+                subtitle:
+                'Provide details',
+              ),
+              const SizedBox(height: 40),
+              CustomTextField(
+                labelText: 'Enter email address',
+                prefixSvgPath: 'assets/images/auth/mail_icon.svg',
                 controller: controller.emailController,
-                decoration: InputDecoration(
-                  labelText: 'Enter email address',
-                  prefixIcon: const Icon(Icons.email_outlined),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.blue.shade600),
-                  ),
-                ),
-                keyboardType: TextInputType.emailAddress,
               ),
-              const SizedBox(height: 32),
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: Obx(() => ElevatedButton(
-                  onPressed: controller.isLoading.value ? null : controller.sendResetLink,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue.shade600,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    elevation: 2,
-                  ),
-                  child: controller.isLoading.value
-                      ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                    ),
-                  )
-                      : const Text(
-                    'Send Reset Link',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                )),
-              ),
-              const SizedBox(height: 24),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    "Remember your password? ",
-                    style: TextStyle(color: Colors.grey.shade600),
-                  ),
-                  TextButton(
-                    onPressed: () => controller.navigateToLogin(),
-                    child: Text(
-                      'Sign In',
-                      style: TextStyle(
-                        color: Colors.blue.shade600,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+              const SizedBox(height: 20),
+              CustomButton(label: 'Send OTP', onPressed: (){})
             ],
           ),
         ),
@@ -463,14 +376,6 @@ class VerificationScreen extends GetView<AuthController> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => controller.navigateToLogin(),
-        ),
-      ),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
@@ -480,21 +385,19 @@ class VerificationScreen extends GetView<AuthController> {
               const SizedBox(height: 20),
               TitleSubtitle(
                 title: 'Verify Your Email',
-                subtitle: 'We\'ve sent a verification code to your email address. Please enter the code below.',
+                subtitle:
+                    'We\'ve sent a verification code to your email address. Please enter the code below.',
               ),
               const SizedBox(height: 40),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: List.generate(
                   4,
-                      (index) => Container(
+                  (index) => Container(
                     width: 60,
                     height: 60,
                     decoration: BoxDecoration(
-                      border: Border.all(
-                        color: Colors.grey.shade300,
-                        width: 2,
-                      ),
+                      border: Border.all(color: Colors.grey.shade300, width: 2),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: TextField(
@@ -523,33 +426,39 @@ class VerificationScreen extends GetView<AuthController> {
               SizedBox(
                 width: double.infinity,
                 height: 50,
-                child: Obx(() => ElevatedButton(
-                  onPressed: controller.isLoading.value ? null : controller.verifyEmail,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue.shade600,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                child: Obx(
+                  () => ElevatedButton(
+                    onPressed: controller.isLoading.value
+                        ? null
+                        : controller.verifyEmail,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue.shade600,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      elevation: 2,
                     ),
-                    elevation: 2,
+                    child: controller.isLoading.value
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                Colors.white,
+                              ),
+                            ),
+                          )
+                        : const Text(
+                            'Verify Email',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
                   ),
-                  child: controller.isLoading.value
-                      ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                    ),
-                  )
-                      : const Text(
-                    'Verify Email',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                )),
+                ),
               ),
               const SizedBox(height: 24),
               Row(
