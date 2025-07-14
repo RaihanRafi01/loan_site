@@ -33,7 +33,6 @@ class TitleSubtitle extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 5),
-        // Description
         Text(
           subtitle,
           style: h4.copyWith(fontSize: 18, color: AppColors.textColor2),
@@ -48,22 +47,27 @@ class AuthView extends GetView<AuthController> {
 
   @override
   Widget build(BuildContext context) {
-    return Obx(() {
-      switch (controller.currentScreen.value) {
-        case AuthScreen.login:
-          return const LoginScreen();
-        case AuthScreen.signup:
-          return const SignUpScreen();
-        case AuthScreen.forgotPassword:
-          return const ForgotPasswordScreen();
-        case AuthScreen.verification:
-          return const VerificationScreen();
-        case AuthScreen.sendOtp:
-          return const SendOtpScreen();
-        default:
-          return const SignUpScreen();
-      }
-    });
+    return WillPopScope(
+      onWillPop: () async {
+        return await controller.handleBackNavigation();
+      },
+      child: Obx(() {
+        switch (controller.currentScreen.value) {
+          case AuthScreen.login:
+            return const LoginScreen();
+          case AuthScreen.signup:
+            return const SignUpScreen();
+          case AuthScreen.forgotPassword:
+            return const ForgotPasswordScreen();
+          case AuthScreen.verification:
+            return const VerificationScreen();
+          case AuthScreen.sendOtp:
+            return const SendOtpScreen();
+          default:
+            return const SignUpScreen();
+        }
+      }),
+    );
   }
 }
 
@@ -101,7 +105,7 @@ class LoginScreen extends GetView<AuthController> {
               Row(
                 children: [
                   Obx(
-                    () => Checkbox(
+                        () => Checkbox(
                       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       activeColor: AppColors.appColor,
                       checkColor: Colors.white,
@@ -171,7 +175,7 @@ class LoginScreen extends GetView<AuthController> {
                   ),
                   SizedBox(width: 10),
                   GestureDetector(
-                    onTap: () => controller.navigateToLogin(),
+                    onTap: () => controller.navigateToSignUp(),
                     child: Text(
                       'Register',
                       style: h4.copyWith(
@@ -317,15 +321,24 @@ class ForgotPasswordScreen extends GetView<AuthController> {
               TitleSubtitle(
                 title: 'Forgot Password',
                 subtitle:
-                    'Select which contact details should we use to  reset your password',
+                'Select which contact details should we use to reset your password',
               ),
               const SizedBox(height: 40),
               GestureDetector(
-                onTap: ()=> controller.navigateToSendOtp(),
+                onTap: () {
+                  controller.setResetMethod(ResetMethod.email);
+                  controller.navigateToSendOtp();
+                },
                 child: SvgPicture.asset('assets/images/auth/via_email.svg'),
               ),
               const SizedBox(height: 10),
-              SvgPicture.asset('assets/images/auth/via_sms.svg'),
+              GestureDetector(
+                onTap: () {
+                  controller.setResetMethod(ResetMethod.sms);
+                  controller.navigateToSendOtp();
+                },
+                child: SvgPicture.asset('assets/images/auth/via_sms.svg'),
+              ),
             ],
           ),
         ),
@@ -335,7 +348,7 @@ class ForgotPasswordScreen extends GetView<AuthController> {
 }
 
 class SendOtpScreen extends GetView<AuthController> {
-  const SendOtpScreen ({super.key});
+  const SendOtpScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -350,17 +363,25 @@ class SendOtpScreen extends GetView<AuthController> {
               const SizedBox(height: 20),
               TitleSubtitle(
                 title: 'Forgot Password',
-                subtitle:
-                'Provide details',
+                subtitle: 'Provide details',
               ),
               const SizedBox(height: 40),
-              CustomTextField(
-                labelText: 'Enter email address',
-                prefixSvgPath: 'assets/images/auth/mail_icon.svg',
-                controller: controller.emailController,
-              ),
+              Obx(() => CustomTextField(
+                labelText: controller.resetMethod.value == ResetMethod.email
+                    ? 'Enter email address'
+                    : 'Enter phone number',
+                prefixSvgPath: controller.resetMethod.value == ResetMethod.email
+                    ? 'assets/images/auth/mail_icon.svg'
+                    : 'assets/images/auth/phone_icon.svg',
+                controller: controller.resetMethod.value == ResetMethod.email
+                    ? controller.emailController
+                    : controller.phoneController,
+              )),
               const SizedBox(height: 20),
-              CustomButton(label: 'Send OTP', onPressed: (){})
+              CustomButton(
+                label: 'Send OTP',
+                onPressed: () => controller.sendOtp(),
+              ),
             ],
           ),
         ),
@@ -383,17 +404,20 @@ class VerificationScreen extends GetView<AuthController> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               const SizedBox(height: 20),
-              TitleSubtitle(
-                title: 'Verify Your Email',
-                subtitle:
-                    'We\'ve sent a verification code to your email address. Please enter the code below.',
-              ),
+              Obx(() => TitleSubtitle(
+                title: controller.resetMethod.value == ResetMethod.email
+                    ? 'Verify Your Email'
+                    : 'Verify Your Phone',
+                subtitle: controller.resetMethod.value == ResetMethod.email
+                    ? 'Please enter the 4-digit OTP that sent at angelo@gmail.com'
+                    : 'Please enter the 4-digit OTP that sent at 123 456 789',
+              )),
               const SizedBox(height: 40),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: List.generate(
                   4,
-                  (index) => Container(
+                      (index) => Container(
                     width: 60,
                     height: 60,
                     decoration: BoxDecoration(
@@ -423,53 +447,20 @@ class VerificationScreen extends GetView<AuthController> {
                 ),
               ),
               const SizedBox(height: 32),
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: Obx(
-                  () => ElevatedButton(
-                    onPressed: controller.isLoading.value
-                        ? null
-                        : controller.verifyEmail,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue.shade600,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      elevation: 2,
-                    ),
-                    child: controller.isLoading.value
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                Colors.white,
-                              ),
-                            ),
-                          )
-                        : const Text(
-                            'Verify Email',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                  ),
-                ),
-              ),
+              CustomButton(label:  controller.resetMethod.value == ResetMethod.email
+                  ? 'Verify Email'
+                  : 'Verify Phone', onPressed: (){}),
               const SizedBox(height: 24),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
                     "Didn't receive the code? ",
-                    style: TextStyle(color: Colors.grey.shade600),
+                    style: h3.copyWith(color: AppColors.textColor),
                   ),
-                  TextButton(
-                    onPressed: controller.resendCode,
+                  SizedBox(width: 5),
+                  GestureDetector(
+                    onTap: controller.resendCode,
                     child: Text(
                       'Resend',
                       style: TextStyle(

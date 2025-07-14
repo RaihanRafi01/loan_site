@@ -1,9 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+enum AuthScreen {
+  welcome,
+  login,
+  signup,
+  forgotPassword,
+  verification,
+  sendOtp,
+}
+
+enum ResetMethod {
+  email,
+  sms,
+}
+
 class AuthController extends GetxController {
   // Current screen state
   final currentScreen = AuthScreen.signup.obs;
+  final resetMethod = ResetMethod.email.obs;
 
   // Form controllers
   final emailController = TextEditingController();
@@ -18,8 +33,14 @@ class AuthController extends GetxController {
   final isConfirmPasswordHidden = true.obs;
   final isTermsAccepted = false.obs;
   final isLoading = false.obs;
-
   final isRememberMe = false.obs;
+
+  // Navigation stack to track history
+  final navigationStack = <AuthScreen>[AuthScreen.signup].obs;
+
+  void setResetMethod(ResetMethod method) {
+    resetMethod.value = method;
+  }
 
   void toggleRememberMe(bool value) {
     isRememberMe.value = value;
@@ -27,33 +48,54 @@ class AuthController extends GetxController {
 
   // Navigation methods
   void navigateToWelcome() {
+    _addToNavigationStack(AuthScreen.welcome);
     currentScreen.value = AuthScreen.welcome;
     clearForm();
   }
 
   void navigateToLogin() {
+    _addToNavigationStack(AuthScreen.login);
     currentScreen.value = AuthScreen.login;
     clearForm();
   }
 
   void navigateToSignUp() {
+    _addToNavigationStack(AuthScreen.signup);
     currentScreen.value = AuthScreen.signup;
     clearForm();
   }
 
   void navigateToForgotPassword() {
+    _addToNavigationStack(AuthScreen.forgotPassword);
     currentScreen.value = AuthScreen.forgotPassword;
     clearForm();
   }
 
   void navigateToVerification() {
+    _addToNavigationStack(AuthScreen.verification);
     currentScreen.value = AuthScreen.verification;
     clearForm();
   }
 
   void navigateToSendOtp() {
+    _addToNavigationStack(AuthScreen.sendOtp);
     currentScreen.value = AuthScreen.sendOtp;
     clearForm();
+  }
+
+  Future<bool> handleBackNavigation() async {
+    if (navigationStack.length <= 1) {
+      return true; // Allow app to close if at root screen
+    }
+
+    navigationStack.removeLast();
+    currentScreen.value = navigationStack.last;
+    clearForm();
+    return false; // Prevent default back behavior
+  }
+
+  void _addToNavigationStack(AuthScreen screen) {
+    navigationStack.add(screen);
   }
 
   // Toggle methods
@@ -72,6 +114,10 @@ class AuthController extends GetxController {
   // Validation methods
   bool _validateEmail(String email) {
     return RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email);
+  }
+
+  bool _validatePhone(String phone) {
+    return RegExp(r'^\+?1?\d{9,15}$').hasMatch(phone);
   }
 
   bool _validatePassword(String password) {
@@ -113,10 +159,7 @@ class AuthController extends GetxController {
     isLoading.value = true;
 
     try {
-      // Simulate API call
       await Future.delayed(const Duration(seconds: 2));
-
-      // Show success message
       Get.snackbar(
         'Success',
         'Signed in successfully!',
@@ -124,11 +167,7 @@ class AuthController extends GetxController {
         backgroundColor: Colors.green.shade100,
         colorText: Colors.green.shade800,
       );
-
-      // Navigate to home or dashboard
-      // Get.offAllNamed('/home');
       clearForm();
-
     } catch (e) {
       Get.snackbar(
         'Error',
@@ -201,12 +240,8 @@ class AuthController extends GetxController {
     isLoading.value = true;
 
     try {
-      // Simulate API call
       await Future.delayed(const Duration(seconds: 2));
-
-      // Navigate to verification screen
       navigateToVerification();
-
       Get.snackbar(
         'Success',
         'Account created successfully! Please verify your email.',
@@ -214,7 +249,6 @@ class AuthController extends GetxController {
         backgroundColor: Colors.green.shade100,
         colorText: Colors.green.shade800,
       );
-
     } catch (e) {
       Get.snackbar(
         'Error',
@@ -228,8 +262,8 @@ class AuthController extends GetxController {
     }
   }
 
-  void sendResetLink() async {
-    if (!_validateEmail(emailController.text)) {
+  void sendOtp() async {
+    if (resetMethod.value == ResetMethod.email && !_validateEmail(emailController.text)) {
       Get.snackbar(
         'Error',
         'Please enter a valid email address',
@@ -240,27 +274,35 @@ class AuthController extends GetxController {
       return;
     }
 
+    if (resetMethod.value == ResetMethod.sms && !_validatePhone(phoneController.text)) {
+      Get.snackbar(
+        'Error',
+        'Please enter a valid phone number',
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: Colors.red.shade100,
+        colorText: Colors.red.shade800,
+      );
+      return;
+    }
+
     isLoading.value = true;
 
     try {
-      // Simulate API call
       await Future.delayed(const Duration(seconds: 2));
-
+      navigateToVerification();
       Get.snackbar(
         'Success',
-        'Password reset link sent to your email!',
+        resetMethod.value == ResetMethod.email
+            ? 'OTP sent to your email!'
+            : 'OTP sent to your phone!',
         snackPosition: SnackPosition.TOP,
         backgroundColor: Colors.green.shade100,
         colorText: Colors.green.shade800,
       );
-
-      // Navigate back to login
-      navigateToLogin();
-
     } catch (e) {
       Get.snackbar(
         'Error',
-        'Failed to send reset link. Please try again.',
+        'Failed to send OTP. Please try again.',
         snackPosition: SnackPosition.TOP,
         backgroundColor: Colors.red.shade100,
         colorText: Colors.red.shade800,
@@ -270,7 +312,7 @@ class AuthController extends GetxController {
     }
   }
 
-  void verifyEmail() async {
+  void verifyOtp() async {
     if (!_validateVerificationCode()) {
       Get.snackbar(
         'Error',
@@ -285,25 +327,21 @@ class AuthController extends GetxController {
     isLoading.value = true;
 
     try {
-      // Simulate API call
       await Future.delayed(const Duration(seconds: 2));
-
       Get.snackbar(
         'Success',
-        'Email verified successfully!',
+        resetMethod.value == ResetMethod.email
+            ? 'Email verified successfully!'
+            : 'Phone verified successfully!',
         snackPosition: SnackPosition.TOP,
         backgroundColor: Colors.green.shade100,
         colorText: Colors.green.shade800,
       );
-
-      // Navigate to home or dashboard
-      // Get.offAllNamed('/home');
-      clearForm();
-
+      navigateToLogin();
     } catch (e) {
       Get.snackbar(
         'Error',
-        'Failed to verify email. Please try again.',
+        'Failed to verify OTP. Please try again.',
         snackPosition: SnackPosition.TOP,
         backgroundColor: Colors.red.shade100,
         colorText: Colors.red.shade800,
@@ -317,17 +355,16 @@ class AuthController extends GetxController {
     isLoading.value = true;
 
     try {
-      // Simulate API call
       await Future.delayed(const Duration(seconds: 1));
-
       Get.snackbar(
         'Success',
-        'Verification code resent to your email!',
+        resetMethod.value == ResetMethod.email
+            ? 'Verification code resent to your email!'
+            : 'Verification code resent to your phone!',
         snackPosition: SnackPosition.TOP,
         backgroundColor: Colors.green.shade100,
         colorText: Colors.green.shade800,
       );
-
     } catch (e) {
       Get.snackbar(
         'Error',
@@ -341,14 +378,11 @@ class AuthController extends GetxController {
     }
   }
 
-  // Social login methods
   void signInWithGoogle() async {
     isLoading.value = true;
 
     try {
-      // Simulate Google sign-in
       await Future.delayed(const Duration(seconds: 2));
-
       Get.snackbar(
         'Success',
         'Signed in with Google successfully!',
@@ -356,11 +390,7 @@ class AuthController extends GetxController {
         backgroundColor: Colors.green.shade100,
         colorText: Colors.green.shade800,
       );
-
-      // Navigate to home or dashboard
-      // Get.offAllNamed('/home');
       clearForm();
-
     } catch (e) {
       Get.snackbar(
         'Error',
@@ -378,9 +408,7 @@ class AuthController extends GetxController {
     isLoading.value = true;
 
     try {
-      // Simulate Facebook sign-in
       await Future.delayed(const Duration(seconds: 2));
-
       Get.snackbar(
         'Success',
         'Signed in with Facebook successfully!',
@@ -388,11 +416,7 @@ class AuthController extends GetxController {
         backgroundColor: Colors.green.shade100,
         colorText: Colors.green.shade800,
       );
-
-      // Navigate to home or dashboard
-      // Get.offAllNamed('/home');
       clearForm();
-
     } catch (e) {
       Get.snackbar(
         'Error',
@@ -406,12 +430,12 @@ class AuthController extends GetxController {
     }
   }
 
-  // Clear form data
   void clearForm() {
     emailController.clear();
     passwordController.clear();
     confirmPasswordController.clear();
     nameController.clear();
+    phoneController.clear();
     for (var controller in verificationCodeControllers) {
       controller.clear();
     }
@@ -424,18 +448,10 @@ class AuthController extends GetxController {
     passwordController.dispose();
     confirmPasswordController.dispose();
     nameController.dispose();
+    phoneController.dispose();
     for (var controller in verificationCodeControllers) {
       controller.dispose();
     }
     super.onClose();
   }
-}
-
-enum AuthScreen {
-  welcome,
-  login,
-  signup,
-  forgotPassword,
-  verification,
-  sendOtp,
 }
