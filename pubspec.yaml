@@ -64,6 +64,7 @@ flutter:
   assets:
     - assets/images/onboarding/
     - assets/images/auth/
+    - assets/images/home/
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
 
