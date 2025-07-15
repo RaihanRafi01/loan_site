@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 class AppColors {
   static const Color appColor = Color(0xFF305C87);
   static const Color appColor2 = Color(0xFF1E90FF);
+  static const Color nav1 = Color(0xFF52A7F9);
+  static const Color nav2 = Color(0xFF186FC4);
   static const Color textColor = Color(0xFF253240);
   static const Color textColor2 = Color(0xFF6E6F70);
   static const Color textColor3 = Color(0xFF3277B9);

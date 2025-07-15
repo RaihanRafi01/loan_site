@@ -86,7 +86,7 @@ class HomeView extends GetView<HomeController> {
               // Progress Card
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.all(16 ),
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
                     colors: [AppColors.cardGradient1, AppColors.cardGradient2],
@@ -138,7 +138,7 @@ class HomeView extends GetView<HomeController> {
                     ),
                     const SizedBox(height: 16),
                     Container(
-                      height: 16,
+                      height: 10,
                       width: double.infinity,
                       decoration: BoxDecoration(
                         color: Colors.white,
