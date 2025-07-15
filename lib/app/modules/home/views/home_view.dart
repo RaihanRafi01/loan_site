@@ -12,39 +12,59 @@ class HomeView extends GetView<HomeController> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          print('Floating button pressed');
+        },
+        backgroundColor: AppColors.progressClr,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(30),
+        ),
+        child: SvgPicture.asset(
+          'assets/images/home/chat_floating_button.svg', // Replace with your SVG path
+        ),
+      ),
+      floatingActionButtonLocation: _CustomFloatingButtonLocation(),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                Row(children: [
-                  Image.asset('assets/images/home/user_image.png',scale: 4,),
-                  SizedBox(width: 16),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  Row(
                     children: [
-                      Text(
-                        'Angelo',
-                        style: h2.copyWith(
-                          color: AppColors.textColor,
-                          fontSize: 24,
-                        ),
+                      Image.asset(
+                        'assets/images/home/user_image.png',
+                        scale: 4,
                       ),
-                      Text(
-                        'Continue Your Journey',
-                        style: h4.copyWith(
-                          color: AppColors.blurtext4,
-                          fontSize: 16,
-                        ),
+                      SizedBox(width: 16),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Angelo',
+                            style: h2.copyWith(
+                              color: AppColors.textColor,
+                              fontSize: 24,
+                            ),
+                          ),
+                          Text(
+                            'Continue Your Journey',
+                            style: h4.copyWith(
+                              color: AppColors.blurtext4,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
-                ],),
-                SvgPicture.asset('assets/images/home/notification_icon.svg')
-              ],),
+                  SvgPicture.asset('assets/images/home/notification_icon.svg'),
+                ],
+              ),
               const SizedBox(height: 30),
               // Project Header
               Text(
@@ -63,7 +83,6 @@ class HomeView extends GetView<HomeController> {
                 ),
               ),
               const SizedBox(height: 20),
-        
               // Progress Card
               Container(
                 width: double.infinity,
@@ -119,15 +138,15 @@ class HomeView extends GetView<HomeController> {
                     ),
                     const SizedBox(height: 16),
                     Container(
-                      height: 16, // Increased for visibility
-                      width: double.infinity, // Extend to full width
+                      height: 16,
+                      width: double.infinity,
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(40),
                       ),
                       child: FractionallySizedBox(
-                        widthFactor: 0.4, // Progress bar at 85% width
-                        alignment: Alignment.centerLeft, // Start from the left
+                        widthFactor: 0.4,
+                        alignment: Alignment.centerLeft,
                         child: Container(
                           decoration: BoxDecoration(
                             color: AppColors.progressClr,
@@ -160,7 +179,6 @@ class HomeView extends GetView<HomeController> {
                 ),
               ),
               const SizedBox(height: 24),
-        
               // Project Milestones
               const Text(
                 'Project Milestones',
@@ -171,7 +189,6 @@ class HomeView extends GetView<HomeController> {
                 ),
               ),
               const SizedBox(height: 16),
-        
               Row(
                 children: [
                   Expanded(
@@ -196,7 +213,6 @@ class HomeView extends GetView<HomeController> {
                 ],
               ),
               const SizedBox(height: 12),
-        
               Row(
                 children: [
                   Expanded(
@@ -222,10 +238,7 @@ class HomeView extends GetView<HomeController> {
                 ],
               ),
               const SizedBox(height: 24),
-        
               // Next Steps
-
-        
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(16),
@@ -254,21 +267,19 @@ class HomeView extends GetView<HomeController> {
                 ),
               ),
               const SizedBox(height: 10),
-        
               // Action Buttons
               Row(
                 children: [
                   Expanded(
-                    child: SvgPicture.asset('assets/images/home/upload_photo.svg')
+                    child: SvgPicture.asset('assets/images/home/upload_photo.svg'),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: SvgPicture.asset('assets/images/home/view_instruction.svg')
+                    child: SvgPicture.asset('assets/images/home/view_instruction.svg'),
                   ),
                 ],
               ),
               const SizedBox(height: 16),
-        
               // Recent Updates
               Text(
                 'Recent Updates',
@@ -278,7 +289,6 @@ class HomeView extends GetView<HomeController> {
                 ),
               ),
               const SizedBox(height: 16),
-        
               _buildUpdateCard(
                 'Milestone Reminder',
                 'Plumbing work deadline is approaching in 3 days',
@@ -287,7 +297,6 @@ class HomeView extends GetView<HomeController> {
                 AppColors.textYellow,
               ),
               const SizedBox(height: 12),
-        
               _buildUpdateCard(
                 'Milestone Reminder',
                 'Electrical work milestone completed successfully',
@@ -302,7 +311,7 @@ class HomeView extends GetView<HomeController> {
     );
   }
 
-  Widget _buildMilestoneCard( String title, String svgPath, Color color, Color txtColor, bool isCompleted, {String? subtitle}) {
+  Widget _buildMilestoneCard(String title, String svgPath, Color color, Color txtColor, bool isCompleted, {String? subtitle}) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -328,7 +337,7 @@ class HomeView extends GetView<HomeController> {
               if (subtitle != null) ...[
                 Text(
                   subtitle,
-                  style:  h4.copyWith(
+                  style: h4.copyWith(
                     fontSize: 12,
                     color: txtColor,
                   ),
@@ -336,7 +345,6 @@ class HomeView extends GetView<HomeController> {
               ],
             ],
           ),
-
         ],
       ),
     );
@@ -349,8 +357,8 @@ class HomeView extends GetView<HomeController> {
         color: color,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: txtColor.withOpacity(0.1), // Border color (you can change to any color, e.g., Colors.black)
-          width: 1, // Border width (adjust as needed)
+          color: txtColor.withOpacity(0.1),
+          width: 1,
         ),
       ),
       child: Row(
@@ -383,5 +391,16 @@ class HomeView extends GetView<HomeController> {
         ],
       ),
     );
+  }
+}
+
+// Custom FloatingActionButtonLocation to move the button higher
+class _CustomFloatingButtonLocation extends FloatingActionButtonLocation {
+  @override
+  Offset getOffset(ScaffoldPrelayoutGeometry scaffoldGeometry) {
+    // Get the default endFloat position (bottom-right)
+    final Offset defaultOffset = FloatingActionButtonLocation.endFloat.getOffset(scaffoldGeometry);
+    // Move the button 20 pixels higher (adjust as needed)
+    return Offset(defaultOffset.dx, defaultOffset.dy - 40);
   }
 }
