@@ -166,7 +166,7 @@ class OnboardingStepsView extends GetView<OnboardingController> {
                                 label: 'Private Lender',
                                 onPressed: () {
                                   controller.showRegisterCard.value = false; // Hide card
-                                  Get.toNamed('/register?role=lender'); // Navigate with role
+                                  Get.to(AuthView());
                                 },
                               ),
                               const SizedBox(height: 20),
@@ -174,7 +174,7 @@ class OnboardingStepsView extends GetView<OnboardingController> {
                                 label: 'Borrower',
                                 onPressed: () {
                                   controller.showRegisterCard.value = false; // Hide card
-                                  Get.toNamed('/register?role=borrower'); // Navigate with role
+                                  Get.to(AuthView());
                                 },
                               ),
                             ],

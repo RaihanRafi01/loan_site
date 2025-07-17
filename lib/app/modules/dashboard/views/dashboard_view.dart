@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
+import 'package:loan_site/app/modules/contractor/views/contractor_view.dart';
 import 'package:loan_site/app/modules/home/views/home_view.dart';
 import '../../../../common/appColors.dart';
 import '../../../../common/customFont.dart';
@@ -18,7 +19,7 @@ class DashboardView extends GetView<DashboardController> {
     // List of pages to navigate
     final List<Widget> pages = [
       const HomeView(),
-      const SearchPage(),
+      const ContractorView(),
       const ProfilePage(),
       const SettingsPage(),
       const SettingsPage(),

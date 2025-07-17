@@ -10,6 +10,7 @@ class CustomTextField extends StatefulWidget {
   final bool obscureText;
   final TextEditingController controller;
   final TextInputType keyboardType;
+  final bool isNoIcon;
 
   const CustomTextField({
     super.key,
@@ -17,6 +18,7 @@ class CustomTextField extends StatefulWidget {
     required this.prefixSvgPath,
     this.suffixSvgPath,
     this.obscureText = false,
+    this.isNoIcon = false,
     required this.controller,
     this.keyboardType = TextInputType.text,
   });

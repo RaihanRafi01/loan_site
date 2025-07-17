@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
+import 'package:loan_site/app/modules/home/views/chat_home_view.dart';
 import '../../../../common/appColors.dart';
 import '../../../../common/customFont.dart';
 import '../controllers/home_controller.dart';
@@ -14,7 +15,7 @@ class HomeView extends GetView<HomeController> {
       backgroundColor: Colors.white,
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          print('Floating button pressed');
+          Get.to(ChatHomeView());
         },
         backgroundColor: AppColors.progressClr,
         shape: RoundedRectangleBorder(

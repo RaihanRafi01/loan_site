@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
+import 'package:loan_site/app/modules/dashboard/views/dashboard_view.dart';
 import 'package:loan_site/app/modules/home/views/home_view.dart';
 import 'package:loan_site/common/widgets/customButton.dart';
 import 'package:loan_site/common/widgets/customTextField.dart';
@@ -150,7 +151,7 @@ class LoginScreen extends GetView<AuthController> {
                 ),
                 const SizedBox(height: 20),
                 CustomButton(label: 'Log In', onPressed: () {
-                  Get.offAll(HomeView());
+                  Get.offAll(DashboardView());
                 }),
                 const SizedBox(height: 24),
                 Row(

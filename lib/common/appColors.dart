@@ -10,11 +10,14 @@ class AppColors {
   static const Color textColor3 = Color(0xFF3277B9);
   static const Color textColor4 = Color(0xFF10589E);
   static const Color textColor5 = Color(0xFF3D546C);
+  static const Color textColor6 = Color(0xFF5F5D5D);
+  static const Color textColor7 = Color(0xFF555555);
   static const Color blurtext = Color(0xFF5D5D5D);
   static const Color blurtext2 = Color(0xFF808284);
   static const Color blurtext3 = Color(0xFF6A707C);
   static const Color blurtext4 = Color(0xFF5C5C5C);
   static const Color blurtext5 = Color(0xFF676767);
+  static const Color blurtext6 = Color(0xFF706F6F);
   static const Color textInputField = Color.fromRGBO(30, 144, 255, 0.1);
   static const Color cardGradient1 = Color(0xFF5889F4);
   static const Color cardGradient2 = Color(0xFF2563EB);
@@ -23,9 +26,18 @@ class AppColors {
   static const Color greenCard = Color(0xFFE8F6EC);
   static const Color yellowCard = Color(0xFFF8F6E6);
   static const Color textGreen = Color(0xFF228036);
+  static const Color textGreen2 = Color(0xFF28B446);
   static const Color textYellow = Color(0xFF9E7F04);
   static const Color cardSky = Color(0xFFE2F0FD);
   static const Color gray1 = Color(0xFF787878);
+  static const Color gray2 = Color(0xFF707070);
+  static const Color gray3 = Color(0xFF242424);
+  static const Color gray4 = Color(0xFFE4E4E4);
+  static const Color botChatBc = Color(0xFFEEEEEE);
+  static const Color chatBc = Color(0xFFF7FBFD);
+  static const Color chatCard = Color(0xFFE2F0FD);
+  static const Color chatInput = Color(0xFFF1F1F1);
+  static const Color borderClr1 = Color(0xFFD5D5D5);
 
 
 
@@ -34,7 +46,6 @@ class AppColors {
   static const Color appColor3 = Color(0xB34568AC);
 
 
-  static const Color gray2 = Color(0xFF504F4F);
   static const Color cardBlurtext = Color(0xFFB4B4B4);
 
   static const Color textUserColor = Color(0xFF536DC9);
