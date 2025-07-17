@@ -3,10 +3,11 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../appColors.dart';
 import '../customFont.dart';
 
-class CustomTextField extends StatefulWidget {
+class CustomTextField extends StatelessWidget {
   final String labelText;
-  final String prefixSvgPath; // SVG asset path for prefix
-  final String? suffixSvgPath; // Optional SVG asset path for suffix (e.g., visibility toggle)
+  final String? prefixSvgPath; // Optional SVG asset path for prefix
+  final String? suffixSvgPath; // Optional SVG asset path for suffix
+  final VoidCallback? onSuffixTap; // Callback for suffix icon tap
   final bool obscureText;
   final TextEditingController controller;
   final TextInputType keyboardType;
@@ -15,8 +16,9 @@ class CustomTextField extends StatefulWidget {
   const CustomTextField({
     super.key,
     required this.labelText,
-    required this.prefixSvgPath,
+    this.prefixSvgPath,
     this.suffixSvgPath,
+    this.onSuffixTap, // New callback parameter
     this.obscureText = false,
     this.isNoIcon = false,
     required this.controller,
@@ -24,48 +26,31 @@ class CustomTextField extends StatefulWidget {
   });
 
   @override
-  State<CustomTextField> createState() => _CustomTextFieldState();
-}
-
-class _CustomTextFieldState extends State<CustomTextField> {
-  bool _isObscure = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _isObscure = widget.obscureText; // Initialize with the provided obscureText value
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 10),
       child: TextField(
-        controller: widget.controller,
-        obscureText: _isObscure,
-        keyboardType: widget.keyboardType,
+        controller: controller,
+        obscureText: obscureText,
+        keyboardType: keyboardType,
         decoration: InputDecoration(
-          hintText: widget.labelText,
+          hintText: labelText,
           hintStyle: h4.copyWith(color: AppColors.blurtext2, fontSize: 16),
-          prefixIcon: Padding(
+          prefixIcon: isNoIcon || prefixSvgPath == null
+              ? null
+              : Padding(
             padding: const EdgeInsets.only(left: 26, right: 5),
             child: SvgPicture.asset(
-              widget.prefixSvgPath,
+              prefixSvgPath!,
             ),
           ),
-          suffixIcon: widget.suffixSvgPath != null
+          suffixIcon: suffixSvgPath != null
               ? GestureDetector(
-            onTap: () {
-              setState(() {
-                _isObscure = !_isObscure; // Toggle visibility
-              });
-            },
+            onTap: onSuffixTap, // Use the provided callback
             child: Padding(
               padding: const EdgeInsets.only(right: 26, left: 5),
               child: SvgPicture.asset(
-                _isObscure
-                    ? widget.suffixSvgPath! // Show "visible" icon
-                    : 'assets/svg/visibility_off.svg', // Assume this is the hidden icon path
+                suffixSvgPath!, // Always show the provided suffix icon
               ),
             ),
           )

@@ -13,7 +13,6 @@ class ScheduleView extends GetView<ContractorController> {
   Widget build(BuildContext context) {
     Get.put(ContractorController());
 
-    // Define AppBar titles for each page
     final List<String> appBarTitles = [
       'Client Information',
       'Service Details',
@@ -38,32 +37,39 @@ class ScheduleView extends GetView<ContractorController> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Obx(() => controller.currentPage.value != 3 ? Row(
+            Obx(() => controller.currentPage.value != 3
+                ? Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: List.generate(3, (index) => Expanded(
-                child: Container(
-                  height: 5,
-                  margin: EdgeInsets.symmetric(horizontal: 2),
-                  color: index == controller.currentPage.value
-                      ? Colors.blue
-                      : index < controller.currentPage.value
-                      ? Colors.blue
-                      : Colors.grey,
+              children: List.generate(
+                3,
+                    (index) => Expanded(
+                  child: Container(
+                    height: 5,
+                    margin: EdgeInsets.symmetric(horizontal: 2),
+                    color: index == controller.currentPage.value
+                        ? Colors.blue
+                        : index < controller.currentPage.value
+                        ? Colors.blue
+                        : Colors.grey,
+                  ),
                 ),
-              )),
-            ) : SizedBox()),
+              ),
+            )
+                : SizedBox()),
             SizedBox(height: 20),
             Expanded(
               child: PageView(
                 controller: controller.pageController,
                 onPageChanged: (index) => controller.currentPage.value = index,
                 children: [
+                  // PAGE 1
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         'Personal Details',
-                        style: h3.copyWith(fontSize: 16, color: AppColors.textColor),
+                        style: h3.copyWith(
+                            fontSize: 16, color: AppColors.textColor),
                       ),
                       CustomTextField(
                         labelText: 'Enter full name',
@@ -82,12 +88,14 @@ class ScheduleView extends GetView<ContractorController> {
                       ),
                     ],
                   ),
+                  // PAGE 2
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         'Loan Information',
-                        style: h3.copyWith(fontSize: 16, color: AppColors.textColor),
+                        style: h3.copyWith(
+                            fontSize: 16, color: AppColors.textColor),
                       ),
                       CustomTextField(
                         labelText: 'Loan Amount',
@@ -101,36 +109,77 @@ class ScheduleView extends GetView<ContractorController> {
                       ),
                     ],
                   ),
+                  // PAGE 3
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Review Information',
-                        style: h3.copyWith(fontSize: 16, color: AppColors.textColor),
+                        'Location',
+                        style: h3.copyWith(
+                            fontSize: 16, color: AppColors.textColor),
                       ),
                       CustomTextField(
-                        labelText: 'Confirm Full Name',
-                        prefixSvgPath: 'assets/images/auth/person_icon.svg',
-                        controller: controller.nameController,
-                      ),
-                      CustomTextField(
-                        labelText: 'Confirm Email',
-                        prefixSvgPath: 'assets/images/auth/mail_icon.svg',
-                        controller: controller.emailController,
-                      ),
-                      CustomTextField(
-                        labelText: 'Confirm Loan Amount',
-                        prefixSvgPath: 'assets/images/auth/dollar_icon.svg',
+                        labelText: 'Enter address',
                         controller: controller.loanAmountController,
+                        isNoIcon: true,
+                      ),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: CustomTextField(
+                              labelText: 'City',
+                              controller: controller.nameController,
+                              isNoIcon: true,
+                            ),
+                          ),
+                          SizedBox(width: 10),
+                          Expanded(
+                            child: CustomTextField(
+                              labelText: 'Province',
+                              controller: controller.emailController,
+                              isNoIcon: true,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Text(
+                        'Time & Date',
+                        style: h3.copyWith(
+                            fontSize: 16, color: AppColors.textColor),
+                      ),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: CustomTextField(
+                              labelText: 'Time',
+                              controller: controller.timeController,
+                              suffixSvgPath:
+                              'assets/images/contractor/clock_icon.svg',
+                              onSuffixTap: () => controller.selectTime(context),
+                            ),
+                          ),
+                          SizedBox(width: 10),
+                          Expanded(
+                            child: CustomTextField(
+                              labelText: 'Date',
+                              controller: controller.dateController,
+                              suffixSvgPath:
+                              'assets/images/contractor/date_icon.svg',
+                              onSuffixTap: () => controller.selectDate(context),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
+                  // PAGE 4
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         'Client Information',
-                        style: h3.copyWith(fontSize: 16, color: AppColors.textColor),
+                        style: h3.copyWith(
+                            fontSize: 16, color: AppColors.textColor),
                       ),
                       CustomTextField(
                         labelText: 'Confirm Full Name',
@@ -146,6 +195,16 @@ class ScheduleView extends GetView<ContractorController> {
                         labelText: 'Confirm Loan Amount',
                         prefixSvgPath: 'assets/images/auth/dollar_icon.svg',
                         controller: controller.loanAmountController,
+                      ),
+                      CustomTextField(
+                        labelText: 'Confirm Time',
+                        prefixSvgPath: 'assets/images/contractor/clock_icon.svg',
+                        controller: controller.timeController,
+                      ),
+                      CustomTextField(
+                        labelText: 'Confirm Date',
+                        prefixSvgPath: 'assets/images/contractor/date_icon.svg',
+                        controller: controller.dateController,
                       ),
                     ],
                   ),
@@ -159,7 +218,7 @@ class ScheduleView extends GetView<ContractorController> {
                   : controller.currentPage.value == 1
                   ? 'Next'
                   : controller.currentPage.value == 2
-                  ? 'Done'
+                  ? 'Next'
                   : 'Submit',
               onPressed: () {
                 if (controller.currentPage.value < 3) {
@@ -169,10 +228,15 @@ class ScheduleView extends GetView<ContractorController> {
                   );
                 } else {
                   // Handle submit action here
-                  controller.pageController.nextPage(
-                    duration: Duration(milliseconds: 300),
-                    curve: Curves.ease,
-                  );
+                  // You might want to add validation before submission
+                  print('Submitted:');
+                  print('Name: ${controller.nameController.text}');
+                  print('Email: ${controller.emailController.text}');
+                  print('Phone: ${controller.phoneController.text}');
+                  print('Loan Amount: ${controller.loanAmountController.text}');
+                  print('Loan Term: ${controller.loanTermController.text}');
+                  print('Time: ${controller.timeController.text}');
+                  print('Date: ${controller.dateController.text}');
                 }
               },
             )),
