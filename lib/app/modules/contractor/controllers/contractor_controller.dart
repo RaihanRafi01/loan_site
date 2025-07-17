@@ -9,14 +9,19 @@ class ContractorController extends GetxController {
   final nameController = TextEditingController();
   final emailController = TextEditingController();
   final phoneController = TextEditingController();
-  final loanAmountController = TextEditingController();
-  final loanTermController = TextEditingController();
+  final serviceTypeController = TextEditingController();
+  final flooringTypeController = TextEditingController();
+  final approxAreaController = TextEditingController();
   final timeController = TextEditingController();
   final dateController = TextEditingController();
 
   // Observable variables for time and date
   var selectedTime = ''.obs;
   var selectedDate = ''.obs;
+
+  final selectedServiceType = ''.obs;
+  final selectedFlooringType = ''.obs;
+  final selectedApproxArea = ''.obs;
 
   @override
   void onInit() {
@@ -30,9 +35,10 @@ class ContractorController extends GetxController {
     nameController.dispose();
     emailController.dispose();
     phoneController.dispose();
-    loanAmountController.dispose();
-    loanTermController.dispose();
+    serviceTypeController.dispose();
+    flooringTypeController.dispose();
     timeController.dispose();
+    approxAreaController.dispose();
     dateController.dispose();
     super.onClose();
   }

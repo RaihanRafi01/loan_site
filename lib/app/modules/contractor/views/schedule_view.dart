@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:loan_site/app/modules/contractor/controllers/contractor_controller.dart';
 import 'package:loan_site/common/widgets/customButton.dart';
 import 'package:loan_site/common/widgets/customTextField.dart';
 import '../../../../common/appColors.dart';
 import '../../../../common/customFont.dart';
+import '../../../../common/widgets/customDropDown.dart';
+
 
 class ScheduleView extends GetView<ContractorController> {
   const ScheduleView({super.key});
@@ -93,20 +96,49 @@ class ScheduleView extends GetView<ContractorController> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Loan Information',
+                        'Select Service Type',
                         style: h3.copyWith(
                             fontSize: 16, color: AppColors.textColor),
                       ),
-                      CustomTextField(
-                        labelText: 'Loan Amount',
-                        prefixSvgPath: 'assets/images/auth/dollar_icon.svg',
-                        controller: controller.loanAmountController,
-                      ),
-                      CustomTextField(
-                        labelText: 'Loan Term (months)',
-                        prefixSvgPath: 'assets/images/auth/calendar_icon.svg',
-                        controller: controller.loanTermController,
-                      ),
+                      Obx(() => CustomDropdown(
+                        labelText: 'Service Type',
+                        value: controller.selectedServiceType.value.isEmpty
+                            ? null
+                            : controller.selectedServiceType.value,
+                        items: ['Consultation', 'Installation', 'Repair'],
+                        onChanged: (value) {
+                          if (value != null) {
+                            controller.selectedServiceType.value = value;
+                            controller.serviceTypeController.text = value;
+                          }
+                        },
+                      )),
+                      Obx(() => CustomDropdown(
+                        labelText: 'Flooring Type',
+                        value: controller.selectedFlooringType.value.isEmpty
+                            ? null
+                            : controller.selectedFlooringType.value,
+                        items: ['Hardwood', 'Vinyl', 'Laminate', 'Tile'],
+                        onChanged: (value) {
+                          if (value != null) {
+                            controller.selectedFlooringType.value = value;
+                            controller.flooringTypeController.text = value;
+                          }
+                        },
+                      )),
+                      Obx(() => CustomDropdown(
+                        labelText: 'Approx. Area',
+                        value: controller.selectedApproxArea.value.isEmpty
+                            ? null
+                            : controller.selectedApproxArea.value,
+                        items: ['ft', 'cm', 'inch', 'meter'],
+                        onChanged: (value) {
+                          if (value != null) {
+                            controller.selectedApproxArea.value = value;
+                            controller.approxAreaController.text = value;
+                          }
+                        },
+                      )),
                     ],
                   ),
                   // PAGE 3
@@ -120,7 +152,7 @@ class ScheduleView extends GetView<ContractorController> {
                       ),
                       CustomTextField(
                         labelText: 'Enter address',
-                        controller: controller.loanAmountController,
+                        controller: controller.emailController,
                         isNoIcon: true,
                       ),
                       Row(
@@ -194,7 +226,7 @@ class ScheduleView extends GetView<ContractorController> {
                       CustomTextField(
                         labelText: 'Confirm Loan Amount',
                         prefixSvgPath: 'assets/images/auth/dollar_icon.svg',
-                        controller: controller.loanAmountController,
+                        controller: controller.serviceTypeController,
                       ),
                       CustomTextField(
                         labelText: 'Confirm Time',
@@ -227,14 +259,12 @@ class ScheduleView extends GetView<ContractorController> {
                     curve: Curves.ease,
                   );
                 } else {
-                  // Handle submit action here
-                  // You might want to add validation before submission
                   print('Submitted:');
                   print('Name: ${controller.nameController.text}');
                   print('Email: ${controller.emailController.text}');
                   print('Phone: ${controller.phoneController.text}');
-                  print('Loan Amount: ${controller.loanAmountController.text}');
-                  print('Loan Term: ${controller.loanTermController.text}');
+                  print('Loan Amount: ${controller.serviceTypeController.text}');
+                  print('Loan Term: ${controller.approxAreaController.text}');
                   print('Time: ${controller.timeController.text}');
                   print('Date: ${controller.dateController.text}');
                 }
