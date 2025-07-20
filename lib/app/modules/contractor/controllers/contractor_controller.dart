@@ -14,10 +14,14 @@ class ContractorController extends GetxController {
   final approxAreaController = TextEditingController();
   final timeController = TextEditingController();
   final dateController = TextEditingController();
+  final provinceController = TextEditingController();
+  final cityController = TextEditingController();
+  final addressController = TextEditingController();
 
   // Observable variables for time and date
   var selectedTime = ''.obs;
   var selectedDate = ''.obs;
+  var showConfirm = false.obs;
 
   final selectedServiceType = ''.obs;
   final selectedFlooringType = ''.obs;

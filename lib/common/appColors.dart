@@ -18,6 +18,8 @@ class AppColors {
   static const Color blurtext4 = Color(0xFF5C5C5C);
   static const Color blurtext5 = Color(0xFF676767);
   static const Color blurtext6 = Color(0xFF706F6F);
+  static const Color blurtext7 = Color(0xFF6E6E6E);
+  static const Color blurtext8 = Color(0xFF596675);
   static const Color textInputField = Color.fromRGBO(30, 144, 255, 0.1);
   static const Color cardGradient1 = Color(0xFF5889F4);
   static const Color cardGradient2 = Color(0xFF2563EB);
