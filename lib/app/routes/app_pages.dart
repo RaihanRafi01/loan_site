@@ -14,6 +14,8 @@ import '../modules/onboarding/bindings/onboarding_binding.dart';
 import '../modules/onboarding/views/onboarding_view.dart';
 import '../modules/progress/bindings/progress_binding.dart';
 import '../modules/progress/views/progress_view.dart';
+import '../modules/project/bindings/project_binding.dart';
+import '../modules/project/views/project_view.dart';
 import '../modules/settings/bindings/settings_binding.dart';
 import '../modules/settings/views/settings_view.dart';
 
@@ -64,6 +66,11 @@ class AppPages {
       name: _Paths.COMMUNITY,
       page: () => const CommunityView(),
       binding: CommunityBinding(),
+    ),
+    GetPage(
+      name: _Paths.PROJECT,
+      page: () => const ProjectView(),
+      binding: ProjectBinding(),
     ),
   ];
 }

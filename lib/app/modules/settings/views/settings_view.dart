@@ -3,6 +3,8 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:loan_site/app/modules/auth/views/auth_view.dart';
 import 'package:loan_site/app/modules/settings/views/account_settings_view.dart';
+import 'package:loan_site/app/modules/settings/views/help_support_view.dart';
+import 'package:loan_site/app/modules/settings/views/terms_condition_view.dart';
 import '../../../../common/appColors.dart';
 import '../../../../common/customFont.dart';
 import '../controllers/settings_controller.dart';
@@ -74,9 +76,7 @@ class SettingsView extends GetView<SettingsController> {
                   _buildSettingsItem(
                     svgPath: 'assets/images/settings/settings_icon.svg',
                     title: 'Account Settings',
-                    onTap: () {
-                      Get.to(AccountSettingsView());
-                    },
+                    onTap: ()=> Get.to(AccountSettingsView()),
                   ),
                   _buildSettingsItem(
                     svgPath: 'assets/images/settings/noti_icon.svg',
@@ -97,16 +97,12 @@ class SettingsView extends GetView<SettingsController> {
                   _buildSettingsItem(
                     svgPath: 'assets/images/settings/help_icon.svg',
                     title: 'Help & Support',
-                    onTap: () {
-                      // Handle help & support tap
-                    },
+                    onTap: ()=> Get.to(HelpSupportView()),
                   ),
                   _buildSettingsItem(
                     svgPath: 'assets/images/settings/terms_icon.svg',
                     title: 'Terms & Condition',
-                    onTap: () {
-                      // Handle terms & condition tap
-                    },
+                    onTap: ()=> Get.to(TermsConditionView()),
                   ),
                 ],
               ),

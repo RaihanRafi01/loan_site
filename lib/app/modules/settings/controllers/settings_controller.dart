@@ -8,6 +8,7 @@ class SettingsController extends GetxController {
   final passwordController = TextEditingController();
   final newPasswordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
+  final descriptionController = TextEditingController();
 
   // Reactive boolean to manage obscureText state for password field
   final obscureCurrentPassword = true.obs;
@@ -44,6 +45,7 @@ class SettingsController extends GetxController {
     phoneController.dispose();
     passwordController.dispose();
     confirmPasswordController.dispose();
+    descriptionController.dispose();
     super.onClose();
   }
 }

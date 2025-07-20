@@ -11,6 +11,8 @@ abstract class Routes {
   static const PROGRESS = _Paths.PROGRESS;
   static const SETTINGS = _Paths.SETTINGS;
   static const COMMUNITY = _Paths.COMMUNITY;
+  static const HELP_SUPPORT = _Paths.HELP_SUPPORT;
+  static const PROJECT = _Paths.PROJECT;
 }
 
 abstract class _Paths {
@@ -23,4 +25,6 @@ abstract class _Paths {
   static const PROGRESS = '/progress';
   static const SETTINGS = '/settings';
   static const COMMUNITY = '/community';
+  static const HELP_SUPPORT = '/help-support';
+  static const PROJECT = '/project';
 }

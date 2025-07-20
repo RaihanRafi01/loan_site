@@ -69,6 +69,7 @@ class AccountSettingsView extends GetView<SettingsController> {
                     ),
                   ),
                   CustomTextField(
+                    radius: 10,
                     labelText: 'Sam Lee',
                     controller: controller.nameController,
                   ),
@@ -80,6 +81,7 @@ class AccountSettingsView extends GetView<SettingsController> {
                     ),
                   ),
                   CustomTextField(
+                    radius: 10,
                     labelText: 'Samlee@gmail.com',
                     controller: controller.emailController,
                   ),
@@ -91,6 +93,7 @@ class AccountSettingsView extends GetView<SettingsController> {
                     ),
                   ),
                   CustomTextField(
+                    radius: 10,
                     labelText: '123 456 785',
                     controller: controller.phoneController,
                   ),
@@ -103,6 +106,7 @@ class AccountSettingsView extends GetView<SettingsController> {
                   ),
                   Obx(
                         () => CustomTextField(
+                          radius: 10,
                       labelText: 'Enter password',
                       controller: controller.passwordController,
                       obscureText: controller.obscureCurrentPassword.value,

@@ -12,6 +12,8 @@ class CustomTextField extends StatelessWidget {
   final TextEditingController controller;
   final TextInputType keyboardType;
   final bool isNoIcon;
+  final int maxLine;
+  final double radius;
 
   const CustomTextField({
     super.key,
@@ -23,6 +25,8 @@ class CustomTextField extends StatelessWidget {
     this.isNoIcon = false,
     required this.controller,
     this.keyboardType = TextInputType.text,
+    this.maxLine = 1,
+    this.radius = 100,
   });
 
   @override
@@ -30,6 +34,7 @@ class CustomTextField extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 10),
       child: TextField(
+        maxLines: maxLine,
         controller: controller,
         obscureText: obscureText,
         keyboardType: keyboardType,
@@ -58,11 +63,11 @@ class CustomTextField extends StatelessWidget {
           filled: true,
           fillColor: AppColors.textInputField,
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(100),
+            borderRadius: BorderRadius.circular(radius),
             borderSide: BorderSide.none,
           ),
           focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(100),
+            borderRadius: BorderRadius.circular(radius),
             borderSide: BorderSide(color: AppColors.appColor),
           ),
         ),

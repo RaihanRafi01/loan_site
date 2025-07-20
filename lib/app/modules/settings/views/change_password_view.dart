@@ -20,7 +20,7 @@ class ChangePasswordView extends GetView<SettingsController> {
         elevation: 0,
         scrolledUnderElevation: 0,
         title: Text(
-          'Account Settings',
+          'Change Password',
           style: h2.copyWith(
             color: AppColors.textColor,
             fontSize: 22,
@@ -68,6 +68,7 @@ class ChangePasswordView extends GetView<SettingsController> {
                   ),
                   Obx(
                         () => CustomTextField(
+                          radius: 10,
                       labelText: 'Enter password',
                       controller: controller.passwordController,
                       obscureText: controller.obscureCurrentPassword.value,
@@ -86,6 +87,7 @@ class ChangePasswordView extends GetView<SettingsController> {
                   ),
                   Obx(
                         () => CustomTextField(
+                          radius: 10,
                       labelText: 'Enter password',
                       controller: controller.newPasswordController,
                       obscureText: controller.obscureNewPassword.value,
@@ -104,6 +106,7 @@ class ChangePasswordView extends GetView<SettingsController> {
                   ),
                   Obx(
                         () => CustomTextField(
+                          radius: 10,
                       labelText: 'Enter password',
                       controller: controller.confirmPasswordController,
                       obscureText: controller.obscureConfirmPassword.value,

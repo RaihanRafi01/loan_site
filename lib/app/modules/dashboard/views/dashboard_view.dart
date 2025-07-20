@@ -29,7 +29,7 @@ class DashboardView extends GetView<DashboardController> {
     ];
 
     return Scaffold(
-      body: Obx(() => pages[controller.selectedIndex.value]), // Display the current page
+      body: SafeArea(child: Obx(() => pages[controller.selectedIndex.value])), // Display the current page
       bottomNavigationBar: Obx(() => Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
@@ -39,7 +39,7 @@ class DashboardView extends GetView<DashboardController> {
           ),
         ),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 25.0, vertical: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 25.0, vertical: 20),
           child: GNav(
             backgroundColor: Colors.transparent, // Set to transparent to show the gradient
             color: Colors.black, // Inactive icon and text color
