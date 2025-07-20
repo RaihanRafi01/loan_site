@@ -14,7 +14,7 @@ class UploadPhotoView extends GetView {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.chatBc,
+      backgroundColor: AppColors.appBc,
       body: SafeArea(
         child: Column(
           children: [

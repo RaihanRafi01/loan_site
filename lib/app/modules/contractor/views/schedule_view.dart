@@ -28,7 +28,7 @@ class ScheduleView extends GetView<ContractorController> {
             () => Stack(
       children: [
         Scaffold(
-          backgroundColor: Colors.white,
+          backgroundColor: AppColors.appBc,
           appBar: AppBar(
             title: Obx(
               () => Text(

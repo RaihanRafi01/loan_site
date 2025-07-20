@@ -13,7 +13,7 @@ class ContractorDetailsView extends GetView {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.chatBc,
+      backgroundColor: AppColors.appBc,
       body: SingleChildScrollView(
         child: SafeArea(
           child: Column(

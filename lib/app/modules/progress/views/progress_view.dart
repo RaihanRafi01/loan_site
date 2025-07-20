@@ -11,9 +11,9 @@ class ProgressView extends GetView<ProgressController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.appBc,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.appBc,
         scrolledUnderElevation: 0,
         elevation: 0,
         title: const Text('Progress'),
