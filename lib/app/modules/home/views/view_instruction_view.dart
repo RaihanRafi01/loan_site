@@ -2,16 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
 import 'package:get/get.dart';
-import 'package:loan_site/app/modules/contractor/views/contractor_details_view.dart';
+import 'package:loan_site/app/modules/contractor/views/contractor_view.dart';
 
 import '../../../../common/appColors.dart';
 import '../../../../common/customFont.dart';
-import '../../home/views/chat_home_view.dart';
-import '../controllers/contractor_controller.dart';
+import 'chat_home_view.dart';
 
-class ContractorView extends GetView<ContractorController> {
-  const ContractorView({super.key});
-
+class ViewInstructionView extends GetView {
+  const ViewInstructionView({super.key});
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -52,7 +50,7 @@ class ContractorView extends GetView<ContractorController> {
             SizedBox(height: 16),
             // Chat messages area
             Expanded(
-              flex: 4,
+              flex: 7,
               child: ListView(
                 padding: const EdgeInsets.all(16),
                 children: [
@@ -65,7 +63,21 @@ class ContractorView extends GetView<ContractorController> {
 
                   // Second AI message
                   ChatHomeView().buildAIMessage(
-                    "Do you need any help? I am here to assist you.",
+                    "Do you need Contractor nearby?",
+                    "",
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Second AI message
+                  ChatHomeView().buildUserMessage(
+                    "Yes, I need",
+                    "",
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Second AI message
+                  ChatHomeView().buildAIMessage(
+                    "I share you a list of contractor company in your nearby location",
                     "",
                   ),
                 ],
@@ -73,7 +85,7 @@ class ContractorView extends GetView<ContractorController> {
             ),
 
             Expanded(
-              flex: 7,
+              flex: 5,
               child: ListView(
                 padding: const EdgeInsets.all(16),
                 children: [
@@ -95,7 +107,7 @@ class ContractorView extends GetView<ContractorController> {
                   ),
 
                   // First AI message
-                  buildContractor(
+                  ContractorView().buildContractor(
                     'assets/images/contractor/contractor_image.png',
                     'BlueWave Plumbing',
                     'ST 12345',
@@ -105,7 +117,7 @@ class ContractorView extends GetView<ContractorController> {
                   const SizedBox(height: 5),
 
                   // Second AI message
-                  buildContractor(
+                  ContractorView().buildContractor(
                     'assets/images/contractor/contractor_image.png',
                     'PipeMasters Plumbing',
                     'ST 12345',
@@ -115,7 +127,7 @@ class ContractorView extends GetView<ContractorController> {
                   const SizedBox(height: 5),
 
                   // Second AI message
-                  buildContractor(
+                  ContractorView().buildContractor(
                     'assets/images/contractor/contractor_image.png',
                     'ClearFlow Plumbing Solutions',
                     'ST 12345',
@@ -189,55 +201,6 @@ class ContractorView extends GetView<ContractorController> {
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-
-  Widget buildContractor(
-    String imagePath,
-    String title,
-    String location,
-    String rating,
-    String available,
-  ) {
-    return GestureDetector(
-      onTap: ()=> Get.to(ContractorDetailsView()),
-      child: Card(
-        elevation: 0.5,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(6), // Adjust radius here
-        ),
-        color: Colors.white,
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Image.asset(imagePath),
-              SizedBox(width: 20),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: h3.copyWith(fontSize: 16, color: AppColors.textColor),
-                  ),
-                  SizedBox(height: 4),
-                  Row(children: [
-                    SvgPicture.asset('assets/images/contractor/location.svg'),
-                    SizedBox(width: 5),
-                    Text(location,style: h4.copyWith(color: AppColors.blurtext6,fontSize: 14),),
-                    SizedBox(width: 15),
-                    SvgPicture.asset('assets/images/contractor/star.svg'),
-                    SizedBox(width: 5),
-                    Text(rating,style: h3.copyWith(color: AppColors.textColor,fontSize: 14))]),
-                  SizedBox(height: 4),
-                  Text(available,style: h4.copyWith(color: AppColors.textGreen2,fontSize: 14)),
-                ],
-              ),
-            ],
-          ),
         ),
       ),
     );

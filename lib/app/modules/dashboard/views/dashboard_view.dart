@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
+import 'package:loan_site/app/modules/community/views/community_view.dart';
 import 'package:loan_site/app/modules/contractor/views/contractor_view.dart';
 import 'package:loan_site/app/modules/home/views/home_view.dart';
+import 'package:loan_site/app/modules/progress/views/progress_view.dart';
+import 'package:loan_site/app/modules/settings/views/settings_view.dart';
 import '../../../../common/appColors.dart';
 import '../../../../common/customFont.dart';
 import '../controllers/dashboard_controller.dart';
@@ -20,9 +23,9 @@ class DashboardView extends GetView<DashboardController> {
     final List<Widget> pages = [
       const HomeView(),
       const ContractorView(),
-      const ProfilePage(),
-      const SettingsPage(),
-      const SettingsPage(),
+      const ProgressView(),
+      const CommunityView(),
+      const SettingsView(),
     ];
 
     return Scaffold(
@@ -110,49 +113,6 @@ class DashboardView extends GetView<DashboardController> {
           ),
         ),
       )),
-    );
-  }
-}
-
-// Example page classes (create these in separate files)
-class SearchPage extends StatelessWidget {
-  const SearchPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(
-      child: Text(
-        'Search Page',
-        style: TextStyle(fontSize: 20),
-      ),
-    );
-  }
-}
-
-class ProfilePage extends StatelessWidget {
-  const ProfilePage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(
-      child: Text(
-        'Profile Page',
-        style: TextStyle(fontSize: 20),
-      ),
-    );
-  }
-}
-
-class SettingsPage extends StatelessWidget {
-  const SettingsPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(
-      child: Text(
-        'Settings Page',
-        style: TextStyle(fontSize: 20),
-      ),
     );
   }
 }

@@ -1,74 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
-import 'package:loan_site/app/modules/home/views/chat_home_view.dart';
-import 'package:loan_site/app/modules/home/views/upload_photo_view.dart';
-import 'package:loan_site/app/modules/home/views/view_instruction_view.dart';
 import '../../../../common/appColors.dart';
 import '../../../../common/customFont.dart';
-import '../controllers/home_controller.dart';
+import '../controllers/progress_controller.dart';
 
-class HomeView extends GetView<HomeController> {
-  const HomeView({super.key});
+class ProgressView extends GetView<ProgressController> {
+  const ProgressView({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Get.to(ChatHomeView());
-        },
-        backgroundColor: AppColors.progressClr,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(30),
-        ),
-        child: SvgPicture.asset(
-          'assets/images/home/chat_floating_button.svg', // Replace with your SVG path
-        ),
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        scrolledUnderElevation: 0,
+        elevation: 0,
+        title: const Text('Progress'),
+        centerTitle: true,
       ),
-      floatingActionButtonLocation: _CustomFloatingButtonLocation(),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    children: [
-                      Image.asset(
-                        'assets/images/home/user_image.png',
-                        scale: 4,
-                      ),
-                      SizedBox(width: 16),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Angelo',
-                            style: h2.copyWith(
-                              color: AppColors.textColor,
-                              fontSize: 24,
-                            ),
-                          ),
-                          Text(
-                            'Continue Your Journey',
-                            style: h4.copyWith(
-                              color: AppColors.blurtext4,
-                              fontSize: 16,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  SvgPicture.asset('assets/images/home/notification_icon.svg'),
-                ],
-              ),
-              const SizedBox(height: 30),
               // Project Header
               Text(
                 'Sunset Grove Residences',
@@ -89,7 +45,7 @@ class HomeView extends GetView<HomeController> {
               // Progress Card
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.all(16 ),
+                padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
                     colors: [AppColors.cardGradient1, AppColors.cardGradient2],
@@ -181,6 +137,17 @@ class HomeView extends GetView<HomeController> {
                   ],
                 ),
               ),
+              const SizedBox(height: 24),
+
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  Expanded(child: _buildStatCard('12', 'Days Remaining', AppColors.clrOrange)),
+                  Expanded(child: _buildStatCard('12', 'Budget Used', AppColors.clrGreen)),
+                  Expanded(child: _buildStatCard('4', 'Task Done', AppColors.clrBrown)),
+                ],
+              ),
+
               const SizedBox(height: 24),
               // Project Milestones
               const Text(
@@ -274,42 +241,52 @@ class HomeView extends GetView<HomeController> {
               Row(
                 children: [
                   Expanded(
-                    child: GestureDetector(
-                      onTap: ()=> Get.to(UploadPhotoView()),
-                        child: SvgPicture.asset('assets/images/home/upload_photo.svg')),
+                    child: SvgPicture.asset('assets/images/home/upload_photo.svg'),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: GestureDetector(
-                        onTap: ()=> Get.to(ViewInstructionView()),
-                        child: SvgPicture.asset('assets/images/home/view_instruction.svg')),
+                    child: SvgPicture.asset('assets/images/home/view_instruction.svg'),
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
-              // Recent Updates
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatCard(String value, String label, Color color) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      child: Card(
+        color: Colors.white,
+        elevation: 1,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(6),
+        ),
+        child: Container(
+          height: 120,
+          padding: EdgeInsets.all(8),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
               Text(
-                'Recent Updates',
-                style: h3.copyWith(
-                  fontSize: 20,
-                  color: AppColors.textColor,
+                value,
+                textAlign: TextAlign.center,
+                style: h1.copyWith(
+                  fontSize: 32,
+                  color: color,
                 ),
               ),
-              const SizedBox(height: 16),
-              _buildUpdateCard(
-                'Milestone Reminder',
-                'Plumbing work deadline is approaching in 3 days',
-                'assets/images/home/info_icon.svg',
-                AppColors.yellowCard,
-                AppColors.textYellow,
-              ),
-              const SizedBox(height: 12),
-              _buildUpdateCard(
-                'Milestone Reminder',
-                'Electrical work milestone completed successfully',
-                'assets/images/home/tic_icon.svg',
-                AppColors.greenCard,
-                AppColors.textGreen,
+              SizedBox(height: 4),
+              Text(
+                label,
+                textAlign: TextAlign.center,
+                style: h4.copyWith(
+                  fontSize: 14,
+                  color: color,
+                ),
               ),
             ],
           ),
@@ -355,59 +332,5 @@ class HomeView extends GetView<HomeController> {
         ],
       ),
     );
-  }
-
-  Widget _buildUpdateCard(String title, String description, String svgPath, Color color, Color txtColor) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: txtColor.withOpacity(0.1),
-          width: 1,
-        ),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SvgPicture.asset(svgPath),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: h4.copyWith(
-                    fontSize: 16,
-                    color: txtColor,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  description,
-                  style: h4.copyWith(
-                    fontSize: 14,
-                    color: AppColors.gray1,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// Custom FloatingActionButtonLocation to move the button higher
-class _CustomFloatingButtonLocation extends FloatingActionButtonLocation {
-  @override
-  Offset getOffset(ScaffoldPrelayoutGeometry scaffoldGeometry) {
-    // Get the default endFloat position (bottom-right)
-    final Offset defaultOffset = FloatingActionButtonLocation.endFloat.getOffset(scaffoldGeometry);
-    // Move the button 20 pixels higher (adjust as needed)
-    return Offset(defaultOffset.dx, defaultOffset.dy - 40);
   }
 }

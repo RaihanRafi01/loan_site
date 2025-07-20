@@ -2,6 +2,8 @@ import 'package:get/get.dart';
 
 import '../modules/auth/bindings/auth_binding.dart';
 import '../modules/auth/views/auth_view.dart';
+import '../modules/community/bindings/community_binding.dart';
+import '../modules/community/views/community_view.dart';
 import '../modules/contractor/bindings/contractor_binding.dart';
 import '../modules/contractor/views/contractor_view.dart';
 import '../modules/dashboard/bindings/dashboard_binding.dart';
@@ -10,6 +12,10 @@ import '../modules/home/bindings/home_binding.dart';
 import '../modules/home/views/home_view.dart';
 import '../modules/onboarding/bindings/onboarding_binding.dart';
 import '../modules/onboarding/views/onboarding_view.dart';
+import '../modules/progress/bindings/progress_binding.dart';
+import '../modules/progress/views/progress_view.dart';
+import '../modules/settings/bindings/settings_binding.dart';
+import '../modules/settings/views/settings_view.dart';
 
 part 'app_routes.dart';
 
@@ -43,6 +49,21 @@ class AppPages {
       name: _Paths.CONTRACTOR,
       page: () => const ContractorView(),
       binding: ContractorBinding(),
+    ),
+    GetPage(
+      name: _Paths.PROGRESS,
+      page: () => const ProgressView(),
+      binding: ProgressBinding(),
+    ),
+    GetPage(
+      name: _Paths.SETTINGS,
+      page: () => const SettingsView(),
+      binding: SettingsBinding(),
+    ),
+    GetPage(
+      name: _Paths.COMMUNITY,
+      page: () => const CommunityView(),
+      binding: CommunityBinding(),
     ),
   ];
 }
