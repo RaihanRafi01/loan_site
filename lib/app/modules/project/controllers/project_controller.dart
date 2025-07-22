@@ -13,5 +13,7 @@ class ProjectController extends GetxController {
   final projectEndDateController = TextEditingController();
   final projectDescriptionController = TextEditingController();
 
+  var currentStep = 1.obs;
+
 
 }
