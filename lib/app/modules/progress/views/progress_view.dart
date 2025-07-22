@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
+import 'package:loan_site/app/modules/home/views/home_view.dart';
 import '../../../../common/appColors.dart';
 import '../../../../common/customFont.dart';
+import '../../home/views/upload_photo_view.dart';
+import '../../home/views/view_instruction_view.dart';
 import '../controllers/progress_controller.dart';
 
 class ProgressView extends GetView<ProgressController> {
@@ -144,7 +147,7 @@ class ProgressView extends GetView<ProgressController> {
                 children: [
                   Expanded(child: _buildStatCard('12', 'Days Remaining', AppColors.clrOrange)),
                   Expanded(child: _buildStatCard('12', 'Budget Used', AppColors.clrGreen)),
-                  Expanded(child: _buildStatCard('4', 'Task Done', AppColors.clrBrown)),
+                  Expanded(child: _buildStatCard('4/10', 'Task Done', AppColors.clrBrown)),
                 ],
               ),
 
@@ -162,7 +165,7 @@ class ProgressView extends GetView<ProgressController> {
               Row(
                 children: [
                   Expanded(
-                    child: _buildMilestoneCard(
+                    child: HomeView().buildMilestoneCard(
                       'Planning & Permit',
                       'assets/images/home/tic_icon.svg',
                       AppColors.greenCard,
@@ -172,7 +175,7 @@ class ProgressView extends GetView<ProgressController> {
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: _buildMilestoneCard(
+                    child: HomeView().buildMilestoneCard(
                       'Demolition',
                       'assets/images/home/tic_icon.svg',
                       AppColors.greenCard,
@@ -186,7 +189,7 @@ class ProgressView extends GetView<ProgressController> {
               Row(
                 children: [
                   Expanded(
-                    child: _buildMilestoneCard(
+                    child: HomeView().buildMilestoneCard(
                       'Electrical Work',
                       'assets/images/home/tic_icon.svg',
                       AppColors.greenCard,
@@ -196,7 +199,7 @@ class ProgressView extends GetView<ProgressController> {
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: _buildMilestoneCard(
+                    child: HomeView().buildMilestoneCard(
                       'Plumbing',
                       'assets/images/home/waiting_icon.svg',
                       AppColors.yellowCard,
@@ -241,11 +244,15 @@ class ProgressView extends GetView<ProgressController> {
               Row(
                 children: [
                   Expanded(
-                    child: SvgPicture.asset('assets/images/home/upload_photo.svg'),
+                    child: GestureDetector(
+                        onTap: ()=> Get.to(UploadPhotoView()),
+                        child: SvgPicture.asset('assets/images/home/upload_photo.svg',width: MediaQuery.of(context).size.width,height:  100,)),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: SvgPicture.asset('assets/images/home/view_instruction.svg'),
+                    child: GestureDetector(
+                        onTap: ()=> Get.to(ViewInstructionView()),
+                        child: SvgPicture.asset('assets/images/home/view_instruction.svg',width: MediaQuery.of(context).size.width,height: 100,)),
                   ),
                 ],
               ),
@@ -295,42 +302,4 @@ class ProgressView extends GetView<ProgressController> {
     );
   }
 
-  Widget _buildMilestoneCard(String title, String svgPath, Color color, Color txtColor, bool isCompleted, {String? subtitle}) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              SvgPicture.asset(svgPath),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  title,
-                  style: h4.copyWith(
-                    fontSize: 16,
-                    color: txtColor,
-                  ),
-                ),
-              ),
-              if (subtitle != null) ...[
-                Text(
-                  subtitle,
-                  style: h4.copyWith(
-                    fontSize: 12,
-                    color: txtColor,
-                  ),
-                ),
-              ],
-            ],
-          ),
-        ],
-      ),
-    );
-  }
 }

@@ -1,10 +1,7 @@
-import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 
-class CommunityController extends GetxController {
-  //TODO: Implement CommunityController
-
-  final statusController = TextEditingController();
+class NotificationController extends GetxController {
+  //TODO: Implement NotificationController
 
   final count = 0.obs;
   @override

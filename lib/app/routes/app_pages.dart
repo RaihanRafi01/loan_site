@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import 'package:loan_site/app/modules/project/views/onboarding_project_view.dart';
 
 import '../modules/auth/bindings/auth_binding.dart';
 import '../modules/auth/views/auth_view.dart';
@@ -10,6 +11,8 @@ import '../modules/dashboard/bindings/dashboard_binding.dart';
 import '../modules/dashboard/views/dashboard_view.dart';
 import '../modules/home/bindings/home_binding.dart';
 import '../modules/home/views/home_view.dart';
+import '../modules/notification/bindings/notification_binding.dart';
+import '../modules/notification/views/notification_view.dart';
 import '../modules/onboarding/bindings/onboarding_binding.dart';
 import '../modules/onboarding/views/onboarding_view.dart';
 import '../modules/progress/bindings/progress_binding.dart';
@@ -44,7 +47,7 @@ class AppPages {
     ),
     GetPage(
       name: _Paths.DASHBOARD,
-      page: () => const DashboardView(),
+      page: () => const OnboardingProjectView(),
       binding: DashboardBinding(),
     ),
     GetPage(
@@ -71,6 +74,11 @@ class AppPages {
       name: _Paths.PROJECT,
       page: () => const ProjectView(),
       binding: ProjectBinding(),
+    ),
+    GetPage(
+      name: _Paths.NOTIFICATION,
+      page: () => const NotificationView(),
+      binding: NotificationBinding(),
     ),
   ];
 }

@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:loan_site/app/modules/home/views/chat_home_view.dart';
 import 'package:loan_site/app/modules/home/views/upload_photo_view.dart';
 import 'package:loan_site/app/modules/home/views/view_instruction_view.dart';
+import 'package:loan_site/app/modules/notification/views/notification_view.dart';
 import '../../../../common/appColors.dart';
 import '../../../../common/customFont.dart';
 import '../controllers/home_controller.dart';
@@ -65,7 +66,9 @@ class HomeView extends GetView<HomeController> {
                       ),
                     ],
                   ),
-                  SvgPicture.asset('assets/images/home/notification_icon.svg'),
+                  GestureDetector(
+                    onTap: ()=> Get.to(NotificationView()) ,
+                      child: SvgPicture.asset('assets/images/home/notification_icon.svg')),
                 ],
               ),
               const SizedBox(height: 30),
@@ -195,7 +198,7 @@ class HomeView extends GetView<HomeController> {
               Row(
                 children: [
                   Expanded(
-                    child: _buildMilestoneCard(
+                    child: buildMilestoneCard(
                       'Planning & Permit',
                       'assets/images/home/tic_icon.svg',
                       AppColors.greenCard,
@@ -205,7 +208,7 @@ class HomeView extends GetView<HomeController> {
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: _buildMilestoneCard(
+                    child: buildMilestoneCard(
                       'Demolition',
                       'assets/images/home/tic_icon.svg',
                       AppColors.greenCard,
@@ -219,7 +222,7 @@ class HomeView extends GetView<HomeController> {
               Row(
                 children: [
                   Expanded(
-                    child: _buildMilestoneCard(
+                    child: buildMilestoneCard(
                       'Electrical Work',
                       'assets/images/home/tic_icon.svg',
                       AppColors.greenCard,
@@ -229,7 +232,7 @@ class HomeView extends GetView<HomeController> {
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: _buildMilestoneCard(
+                    child: buildMilestoneCard(
                       'Plumbing',
                       'assets/images/home/waiting_icon.svg',
                       AppColors.yellowCard,
@@ -276,13 +279,13 @@ class HomeView extends GetView<HomeController> {
                   Expanded(
                     child: GestureDetector(
                       onTap: ()=> Get.to(UploadPhotoView()),
-                        child: SvgPicture.asset('assets/images/home/upload_photo.svg')),
+                        child: SvgPicture.asset('assets/images/home/upload_photo.svg',width: MediaQuery.of(context).size.width,height:  100,)),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: GestureDetector(
                         onTap: ()=> Get.to(ViewInstructionView()),
-                        child: SvgPicture.asset('assets/images/home/view_instruction.svg')),
+                        child: SvgPicture.asset('assets/images/home/view_instruction.svg',width: MediaQuery.of(context).size.width,height: 100,)),
                   ),
                 ],
               ),
@@ -296,7 +299,7 @@ class HomeView extends GetView<HomeController> {
                 ),
               ),
               const SizedBox(height: 16),
-              _buildUpdateCard(
+              buildUpdateCard(
                 'Milestone Reminder',
                 'Plumbing work deadline is approaching in 3 days',
                 'assets/images/home/info_icon.svg',
@@ -304,7 +307,7 @@ class HomeView extends GetView<HomeController> {
                 AppColors.textYellow,
               ),
               const SizedBox(height: 12),
-              _buildUpdateCard(
+              buildUpdateCard(
                 'Milestone Reminder',
                 'Electrical work milestone completed successfully',
                 'assets/images/home/tic_icon.svg',
@@ -318,7 +321,7 @@ class HomeView extends GetView<HomeController> {
     );
   }
 
-  Widget _buildMilestoneCard(String title, String svgPath, Color color, Color txtColor, bool isCompleted, {String? subtitle}) {
+  Widget buildMilestoneCard(String title, String svgPath, Color color, Color txtColor, bool isCompleted, {String? subtitle}) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -357,9 +360,9 @@ class HomeView extends GetView<HomeController> {
     );
   }
 
-  Widget _buildUpdateCard(String title, String description, String svgPath, Color color, Color txtColor) {
+  Widget buildUpdateCard(String title, String description, String svgPath, Color color, Color txtColor) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
         color: color,
         borderRadius: BorderRadius.circular(12),

@@ -13,6 +13,7 @@ abstract class Routes {
   static const COMMUNITY = _Paths.COMMUNITY;
   static const HELP_SUPPORT = _Paths.HELP_SUPPORT;
   static const PROJECT = _Paths.PROJECT;
+  static const NOTIFICATION = _Paths.NOTIFICATION;
 }
 
 abstract class _Paths {
@@ -27,4 +28,5 @@ abstract class _Paths {
   static const COMMUNITY = '/community';
   static const HELP_SUPPORT = '/help-support';
   static const PROJECT = '/project';
+  static const NOTIFICATION = '/notification';
 }
