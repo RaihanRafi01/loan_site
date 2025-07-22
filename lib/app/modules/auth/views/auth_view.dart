@@ -9,6 +9,7 @@ import 'package:loan_site/common/widgets/customButton.dart';
 import 'package:loan_site/common/widgets/customTextField.dart';
 import '../../../../common/appColors.dart';
 import '../../../../common/customFont.dart';
+import '../../project/views/onboarding_project_view.dart';
 import '../controllers/auth_controller.dart';
 
 // Title and Subtitle Widget
@@ -151,7 +152,7 @@ class LoginScreen extends GetView<AuthController> {
                 ),
                 const SizedBox(height: 20),
                 CustomButton(label: 'Log In', onPressed: () {
-                  Get.offAll(DashboardView());
+                  Get.offAll(OnboardingProjectView());
                 }),
                 const SizedBox(height: 24),
                 Row(
@@ -228,7 +229,7 @@ class SignUpScreen extends GetView<AuthController> {
   @override
   Widget build(BuildContext context) {
     return Obx(
-      () => Stack(
+          () => Stack(
         children: [
           Scaffold(
             backgroundColor: Colors.white,
@@ -275,9 +276,10 @@ class SignUpScreen extends GetView<AuthController> {
                         controller: controller.confirmPasswordController,
                       ),
                       SizedBox(height: 30),
-                      CustomButton(label: 'Register', onPressed: () {
-                        controller.showConfirm.value = true;
-                      }),
+                      CustomButton(
+                        label: 'Register',
+                        onPressed: () => controller.showConfirmationAndNavigate(),
+                      ),
                       const SizedBox(height: 24),
                       Row(
                         children: [
@@ -340,8 +342,7 @@ class SignUpScreen extends GetView<AuthController> {
             Positioned.fill(
               child: GestureDetector(
                 onTap: () {
-                  controller.showConfirm.value =
-                      false; // Dismiss card on outside tap
+                  controller.showConfirm.value = false; // Dismiss card on outside tap
                 },
                 child: Stack(
                   children: [
@@ -349,16 +350,13 @@ class SignUpScreen extends GetView<AuthController> {
                     BackdropFilter(
                       filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
                       child: Container(
-                        color: Colors.black.withOpacity(
-                          0.2,
-                        ), // Semi-transparent overlay
+                        color: Colors.black.withOpacity(0.2), // Semi-transparent overlay
                       ),
                     ),
                     // Centered card
                     Center(
                       child: GestureDetector(
-                        onTap: () {},
-                        // Prevents taps on the card from dismissing it
+                        onTap: () {}, // Prevents taps on the card from dismissing it
                         child: Card(
                           color: Colors.white,
                           shape: RoundedRectangleBorder(
@@ -371,11 +369,8 @@ class SignUpScreen extends GetView<AuthController> {
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                // Text in the card
-
-                                // Buttons in a column
                                 SvgPicture.asset('assets/images/auth/tic_icon.svg'),
-                                SizedBox(height: 10,),
+                                SizedBox(height: 10),
                                 Text(
                                   'Your account has been created successfully!',
                                   style: h4.copyWith(

@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
-
 import 'package:get/get.dart';
-import 'package:loan_site/app/modules/home/views/home_view.dart';
+import 'package:loan_site/app/modules/dashboard/views/dashboard_view.dart';
 import 'package:loan_site/app/modules/project/views/create_project_view.dart';
 import 'package:loan_site/common/widgets/customButton.dart';
+import 'package:loan_site/common/appColors.dart';
+import 'package:loan_site/common/customFont.dart';
 
-import '../../../../common/appColors.dart';
-import '../../../../common/customFont.dart';
-
-class   extends GetView {
-  const OnboardingProjectView({super.key});
+class OnboardingProjectView extends GetView {
+  final bool newUser;
+  const OnboardingProjectView({super.key, this.newUser = false});
 
   @override
   Widget build(BuildContext context) {
@@ -19,7 +18,28 @@ class   extends GetView {
         child: Center(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 36),
-            child: Column(
+            child: newUser
+                ? Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 40),
+                  child: Text(
+                    'Create Project',
+                    style: h2.copyWith(
+                      fontSize: 24,
+                      color: AppColors.textColor,
+                    ),
+                  ),
+                ),
+                CustomButton(
+                  label: 'Create a project',
+                  svgPath: 'assets/images/project/plus_icon.svg',
+                  onPressed: () => Get.to(CreateProjectView()),
+                ),
+              ],
+            )
+                : Column(
               children: [
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 20),
@@ -67,7 +87,7 @@ class   extends GetView {
                 SizedBox(height: 50),
                 CustomButton(
                   label: 'Go Home',
-                  onPressed: () => Get.to(HomeView()),
+                  onPressed: () => Get.to(DashboardView()),
                 ),
               ],
             ),

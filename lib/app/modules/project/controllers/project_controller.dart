@@ -1,23 +1,17 @@
+import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 
 class ProjectController extends GetxController {
-  //TODO: Implement ProjectController
 
-  final count = 0.obs;
-  @override
-  void onInit() {
-    super.onInit();
-  }
 
-  @override
-  void onReady() {
-    super.onReady();
-  }
+  final projectNameController = TextEditingController();
+  final projectTypeController = TextEditingController();
+  final projectBudgetController = TextEditingController();
+  final projectManagerNameController = TextEditingController();
+  final projectLocationController = TextEditingController();
+  final projectStartDateController = TextEditingController();
+  final projectEndDateController = TextEditingController();
+  final projectDescriptionController = TextEditingController();
 
-  @override
-  void onClose() {
-    super.onClose();
-  }
 
-  void increment() => count.value++;
 }

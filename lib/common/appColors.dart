@@ -12,6 +12,7 @@ class AppColors {
   static const Color textColor5 = Color(0xFF3D546C);
   static const Color textColor6 = Color(0xFF5F5D5D);
   static const Color textColor7 = Color(0xFF555555);
+  static const Color textColor8 = Color(0xFF575757);
   static const Color blurtext = Color(0xFF5D5D5D);
   static const Color blurtext2 = Color(0xFF808284);
   static const Color blurtext3 = Color(0xFF6A707C);

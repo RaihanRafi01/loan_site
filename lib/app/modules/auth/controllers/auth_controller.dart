@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../project/views/onboarding_project_view.dart';
+
 enum AuthScreen {
   login,
   signup,
@@ -17,7 +19,7 @@ enum ResetMethod {
 
 class AuthController extends GetxController {
   // Current screen state
-  final currentScreen = AuthScreen.signup.obs;
+  final currentScreen = AuthScreen.login.obs;
   final resetMethod = ResetMethod.email.obs;
 
   // Form controllers
@@ -36,6 +38,14 @@ class AuthController extends GetxController {
   final isRememberMe = false.obs;
   var showConfirm = false.obs;
 
+
+  void showConfirmationAndNavigate() {
+    showConfirm.value = true;
+    Future.delayed(const Duration(seconds: 3), () {
+      showConfirm.value = false;
+      Get.offAll(() => const OnboardingProjectView(newUser: true,));
+    });
+  }
   // Navigation stack to track history
   final navigationStack = <AuthScreen>[AuthScreen.signup].obs;
 
