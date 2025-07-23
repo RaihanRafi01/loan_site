@@ -13,6 +13,14 @@ class ProjectController extends GetxController {
   final projectEndDateController = TextEditingController();
   final projectDescriptionController = TextEditingController();
 
+
+  final contractorNameController = TextEditingController();
+  final contractorPhoneController = TextEditingController();
+  final contractorAddressController = TextEditingController();
+  final contractorEmailController = TextEditingController();
+  final contractorLicenseController = TextEditingController();
+  final contractorDetailsController = TextEditingController();
+
   var currentStep = 1.obs;
 
 

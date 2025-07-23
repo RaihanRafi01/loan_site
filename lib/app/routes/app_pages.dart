@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import 'package:loan_site/app/modules/project/views/create_project_view.dart';
 import 'package:loan_site/app/modules/project/views/onboarding_project_view.dart';
 
 import '../modules/auth/bindings/auth_binding.dart';
@@ -37,7 +38,7 @@ class AppPages {
     ),
     GetPage(
       name: _Paths.ONBOARDING,
-      page: () => const OnboardingView(),
+      page: () => const CreateProjectView(),  // const OnboardingView(),
       binding: OnboardingBinding(),
     ),
     GetPage(

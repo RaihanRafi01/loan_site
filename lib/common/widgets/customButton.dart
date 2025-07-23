@@ -11,6 +11,8 @@ class CustomButton extends StatelessWidget {
   final Color txtClr;
   final String? svgPath;
   final Color? borderColor;
+  final double? width;
+  final double? height;
 
   const CustomButton({
     Key? key,
@@ -21,6 +23,8 @@ class CustomButton extends StatelessWidget {
     this.txtClr = Colors.white,
     this.svgPath,
     this.borderColor,
+    this.width = double.infinity,
+    this.height = 50,
   }) : super(key: key);
 
   @override
@@ -28,8 +32,8 @@ class CustomButton extends StatelessWidget {
     return GestureDetector(
       onTap: onPressed,
       child: Container(
-        width: double.infinity,
-        height: 50,
+        width: width,
+        height: height,
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: isWhite ? [Colors.white, Colors.white] : bgClr,

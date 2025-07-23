@@ -41,6 +41,8 @@ class AppColors {
   static const Color gray5 = Color(0xFF9F9F9F);
   static const Color gray6 = Color(0xFF7D7D7D);
   static const Color gray7 = Color(0xFF7C7C7C);
+  static const Color gray8 = Color(0xFFD7D6D6);
+  static const Color gray9 = Color(0xFF888888);
   static const Color botChatBc = Color(0xFFEEEEEE);
   static const Color appBc = Color(0xFFF7FBFD);
   static const Color chatCard = Color(0xFFE2F0FD);
