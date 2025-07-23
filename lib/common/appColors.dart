@@ -68,6 +68,7 @@ class AppColors {
   static const Color btnBdr3 = Color(0xFFB5E5C2);
   static const Color textInputField2 = Color(0xFFEFEFEF);
   static const Color dividerClr = Color(0xFFEFEFEF);
+  static const Color dividerClr2 = Color(0xFFDBDBDB);
 
 
 

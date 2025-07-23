@@ -8,6 +8,7 @@ import '../../../../common/appColors.dart';
 import '../../../../common/customFont.dart';
 import '../controllers/community_controller.dart';
 import 'comments_view.dart';
+import 'own_profile_view.dart';
 
 class CommunityView extends GetView<CommunityController> {
   const CommunityView({super.key});
@@ -133,47 +134,50 @@ class CommunityView extends GetView<CommunityController> {
       child: Column(
         children: [
           // Header Section with Profile
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.fromLTRB(20, 60, 20, 30),
-            decoration: BoxDecoration(
-              color: Colors.white,
-            ),
-            child: Column(
-              children: [
-                // Profile Avatar
-                Row(
-                  children: [
-                    CircleAvatar(
-                      radius: 43,
-                      backgroundImage: NetworkImage(
-                        'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face',
-                      ),
-                    ),
-                    SizedBox(width: 20,),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                      Text(
-                        'Hello Angelo!',
-                        style: h2.copyWith(
-                          fontSize: 24,
-                          color: AppColors.textColor,
+          GestureDetector(
+            onTap: ()=> Get.to(OwnProfileView()),
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.fromLTRB(20, 60, 20, 30),
+              decoration: BoxDecoration(
+                color: Colors.white,
+              ),
+              child: Column(
+                children: [
+                  // Profile Avatar
+                  Row(
+                    children: [
+                      CircleAvatar(
+                        radius: 43,
+                        backgroundImage: NetworkImage(
+                          'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face',
                         ),
                       ),
-                      const SizedBox(height: 4),
-                      // Email
-                      Text(
-                        'zanlee@gmail.com',
-                        style: h4.copyWith(
-                          fontSize: 16,
-                          color: AppColors.blurtext4,
+                      SizedBox(width: 20,),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                        Text(
+                          'Hello Angelo!',
+                          style: h2.copyWith(
+                            fontSize: 24,
+                            color: AppColors.textColor,
+                          ),
                         ),
-                      ),
-                    ],)
-                  ],
-                ),
-              ],
+                        const SizedBox(height: 4),
+                        // Email
+                        Text(
+                          'zanlee@gmail.com',
+                          style: h4.copyWith(
+                            fontSize: 16,
+                            color: AppColors.blurtext4,
+                          ),
+                        ),
+                      ],)
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
 
@@ -327,6 +331,7 @@ class CommunityView extends GetView<CommunityController> {
                   ),
                 ),
                 DropdownButton2<String>(
+                  underline: Container(),
                   customButton: SvgPicture.asset(
                     'assets/images/community/three_dot_icon.svg',
                   ),
@@ -378,16 +383,16 @@ class CommunityView extends GetView<CommunityController> {
               style: h2.copyWith(fontSize: 16, color: AppColors.textColor),
             ),
           ),
-          _buildImageGrid(images),
+          buildImageGrid(images),
           const SizedBox(height: 16),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _buildActionButton(
+              buildActionButton(
                 'assets/images/community/love_icon.svg',
                 likes.toString(),
               ),
-              _buildActionButton(
+              buildActionButton(
                 'assets/images/community/comment_icon.svg',
                 comments.toString(),
                 username: username,
@@ -397,11 +402,11 @@ class CommunityView extends GetView<CommunityController> {
                 likes: likes,
                 comments: comments,
               ),
-              _buildActionButton(
+              buildActionButton(
                 'assets/images/community/typing_icon.svg',
                 '',
               ),
-              _buildActionButton(
+              buildActionButton(
                 'assets/images/community/share_icon.svg',
                 '',
               ),
@@ -412,7 +417,7 @@ class CommunityView extends GetView<CommunityController> {
     );
   }
 
-  Widget _buildImageGrid(List<String> images) {
+  Widget buildImageGrid(List<String> images) {
     if (images.length == 1) {
       return SizedBox(
         width: double.infinity,
@@ -604,7 +609,7 @@ class CommunityView extends GetView<CommunityController> {
     return Container();
   }
 
-  Widget _buildActionButton(String svgPath, String count, {
+  Widget buildActionButton(String svgPath, String count, {
     String? username,
     String? userAvatar,
     String? timeAgo,

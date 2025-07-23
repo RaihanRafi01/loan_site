@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
+import 'package:loan_site/app/modules/community/views/reply_view.dart';
 import '../../../../common/appColors.dart';
 import '../../../../common/customFont.dart';
 
@@ -234,11 +235,21 @@ class _CommentsViewState extends State<CommentsView> {
                       ),
                     ),
                     const SizedBox(width: 16),
-                    Text(
-                      'Reply',
-                      style: h3.copyWith(
-                        fontSize: 12,
-                        color: AppColors.gray10,
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ReplyView(comment: comment),
+                          ),
+                        );
+                      },
+                      child: Text(
+                        'Reply',
+                        style: h3.copyWith(
+                          fontSize: 12,
+                          color: AppColors.gray10,
+                        ),
                       ),
                     ),
                   ],
