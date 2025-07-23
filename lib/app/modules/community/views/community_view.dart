@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
-import 'package:loan_site/common/widgets/customTextField.dart';
+import 'package:dropdown_button2/dropdown_button2.dart';
+import 'package:loan_site/app/modules/community/views/create_post_view.dart';
+import '../../../../common/widgets/customTextField.dart';
 import '../../../../common/appColors.dart';
+import '../../../../common/customFont.dart';
 import '../controllers/community_controller.dart';
+import 'comments_view.dart';
 
 class CommunityView extends GetView<CommunityController> {
   const CommunityView({super.key});
@@ -10,14 +15,13 @@ class CommunityView extends GetView<CommunityController> {
   @override
   Widget build(BuildContext context) {
     Get.put(CommunityController());
-    // Avoid manual Get.put; rely on GetView's controller injection
-    // If controller needs to be initialized, ensure it's done properly in the controller class
     return Scaffold(
       backgroundColor: AppColors.appBc,
+      endDrawer: _buildDrawer(),
       body: SafeArea(
         child: Column(
           children: [
-            // Replaced AppBar with Container + Row
+            // Header with Container + Row
             Container(
               color: Colors.white,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -33,14 +37,41 @@ class CommunityView extends GetView<CommunityController> {
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: CustomTextField(
-                      labelText: 'What’s on your mind',
-                      controller: controller.statusController,
+                    child: GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const CreatePostView(),
+                          ),
+                        );
+                      },
+                      child: Container(
+                        height: 44,
+                        decoration: BoxDecoration(
+                          color: AppColors.textInputField2,
+                          borderRadius: BorderRadius.circular(48),
+                        ),
+                        alignment: Alignment.centerLeft,
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Text(
+                          'What’s on your mind',
+                          style: h4.copyWith(
+                            color: AppColors.blurtext2,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ),
                     ),
                   ),
-                  IconButton(
-                    icon: Icon(Icons.menu, color: Colors.grey[700]),
-                    onPressed: () {},
+                  const SizedBox(width: 12),
+                  Builder(
+                    builder: (context) => GestureDetector(
+                      onTap: () {
+                        Scaffold.of(context).openEndDrawer();
+                      },
+                      child: SvgPicture.asset('assets/images/community/menu_icon.svg'),
+                    ),
                   ),
                 ],
               ),
@@ -57,7 +88,7 @@ class CommunityView extends GetView<CommunityController> {
                     images: [
                       'https://images.unsplash.com/photo-1581833971358-2c8b550f87b3?w=400&h=300&fit=crop',
                       'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=400&h=300&fit=crop',
-                      'https://images.unsplash.com/photo-1486312338219-ce68e2c6b81d?w=400&h=300&fit=crop',
+                      'https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=400&h=300&fit=crop',
                       'https://images.unsplash.com/photo-1581291518857-4e27b48ff24e?w=400&h=300&fit=crop',
                     ],
                     likes: 101,
@@ -96,6 +127,162 @@ class CommunityView extends GetView<CommunityController> {
     );
   }
 
+  Widget _buildDrawer() {
+    return Drawer(
+      backgroundColor: Colors.white,
+      child: Column(
+        children: [
+          // Header Section with Profile
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.fromLTRB(20, 60, 20, 30),
+            decoration: BoxDecoration(
+              color: Colors.white,
+            ),
+            child: Column(
+              children: [
+                // Profile Avatar
+                Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 43,
+                      backgroundImage: NetworkImage(
+                        'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face',
+                      ),
+                    ),
+                    SizedBox(width: 20,),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                      Text(
+                        'Hello Angelo!',
+                        style: h2.copyWith(
+                          fontSize: 24,
+                          color: AppColors.textColor,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      // Email
+                      Text(
+                        'zanlee@gmail.com',
+                        style: h4.copyWith(
+                          fontSize: 16,
+                          color: AppColors.blurtext4,
+                        ),
+                      ),
+                    ],)
+                  ],
+                ),
+              ],
+            ),
+          ),
+
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 26),
+            child: Divider(color: AppColors.dividerClr),
+          ),
+
+          const SizedBox(height: 20),
+
+          // Menu Items
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: Column(
+                children: [
+                  _buildDrawerItem(
+                    svgPath: 'assets/images/community/home_icon.svg',
+                    title: 'Home',
+                    isSelected: true,
+                    onTap: () {
+                      Get.back();
+                    },
+                  ),
+                  _buildDrawerItem(
+                    svgPath: 'assets/images/community/message_icon.svg',
+                    title: 'Message',
+                    isSelected: false,
+                    onTap: () {
+                      Get.back();
+                    },
+                  ),
+                  _buildDrawerItem(
+                    svgPath: 'assets/images/community/notification_icon.svg',
+                    title: 'Notification',
+                    isSelected: false,
+                    onTap: () {
+                      Get.back();
+                    },
+                  ),
+
+                  const Spacer(),
+
+                  // Bottom Contact Section
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 80,left: 20),
+                    child: Column(
+                      children: [
+                        _buildContactItem(
+                          svgPath: 'assets/images/community/call_icon.svg',
+                          text: '+56994562587',
+                        ),
+                        const SizedBox(height: 12),
+                        _buildContactItem(
+                          svgPath: 'assets/images/community/mail_icon.svg',
+                          text: 'angelo@gmail.com',
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDrawerItem({
+    required String title,
+    required bool isSelected,
+    required VoidCallback onTap,
+    required String svgPath
+  }) {
+    return ListTile(
+      leading: SvgPicture.asset(svgPath),
+      title: Text(
+        title,
+        style: h3.copyWith(
+          fontSize: 22,
+          color: isSelected ? AppColors.appColor2 : AppColors.textColor10,
+          fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+        ),
+      ),
+      onTap: onTap,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+    );
+  }
+
+  Widget _buildContactItem({
+    required String svgPath,
+    required String text,
+  }) {
+    return Row(
+      children: [
+        SvgPicture.asset(svgPath),
+        const SizedBox(width: 12),
+        Text(
+          text,
+          style: h4.copyWith(
+            fontSize: 16,
+            color: AppColors.textColor,
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildPostItem({
     required String username,
     required String userAvatar,
@@ -105,11 +292,10 @@ class CommunityView extends GetView<CommunityController> {
     required int comments,
   }) {
     return Container(
-      margin: const EdgeInsets.all(16),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // User header
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 8),
             child: Row(
@@ -125,48 +311,101 @@ class CommunityView extends GetView<CommunityController> {
                     children: [
                       Text(
                         username,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 15,
+                        style: h3.copyWith(
+                          fontSize: 20,
+                          color: AppColors.textColor,
                         ),
                       ),
                       Text(
                         timeAgo,
-                        style: TextStyle(
-                          color: Colors.grey[600],
-                          fontSize: 12,
+                        style: h4.copyWith(
+                          fontSize: 16,
+                          color: AppColors.gray10,
                         ),
                       ),
                     ],
                   ),
                 ),
-                IconButton(
-                  icon: Icon(Icons.more_horiz, color: Colors.grey[700]),
-                  onPressed: () {},
+                DropdownButton2<String>(
+                  customButton: SvgPicture.asset(
+                    'assets/images/community/three_dot_icon.svg',
+                  ),
+                  items: [
+                    DropdownMenuItem<String>(
+                      value: 'not_interested',
+                      child: Row(
+                        children: [
+                          SvgPicture.asset('assets/images/community/tic_icon.svg'),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Not Interested',
+                            style: h4.copyWith(
+                              color: AppColors.textColor,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                  onChanged: (value) {
+                    if (value == 'not_interested') {
+                      print('Selected: Not Interested');
+                    }
+                  },
+                  dropdownStyleData: DropdownStyleData(
+                    width: 170,
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8),
+                      color: Colors.white,
+                    ),
+                    elevation: 8,
+                    offset: const Offset(0, -10),
+                  ),
+                  menuItemStyleData: const MenuItemStyleData(
+                    height: 40,
+                    padding: EdgeInsets.symmetric(horizontal: 12),
+                  ),
                 ),
               ],
             ),
           ),
-
           Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8.0),
-            child: Text('Caption'),
-          ),
-          // Images grid
-          _buildImageGrid(images),
-
-          // Action buttons
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                _buildActionButton(Icons.favorite_border, likes.toString()),
-                const SizedBox(width: 24),
-                _buildActionButton(Icons.chat_bubble_outline, comments.toString()),
-                const SizedBox(width: 24),
-                _buildActionButton(Icons.share_outlined, ''),
-              ],
+            padding: const EdgeInsets.only(bottom: 8.0, top: 4),
+            child: Text(
+              'Caption',
+              style: h2.copyWith(fontSize: 16, color: AppColors.textColor),
             ),
+          ),
+          _buildImageGrid(images),
+          const SizedBox(height: 16),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              _buildActionButton(
+                'assets/images/community/love_icon.svg',
+                likes.toString(),
+              ),
+              _buildActionButton(
+                'assets/images/community/comment_icon.svg',
+                comments.toString(),
+                username: username,
+                userAvatar: userAvatar,
+                timeAgo: timeAgo,
+                images: images,
+                likes: likes,
+                comments: comments,
+              ),
+              _buildActionButton(
+                'assets/images/community/typing_icon.svg',
+                '',
+              ),
+              _buildActionButton(
+                'assets/images/community/share_icon.svg',
+                '',
+              ),
+            ],
           ),
         ],
       ),
@@ -362,29 +601,64 @@ class CommunityView extends GetView<CommunityController> {
         ),
       );
     }
-
     return Container();
   }
 
-  Widget _buildActionButton(IconData icon, String count) {
-    return Row(
-      children: [
-        Icon(
-          icon,
-          size: 24,
-          color: Colors.grey[700],
+  Widget _buildActionButton(String svgPath, String count, {
+    String? username,
+    String? userAvatar,
+    String? timeAgo,
+    List<String>? images,
+    int? likes,
+    int? comments,
+  }) {
+    return GestureDetector(
+      onTap: () {
+        // Check if this is the comment button
+        if (svgPath.contains('comment_icon') &&
+            username != null &&
+            userAvatar != null &&
+            timeAgo != null &&
+            images != null &&
+            likes != null &&
+            comments != null) {
+          Get.to(CommentsView(
+            username: username,
+            userAvatar: userAvatar,
+            timeAgo: timeAgo,
+            images: images,
+            likes: likes,
+            comments: comments,
+          ));
+        }
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(48),
+          color: AppColors.cardSky,
         ),
-        if (count.isNotEmpty) ...[
-          const SizedBox(width: 6),
-          Text(
-            count,
-            style: TextStyle(
-              color: Colors.grey[700],
-              fontSize: 14,
-            ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SvgPicture.asset(
+                svgPath,
+              ),
+              if (count.isNotEmpty) ...[
+                const SizedBox(width: 8),
+                Text(
+                  count,
+                  style: h4.copyWith(
+                    fontSize: 14,
+                    color: AppColors.textColor9,
+                  ),
+                ),
+              ],
+            ],
           ),
-        ],
-      ],
+        ),
+      ),
     );
   }
 }

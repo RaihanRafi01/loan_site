@@ -5,28 +5,30 @@ import '../customFont.dart';
 
 class CustomTextField extends StatelessWidget {
   final String labelText;
-  final String? prefixSvgPath; // Optional SVG asset path for prefix
-  final String? suffixSvgPath; // Optional SVG asset path for suffix
-  final VoidCallback? onSuffixTap; // Callback for suffix icon tap
+  final String? prefixSvgPath;
+  final String? suffixSvgPath;
+  final VoidCallback? onSuffixTap;
   final bool obscureText;
   final TextEditingController controller;
   final TextInputType keyboardType;
   final bool isNoIcon;
   final int maxLine;
   final double radius;
+  final Color bgClr;
 
   const CustomTextField({
     super.key,
     required this.labelText,
     this.prefixSvgPath,
     this.suffixSvgPath,
-    this.onSuffixTap, // New callback parameter
+    this.onSuffixTap,
     this.obscureText = false,
     this.isNoIcon = false,
     required this.controller,
     this.keyboardType = TextInputType.text,
     this.maxLine = 1,
     this.radius = 100,
+    this.bgClr = AppColors.textInputField,
   });
 
   @override
@@ -41,6 +43,10 @@ class CustomTextField extends StatelessWidget {
         decoration: InputDecoration(
           hintText: labelText,
           hintStyle: h4.copyWith(color: AppColors.blurtext2, fontSize: 16),
+          contentPadding: EdgeInsets.symmetric(
+            vertical: maxLine > 1 ? 12 : 8, // Adjust padding for multiline
+            horizontal: 10,
+          ),
           prefixIcon: isNoIcon || prefixSvgPath == null
               ? null
               : Padding(
@@ -51,17 +57,17 @@ class CustomTextField extends StatelessWidget {
           ),
           suffixIcon: suffixSvgPath != null
               ? GestureDetector(
-            onTap: onSuffixTap, // Use the provided callback
+            onTap: onSuffixTap,
             child: Padding(
               padding: const EdgeInsets.only(right: 26, left: 5),
               child: SvgPicture.asset(
-                suffixSvgPath!, // Always show the provided suffix icon
+                suffixSvgPath!,
               ),
             ),
           )
               : null,
           filled: true,
-          fillColor: AppColors.textInputField,
+          fillColor: bgClr,
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(radius),
             borderSide: BorderSide.none,

@@ -13,6 +13,9 @@ class AppColors {
   static const Color textColor6 = Color(0xFF5F5D5D);
   static const Color textColor7 = Color(0xFF555555);
   static const Color textColor8 = Color(0xFF575757);
+  static const Color textColor9 = Color(0xFF535353);
+  static const Color textColor10 = Color(0xFF717171);
+  static const Color textColor11 = Color(0xFF595959);
   static const Color blurtext = Color(0xFF5D5D5D);
   static const Color blurtext2 = Color(0xFF808284);
   static const Color blurtext3 = Color(0xFF6A707C);
@@ -43,6 +46,7 @@ class AppColors {
   static const Color gray7 = Color(0xFF7C7C7C);
   static const Color gray8 = Color(0xFFD7D6D6);
   static const Color gray9 = Color(0xFF888888);
+  static const Color gray10 = Color(0xFF6D6D6D);
   static const Color botChatBc = Color(0xFFEEEEEE);
   static const Color appBc = Color(0xFFF7FBFD);
   static const Color chatCard = Color(0xFFE2F0FD);
@@ -62,6 +66,8 @@ class AppColors {
   static const Color btnBdr1 = Color(0xFFE5D657);
   static const Color btnBdr2 = Color(0xFFF3BEA2);
   static const Color btnBdr3 = Color(0xFFB5E5C2);
+  static const Color textInputField2 = Color(0xFFEFEFEF);
+  static const Color dividerClr = Color(0xFFEFEFEF);
 
 
 
