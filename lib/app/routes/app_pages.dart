@@ -28,7 +28,7 @@ part 'app_routes.dart';
 class AppPages {
   AppPages._();
 
-  static const INITIAL = Routes.ONBOARDING;
+  static const INITIAL = Routes.DASHBOARD;
 
   static final routes = [
     GetPage(
@@ -38,7 +38,7 @@ class AppPages {
     ),
     GetPage(
       name: _Paths.ONBOARDING,
-      page: () => const CreateProjectView(),  // const OnboardingView(),
+      page: () => const OnboardingView(),  // const OnboardingView(),
       binding: OnboardingBinding(),
     ),
     GetPage(

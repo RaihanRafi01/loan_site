@@ -10,9 +10,12 @@ class CustomButton extends StatelessWidget {
   final List<Color> bgClr;
   final Color txtClr;
   final String? svgPath;
+  final String? svgPath2;
   final Color? borderColor;
   final double? width;
   final double? height;
+  final double radius;
+  final double fontSize;
 
   const CustomButton({
     Key? key,
@@ -22,9 +25,12 @@ class CustomButton extends StatelessWidget {
     this.bgClr = const [AppColors.appColor, AppColors.appColor2],
     this.txtClr = Colors.white,
     this.svgPath,
+    this.svgPath2,
     this.borderColor,
     this.width = double.infinity,
     this.height = 50,
+    this.radius = 48,
+    this.fontSize = 20,
   }) : super(key: key);
 
   @override
@@ -45,7 +51,7 @@ class CustomButton extends StatelessWidget {
               : isWhite
               ? Border.all(color: txtClr, width: 1)
               : null,
-          borderRadius: BorderRadius.circular(48),
+          borderRadius: BorderRadius.circular(radius),
         ),
         alignment: Alignment.center,
         child: Row(
@@ -59,8 +65,14 @@ class CustomButton extends StatelessWidget {
             ],
             Text(
               label,
-              style: h3.copyWith(fontSize: 20, color: isWhite ? AppColors.textColor3 : txtClr),
+              style: h3.copyWith(fontSize: fontSize, color: isWhite ? AppColors.textColor3 : txtClr),
             ),
+            if (svgPath2 != null) ...[
+              const SizedBox(width: 4),
+              SvgPicture.asset(
+                svgPath2!,
+              ),
+            ],
           ],
         ),
       ),

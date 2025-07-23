@@ -5,6 +5,7 @@ import 'package:loan_site/app/modules/home/views/chat_home_view.dart';
 import 'package:loan_site/app/modules/home/views/upload_photo_view.dart';
 import 'package:loan_site/app/modules/home/views/view_instruction_view.dart';
 import 'package:loan_site/app/modules/notification/views/notification_view.dart';
+import 'package:loan_site/common/widgets/customButton.dart';
 import '../../../../common/appColors.dart';
 import '../../../../common/customFont.dart';
 import '../controllers/home_controller.dart';
@@ -223,16 +224,6 @@ class HomeView extends GetView<HomeController> {
                 children: [
                   Expanded(
                     child: buildMilestoneCard(
-                      'Electrical Work',
-                      'assets/images/home/tic_icon.svg',
-                      AppColors.greenCard,
-                      AppColors.textGreen,
-                      true,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: buildMilestoneCard(
                       'Plumbing',
                       'assets/images/home/waiting_icon.svg',
                       AppColors.yellowCard,
@@ -241,10 +232,17 @@ class HomeView extends GetView<HomeController> {
                       subtitle: 'On going',
                     ),
                   ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: CustomButton(label: 'Start Next Phase', onPressed: (){},radius: 6,svgPath2: 'assets/images/home/double_arrow_icon.svg',height: 45,fontSize: 15,),
+                  ),
                 ],
               ),
               const SizedBox(height: 24),
+              CustomButton(label: 'Start Project', onPressed: (){},radius: 6,svgPath2: 'assets/images/home/double_arrow_icon.svg',fontSize: 16,),
+              const SizedBox(height: 24),
               // Next Steps
+
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(16),
