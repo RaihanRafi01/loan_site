@@ -18,6 +18,7 @@ class CreateProjectView extends GetView<ProjectController> {
     // State to track current step
     final currentStep = controller.currentStep ?? 1.obs;
 
+
     return Scaffold(
       backgroundColor: AppColors.appBc,
       appBar: AppBar(
