@@ -20,7 +20,10 @@ class ProjectView extends GetView<ProjectController> {
         backgroundColor: AppColors.appBc,
         scrolledUnderElevation: 0,
         elevation: 0,
-        title: const Text('Progress'),
+        title: Text(
+          'My Project',
+          style: h2.copyWith(color: AppColors.textColor, fontSize: 22),
+        ),
         centerTitle: true,
       ),
       body: SafeArea(
@@ -55,7 +58,10 @@ class ProjectView extends GetView<ProjectController> {
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
                       gradient: const LinearGradient(
-                        colors: [AppColors.cardGradient1, AppColors.cardGradient2],
+                        colors: [
+                          AppColors.cardGradient1,
+                          AppColors.cardGradient2,
+                        ],
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
                       ),
@@ -87,7 +93,10 @@ class ProjectView extends GetView<ProjectController> {
                               ],
                             ),
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 6,
+                              ),
                               decoration: BoxDecoration(
                                 color: Colors.white,
                                 borderRadius: BorderRadius.circular(12),
@@ -148,9 +157,27 @@ class ProjectView extends GetView<ProjectController> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      Expanded(child: _buildStatCard('12', 'Days Remaining', AppColors.clrOrange)),
-                      Expanded(child: _buildStatCard('12', 'Budget Used', AppColors.clrGreen)),
-                      Expanded(child: _buildStatCard('4/10', 'Task Done', AppColors.clrBrown)),
+                      Expanded(
+                        child: _buildStatCard(
+                          '12',
+                          'Days Remaining',
+                          AppColors.clrOrange,
+                        ),
+                      ),
+                      Expanded(
+                        child: _buildStatCard(
+                          '12',
+                          'Budget Used',
+                          AppColors.clrGreen,
+                        ),
+                      ),
+                      Expanded(
+                        child: _buildStatCard(
+                          '4/10',
+                          'Task Done',
+                          AppColors.clrBrown,
+                        ),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 16),
@@ -164,8 +191,14 @@ class ProjectView extends GetView<ProjectController> {
                       ),
                     ),
                   ),
-                  _projectInformation('Project Name :', 'Grove Development LLC'),
-                  _projectInformation('Project Type :', 'Residential Development'),
+                  _projectInformation(
+                    'Project Name :',
+                    'Grove Development LLC',
+                  ),
+                  _projectInformation(
+                    'Project Type :',
+                    'Residential Development',
+                  ),
                   _projectInformation('Location :', 'Sunset Grove, CA'),
                   _projectInformation('Project Manager :', 'Sarah Johnson'),
                   _projectInformation('Budget Used :', '\$1.6M (68%)'),
@@ -186,7 +219,10 @@ class ProjectView extends GetView<ProjectController> {
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
                       gradient: const LinearGradient(
-                        colors: [AppColors.cardGradient3, AppColors.cardGradient4],
+                        colors: [
+                          AppColors.cardGradient3,
+                          AppColors.cardGradient4,
+                        ],
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
                       ),
@@ -218,7 +254,10 @@ class ProjectView extends GetView<ProjectController> {
                               ],
                             ),
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 6,
+                              ),
                               decoration: BoxDecoration(
                                 color: Colors.white,
                                 borderRadius: BorderRadius.circular(12),
@@ -255,10 +294,7 @@ class ProjectView extends GetView<ProjectController> {
                         const SizedBox(height: 16),
                         Text(
                           'Installing plumbing systems in buildings A and B. Expected completion in 5 days.',
-                          style: h4.copyWith(
-                            color: Colors.white,
-                            fontSize: 14,
-                          ),
+                          style: h4.copyWith(color: Colors.white, fontSize: 14),
                         ),
                       ],
                     ),
@@ -268,11 +304,15 @@ class ProjectView extends GetView<ProjectController> {
                     padding: const EdgeInsets.symmetric(vertical: 8.0),
                     child: GestureDetector(
                       onTap: () => Get.to(ViewInstructionView()),
-                      child: SvgPicture.asset('assets/images/project/view_instruction.svg',width: MediaQuery.of(context).size.width,),
+                      child: SvgPicture.asset(
+                        'assets/images/project/view_instruction.svg',
+                        width: MediaQuery.of(context).size.width,
+                      ),
                     ),
                   ),
                   // Add padding to prevent content from being hidden under the fixed button
-                  const SizedBox(height: 60), // Adjust based on button height
+                  const SizedBox(height: 60),
+                  // Adjust based on button height
                 ],
               ),
             ),
@@ -300,7 +340,10 @@ class ProjectView extends GetView<ProjectController> {
         children: [
           Text(title, style: h4.copyWith(color: AppColors.gray7, fontSize: 16)),
           const SizedBox(width: 6),
-          Text(details, style: h3.copyWith(color: AppColors.textColor, fontSize: 16)),
+          Text(
+            details,
+            style: h3.copyWith(color: AppColors.textColor, fontSize: 16),
+          ),
         ],
       ),
     );
@@ -312,9 +355,7 @@ class ProjectView extends GetView<ProjectController> {
       child: Card(
         color: Colors.white,
         elevation: 1,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(6),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
         child: Container(
           height: 120,
           padding: const EdgeInsets.all(8),
@@ -324,19 +365,13 @@ class ProjectView extends GetView<ProjectController> {
               Text(
                 value,
                 textAlign: TextAlign.center,
-                style: h1.copyWith(
-                  fontSize: 32,
-                  color: color,
-                ),
+                style: h1.copyWith(fontSize: 32, color: color),
               ),
               const SizedBox(height: 4),
               Text(
                 label,
                 textAlign: TextAlign.center,
-                style: h4.copyWith(
-                  fontSize: 14,
-                  color: color,
-                ),
+                style: h4.copyWith(fontSize: 14, color: color),
               ),
             ],
           ),

@@ -269,7 +269,7 @@ class CreateProjectView extends GetView<ProjectController> {
                                 SvgPicture.asset('assets/images/auth/tic_icon.svg'),
                                 SizedBox(height: 10),
                                 Text(
-                                  'Your account has been created successfully!',
+                                  'Your project has been created successfully!',
                                   style: h4.copyWith(
                                     fontSize: 20,
                                     color: AppColors.textColor,

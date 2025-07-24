@@ -3,11 +3,16 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:loan_site/app/modules/community/views/create_post_view.dart';
+import 'package:loan_site/app/modules/community/views/message_view.dart';
+import 'package:loan_site/app/modules/community/views/share_post_view.dart';
+import 'package:loan_site/app/modules/notification/views/notification_chat_view.dart';
+import 'package:loan_site/app/modules/notification/views/notification_view.dart';
 import '../../../../common/widgets/customTextField.dart';
 import '../../../../common/appColors.dart';
 import '../../../../common/customFont.dart';
 import '../controllers/community_controller.dart';
 import 'comments_view.dart';
+import 'notification_chat_view.dart';
 import 'own_profile_view.dart';
 
 class CommunityView extends GetView<CommunityController> {
@@ -207,7 +212,7 @@ class CommunityView extends GetView<CommunityController> {
                     title: 'Message',
                     isSelected: false,
                     onTap: () {
-                      Get.back();
+                      Get.to(MessageView());
                     },
                   ),
                   _buildDrawerItem(
@@ -215,7 +220,7 @@ class CommunityView extends GetView<CommunityController> {
                     title: 'Notification',
                     isSelected: false,
                     onTap: () {
-                      Get.back();
+                      Get.to(NotificationCommunityView());
                     },
                   ),
 
@@ -635,6 +640,9 @@ class CommunityView extends GetView<CommunityController> {
             likes: likes,
             comments: comments,
           ));
+        }
+        if(svgPath == 'assets/images/community/share_icon.svg'){
+          Get.to(SharePostView());
         }
       },
       child: Container(

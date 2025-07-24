@@ -3,6 +3,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:loan_site/app/modules/auth/views/auth_view.dart';
 import 'package:loan_site/app/modules/project/views/create_project_view.dart';
+import 'package:loan_site/app/modules/project/views/project_list_view.dart';
 import 'package:loan_site/app/modules/project/views/project_view.dart';
 import 'package:loan_site/app/modules/settings/views/account_settings_view.dart';
 import 'package:loan_site/app/modules/settings/views/help_support_view.dart';
@@ -93,7 +94,7 @@ class SettingsView extends GetView<SettingsController> {
                     svgPath: 'assets/images/settings/flag_icon.svg',
                     title: 'My Project',
                     onTap: () {
-                      Get.to(CreateProjectView());
+                      Get.to(ProjectListView());
                     },
                   ),
                   _buildSettingsItem(

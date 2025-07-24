@@ -19,7 +19,10 @@ class ProgressView extends GetView<ProgressController> {
         backgroundColor: AppColors.appBc,
         scrolledUnderElevation: 0,
         elevation: 0,
-        title: const Text('Progress'),
+        title: Text('Progress',style: h2.copyWith(
+          color: AppColors.textColor,
+          fontSize: 22,
+        ),),
         centerTitle: true,
       ),
       body: SafeArea(
