@@ -15,6 +15,7 @@ import '../modules/home/views/home_view.dart';
 import '../modules/notification/bindings/notification_binding.dart';
 import '../modules/notification/views/notification_view.dart';
 import '../modules/onboarding/bindings/onboarding_binding.dart';
+import '../modules/onboarding/views/onboarding_steps_view.dart';
 import '../modules/onboarding/views/onboarding_view.dart';
 import '../modules/progress/bindings/progress_binding.dart';
 import '../modules/progress/views/progress_view.dart';
@@ -38,7 +39,7 @@ class AppPages {
     ),
     GetPage(
       name: _Paths.ONBOARDING,
-      page: () => const OnboardingView(),  // const OnboardingView(),
+      page: () => const OnboardingStepsView(),  // const OnboardingView(),
       binding: OnboardingBinding(),
     ),
     GetPage(
