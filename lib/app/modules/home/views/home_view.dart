@@ -23,10 +23,12 @@ class HomeView extends GetView<HomeController> {
         },
         backgroundColor: AppColors.progressClr,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(30),
+          borderRadius: BorderRadius.circular(80),
         ),
         child: SvgPicture.asset(
           'assets/images/home/chat_floating_button.svg', // Replace with your SVG path
+          height: 150,
+          width: 100,
         ),
       ),
       floatingActionButtonLocation: _CustomFloatingButtonLocation(),

@@ -48,6 +48,8 @@ class AppColors {
   static const Color gray9 = Color(0xFF888888);
   static const Color gray10 = Color(0xFF6D6D6D);
   static const Color gray11 = Color(0xFF272727);
+  static const Color gray12 = Color(0xFF585858);
+  static const Color gray13 = Color(0xFF868686);
   static const Color botChatBc = Color(0xFFEEEEEE);
   static const Color appBc = Color(0xFFF7FBFD);
   static const Color chatCard = Color(0xFFE2F0FD);
@@ -70,6 +72,11 @@ class AppColors {
   static const Color textInputField2 = Color(0xFFEFEFEF);
   static const Color dividerClr = Color(0xFFEFEFEF);
   static const Color dividerClr2 = Color(0xFFDBDBDB);
+
+  static const Color lenderYellow = Color(0xFFF59E0B);
+  static const Color lenderRed = Color(0xFFEF4444);
+  static const Color lenderSky = Color(0xFF1E90FF);
+  static const Color lenderGreen = Color(0xFF10B981);
 
 
 

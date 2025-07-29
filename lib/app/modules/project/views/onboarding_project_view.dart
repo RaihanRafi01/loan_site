@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:loan_site/app/modules/dashboard/views/dashboard_view.dart';
 import 'package:loan_site/app/modules/project/views/create_project_view.dart';
+import 'package:loan_site/app/modules/project/views/project_list_view.dart';
 import 'package:loan_site/common/widgets/customButton.dart';
 import 'package:loan_site/common/appColors.dart';
 import 'package:loan_site/common/customFont.dart';
@@ -59,7 +60,7 @@ class OnboardingProjectView extends GetView {
                     label: 'All Projects',
                     svgPath: 'assets/images/project/all_project_icon.svg',
                     txtClr: AppColors.textColor,
-                    onPressed: () => Get.to(CreateProjectView()),
+                    onPressed: () => Get.to(ProjectListView()),
                   ),
                 ),
                 Padding(
@@ -70,7 +71,7 @@ class OnboardingProjectView extends GetView {
                     label: 'Active Projects',
                     svgPath: 'assets/images/project/active_project_icon.svg',
                     txtClr: AppColors.textColor,
-                    onPressed: () => Get.to(CreateProjectView()),
+                    onPressed: () => Get.to(ProjectListView()),
                   ),
                 ),
                 Padding(
@@ -81,7 +82,7 @@ class OnboardingProjectView extends GetView {
                     label: 'Completed Projects',
                     svgPath: 'assets/images/project/tic_image.svg',
                     txtClr: AppColors.textColor,
-                    onPressed: () => Get.to(CreateProjectView()),
+                    onPressed: () => Get.to(ProjectListView()),
                   ),
                 ),
                 SizedBox(height: 50),

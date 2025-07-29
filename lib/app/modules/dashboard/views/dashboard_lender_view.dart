@@ -6,13 +6,15 @@ import 'package:loan_site/app/modules/community/views/community_view.dart';
 import 'package:loan_site/app/modules/contractor/views/contractor_view.dart';
 import 'package:loan_site/app/modules/home/views/home_view.dart';
 import 'package:loan_site/app/modules/progress/views/progress_view.dart';
+import 'package:loan_site/app/modules/project_lender/views/project_lender_view.dart';
 import 'package:loan_site/app/modules/settings/views/settings_view.dart';
 import '../../../../common/appColors.dart';
 import '../../../../common/customFont.dart';
+import '../../home_lender/views/home_lender_view.dart';
 import '../controllers/dashboard_controller.dart';
 
-class DashboardView extends GetView<DashboardController> {
-  const DashboardView({super.key});
+class DashboardLenderView extends GetView<DashboardController> {
+  const DashboardLenderView({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -21,11 +23,9 @@ class DashboardView extends GetView<DashboardController> {
 
     // List of pages to navigate
     final List<Widget> pages = [
-      const HomeView(),
-      const ContractorView(),
-      const ProgressView(),
-      const CommunityView(),
-      const SettingsView(isBorrower: true),
+      const HomeLenderView(),
+      const ProjectLenderView(),
+      const SettingsView(isBorrower: false,),
     ];
 
     return Scaffold(
@@ -62,34 +62,12 @@ class DashboardView extends GetView<DashboardController> {
                 iconColor: Colors.black, // Inactive icon color
               ),
               GButton(
-                icon: Icons.search,
-                text: 'Contractor',
+                icon: Icons.settings,
+                text: 'Projects',
                 textStyle: h2.copyWith(fontSize: 16,color: controller.selectedIndex.value == 1 ? AppColors.appColor2 : null),
                 leading: SvgPicture.asset(
-                  'assets/images/nav/contractio_icon.svg',
+                  'assets/images/nav/projects_iocn.svg',
                   color: controller.selectedIndex.value == 1 ? AppColors.appColor2 : null,
-                ),
-                iconActiveColor: Colors.white,
-                iconColor: Colors.black,
-              ),
-              GButton(
-                icon: Icons.person,
-                text: 'Progress',
-                textStyle: h2.copyWith(fontSize: 16,color: controller.selectedIndex.value == 2 ? AppColors.appColor2 : null),
-                leading: SvgPicture.asset(
-                  'assets/images/nav/progress_icon.svg',
-                  color: controller.selectedIndex.value == 2 ? AppColors.appColor2 : null,
-                ),
-                iconActiveColor: Colors.white,
-                iconColor: Colors.black,
-              ),
-              GButton(
-                icon: Icons.settings,
-                text: 'Community',
-                textStyle: h2.copyWith(fontSize: 16,color: controller.selectedIndex.value == 3 ? AppColors.appColor2 : null),
-                leading: SvgPicture.asset(
-                  'assets/images/nav/community_icon.svg',
-                  color: controller.selectedIndex.value == 3 ? AppColors.appColor2 : null,
                 ),
                 iconActiveColor: Colors.white,
                 iconColor: Colors.black,
@@ -97,10 +75,10 @@ class DashboardView extends GetView<DashboardController> {
               GButton(
                 icon: Icons.settings,
                 text: 'Settings',
-                textStyle: h2.copyWith(fontSize: 16,color: controller.selectedIndex.value == 4 ? AppColors.appColor2 : null),
+                textStyle: h2.copyWith(fontSize: 16,color: controller.selectedIndex.value == 2 ? AppColors.appColor2 : null),
                 leading: SvgPicture.asset(
                   'assets/images/nav/settings_icon.svg',
-                  color: controller.selectedIndex.value == 4 ? AppColors.appColor2 : null,
+                  color: controller.selectedIndex.value == 2 ? AppColors.appColor2 : null,
                 ),
                 iconActiveColor: Colors.white,
                 iconColor: Colors.black,

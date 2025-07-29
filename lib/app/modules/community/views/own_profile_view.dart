@@ -4,6 +4,7 @@ import 'package:flutter_svg/svg.dart';
 
 import 'package:get/get.dart';
 import 'package:loan_site/app/modules/community/views/community_view.dart';
+import 'package:loan_site/app/modules/community/views/create_post_view.dart';
 import 'package:loan_site/common/widgets/customButton.dart';
 
 import '../../../../common/appColors.dart';
@@ -58,7 +59,9 @@ class OwnProfileView extends GetView {
                     width: 120,
                     height: 36,
                     label: 'Create Post',
-                    onPressed: () {},
+                    onPressed: () {
+                      Get.to(CreatePostView());
+                    },
                     bgClr: [AppColors.cardSky, AppColors.cardSky],
                     txtClr: AppColors.appColor2,
                     svgPath: 'assets/images/community/plus_icon_blue.svg',

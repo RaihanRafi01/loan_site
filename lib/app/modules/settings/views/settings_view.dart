@@ -13,7 +13,8 @@ import '../../../../common/customFont.dart';
 import '../controllers/settings_controller.dart';
 
 class SettingsView extends GetView<SettingsController> {
-  const SettingsView({super.key});
+  final bool isBorrower;
+  const SettingsView({super.key, this.isBorrower = false});
 
   @override
   Widget build(BuildContext context) {
@@ -90,6 +91,7 @@ class SettingsView extends GetView<SettingsController> {
                     hasSwitch: true,
                     switchValue: true,
                   ),
+                  if(isBorrower)
                   _buildSettingsItem(
                     svgPath: 'assets/images/settings/flag_icon.svg',
                     title: 'My Project',

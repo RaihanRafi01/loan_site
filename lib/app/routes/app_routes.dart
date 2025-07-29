@@ -14,6 +14,8 @@ abstract class Routes {
   static const HELP_SUPPORT = _Paths.HELP_SUPPORT;
   static const PROJECT = _Paths.PROJECT;
   static const NOTIFICATION = _Paths.NOTIFICATION;
+  static const PROJECT_LENDER = _Paths.PROJECT_LENDER;
+  static const HOME_LENDER = _Paths.HOME_LENDER;
 }
 
 abstract class _Paths {
@@ -29,4 +31,6 @@ abstract class _Paths {
   static const HELP_SUPPORT = '/help-support';
   static const PROJECT = '/project';
   static const NOTIFICATION = '/notification';
+  static const PROJECT_LENDER = '/project-lender';
+  static const HOME_LENDER = '/home-lender';
 }

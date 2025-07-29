@@ -79,7 +79,7 @@ class CreatePostView extends GetView<CommunityController> {
           ),
         ),
       ),
-      bottomNavigationBar: Padding(
+      /*bottomNavigationBar: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16,vertical: 30),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -131,7 +131,7 @@ class CreatePostView extends GetView<CommunityController> {
             ],
           ),
         ),
-      ),
+      ),*/
     );
   }
 }
