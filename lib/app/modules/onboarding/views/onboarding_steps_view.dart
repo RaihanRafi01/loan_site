@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
-import 'package:loan_site/app/modules/auth/views/auth_view.dart';
+import 'package:loan_site/app/modules/auth/views/login_view.dart';
+import 'package:loan_site/app/modules/auth/views/signUp_view.dart';
 import 'package:loan_site/common/widgets/customButton.dart';
 import '../../../../common/appColors.dart';
 import '../../../../common/customFont.dart';
@@ -105,7 +106,7 @@ class OnboardingStepsView extends GetView<OnboardingController> {
                             txtClr: AppColors.textColor3,
                             label: 'Login',
                             onPressed: () {
-                             Get.offAll(AuthView());
+                             Get.offAll(LoginScreen());
                             },
                           ),
                         ],
@@ -167,7 +168,7 @@ class OnboardingStepsView extends GetView<OnboardingController> {
                                 label: 'Private Lender',
                                 onPressed: () {
                                   controller.showRegisterCard.value = false; // Hide card
-                                  Get.to(AuthView());
+                                  Get.to(SignUpScreen());
                                 },
                               ),
                               const SizedBox(height: 20),
@@ -175,7 +176,7 @@ class OnboardingStepsView extends GetView<OnboardingController> {
                                 label: 'Borrower',
                                 onPressed: () {
                                   controller.showRegisterCard.value = false; // Hide card
-                                  Get.to(AuthView());
+                                  Get.to(SignUpScreen());
                                 },
                               ),
                             ],

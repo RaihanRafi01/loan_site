@@ -1,5 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:loan_site/app/modules/auth/views/create_password_view.dart';
+import 'package:loan_site/app/modules/auth/views/forgot_password_screen.dart';
+import 'package:loan_site/app/modules/auth/views/login_view.dart';
+import 'package:loan_site/app/modules/auth/views/send_otp_view.dart';
+import 'package:loan_site/app/modules/auth/views/signUp_view.dart';
+import 'package:loan_site/app/modules/auth/views/verification_screen.dart';
 
 import '../../project/views/onboarding_project_view.dart';
 
@@ -60,38 +66,32 @@ class AuthController extends GetxController {
   // Navigation methods
 
   void navigateToCreatePassword() {
-    _addToNavigationStack(AuthScreen.createPassword);
-    currentScreen.value = AuthScreen.createPassword;
+    Get.to(CreatePasswordScreen());
     clearForm();
   }
 
   void navigateToLogin() {
-    _addToNavigationStack(AuthScreen.login);
-    currentScreen.value = AuthScreen.login;
+    Get.to(LoginScreen());
     clearForm();
   }
 
   void navigateToSignUp() {
-    _addToNavigationStack(AuthScreen.signup);
-    currentScreen.value = AuthScreen.signup;
+    Get.to(SignUpScreen());
     clearForm();
   }
 
   void navigateToForgotPassword() {
-    _addToNavigationStack(AuthScreen.forgotPassword);
-    currentScreen.value = AuthScreen.forgotPassword;
+    Get.to(ForgotPasswordScreen());
     clearForm();
   }
 
   void navigateToVerification() {
-    _addToNavigationStack(AuthScreen.verification);
-    currentScreen.value = AuthScreen.verification;
+    Get.to(VerificationScreen());
     //clearForm();
   }
 
   void navigateToSendOtp() {
-    _addToNavigationStack(AuthScreen.sendOtp);
-    currentScreen.value = AuthScreen.sendOtp;
+    Get.to(SendOtpScreen());
     clearForm();
   }
 
@@ -106,9 +106,6 @@ class AuthController extends GetxController {
     return false; // Prevent default back behavior
   }
 
-  void _addToNavigationStack(AuthScreen screen) {
-    navigationStack.add(screen);
-  }
 
   // Toggle methods
   void togglePasswordVisibility() {

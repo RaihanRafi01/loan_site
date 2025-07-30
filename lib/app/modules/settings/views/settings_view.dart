@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
-import 'package:loan_site/app/modules/auth/views/auth_view.dart';
-import 'package:loan_site/app/modules/project/views/create_project_view.dart';
+import 'package:loan_site/app/modules/auth/views/login_view.dart';
 import 'package:loan_site/app/modules/project/views/project_list_view.dart';
-import 'package:loan_site/app/modules/project/views/project_view.dart';
 import 'package:loan_site/app/modules/settings/views/account_settings_view.dart';
 import 'package:loan_site/app/modules/settings/views/help_support_view.dart';
 import 'package:loan_site/app/modules/settings/views/terms_condition_view.dart';
@@ -202,7 +200,7 @@ class SettingsView extends GetView<SettingsController> {
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
-                Get.offAll(AuthView()); // Example navigation
+                Get.offAll(LoginScreen()); // Example navigation
               },
               child: Text('Log Out', style: h3.copyWith(color: AppColors.clrRed)),
             ),

@@ -1,13 +1,11 @@
 import 'package:get/get.dart';
-
+import 'package:loan_site/app/modules/auth/views/login_view.dart';
 import '../modules/auth/bindings/auth_binding.dart';
-import '../modules/auth/views/auth_view.dart';
 import '../modules/community/bindings/community_binding.dart';
 import '../modules/community/views/community_view.dart';
 import '../modules/contractor/bindings/contractor_binding.dart';
 import '../modules/contractor/views/contractor_view.dart';
 import '../modules/dashboard/bindings/dashboard_binding.dart';
-import '../modules/dashboard/views/dashboard_lender_view.dart';
 import '../modules/dashboard/views/dashboard_view.dart';
 import '../modules/home/bindings/home_binding.dart';
 import '../modules/home/views/home_view.dart';
@@ -17,14 +15,10 @@ import '../modules/notification/bindings/notification_binding.dart';
 import '../modules/notification/views/notification_view.dart';
 import '../modules/onboarding/bindings/onboarding_binding.dart';
 import '../modules/onboarding/views/onboarding_steps_view.dart';
-import '../modules/onboarding/views/onboarding_view.dart';
 import '../modules/progress/bindings/progress_binding.dart';
 import '../modules/progress/views/progress_view.dart';
 import '../modules/project/bindings/project_binding.dart';
-import '../modules/project/views/create_project_view.dart';
-import '../modules/project/views/onboarding_project_view.dart';
 import '../modules/project/views/project_view.dart';
-import '../modules/project/views/select_lender_view.dart';
 import '../modules/project_lender/bindings/project_lender_binding.dart';
 import '../modules/project_lender/views/project_lender_view.dart';
 import '../modules/project_request/bindings/project_request_binding.dart';
@@ -52,7 +46,7 @@ class AppPages {
     ),
     GetPage(
       name: _Paths.AUTH,
-      page: () => const AuthView(),
+      page: () => const LoginScreen(),
       binding: AuthBinding(),
     ),
     GetPage(
