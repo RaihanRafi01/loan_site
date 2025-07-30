@@ -69,9 +69,9 @@ class ProjectRequestView extends GetView<ProjectRequestController> {
               child: TabBarView(
                 children: [
                   // Accept Tab
-                  _buildAcceptedRequestsList(),
+                  _buildRequestsList(isPending: false),
                   // Pending Tab
-                  _buildPendingRequestsList(),
+                  _buildRequestsList(isPending: true),
                 ],
               ),
             ),
@@ -81,41 +81,26 @@ class ProjectRequestView extends GetView<ProjectRequestController> {
     );
   }
 
-  Widget _buildAcceptedRequestsList() {
+  Widget _buildRequestsList({required bool isPending}) {
     return ListView.builder(
       padding: const EdgeInsets.all(16),
       itemCount: 5, // Replace with actual data length
       itemBuilder: (context, index) {
-        return _buildAcceptedRequestCard(
+        return _buildRequestCard(
           name: "Sarah James",
-          lenderName: "Sarah James",
-          companyName: "Green Valley Residential Complex",
-          location : "Austin, TX",
-          companyType: "Residential",
+          lenderName: isPending ? "Food Delivery Application" : "Sarah James",
+          companyName: isPending ? "Food Delivery Application" : "Green Valley Residential Complex",
+          location: isPending ? "24 Jan '25" : "Austin, TX",
+          companyType: isPending ? "5:30 PM" : "Residential",
           price: "10M",
-          profileImage: "assets/images/profile_placeholder.png", // Replace with actual asset
+          profileImage: "assets/images/profile_placeholder.png",
+          isPending: isPending,
         );
       },
     );
   }
 
-  Widget _buildPendingRequestsList() {
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: 5, // Replace with actual data length
-      itemBuilder: (context, index) {
-        return _buildPendingRequestCard(
-          name: "Sarah James",
-          projectType: "Food Delivery Application",
-          date: "24 Jan '25",
-          time: "5:30 PM",
-          profileImage: "assets/images/profile_placeholder.png", // Replace with actual asset
-        );
-      },
-    );
-  }
-
-  Widget _buildAcceptedRequestCard({
+  Widget _buildRequestCard({
     required String name,
     required String lenderName,
     required String companyName,
@@ -123,161 +108,7 @@ class ProjectRequestView extends GetView<ProjectRequestController> {
     required String companyType,
     required String price,
     required String profileImage,
-  }) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(6),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 50,
-                height: 50,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: AppColors.cardSky,
-                  image: DecorationImage(
-                    image: AssetImage(profileImage),
-                    fit: BoxFit.cover,
-                    onError: (exception, stackTrace) {
-                      // Handle image loading error
-                    },
-                  ),
-                ),
-                child: profileImage.isEmpty
-                    ? Icon(
-                  Icons.person,
-                  color: AppColors.gray13,
-                  size: 30,
-                )
-                    : null,
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      name,
-                      style: h3.copyWith(
-                        color: Colors.black,
-                        fontSize: 16,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        SvgPicture.asset('assets/images/project/bag_icon.svg'),
-                        SizedBox(width: 4),
-                        Text(
-                          lenderName,
-                          style: h4.copyWith(
-                            color: AppColors.gray15,
-                            fontSize: 14,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: AppColors.clrGreen2.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  'Accepted',
-                  style: h3.copyWith(
-                    color: AppColors.clrGreen2,
-                    fontSize: 14,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Text(
-            companyName,
-            style: h3.copyWith(
-              color: AppColors.appColor2,
-              fontSize: 16,
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 2),
-            child: Row(
-              children: [
-                SvgPicture.asset('assets/images/project/map_icon.svg'),
-                SizedBox(width: 3),
-                Text(
-                  location,
-                  style: h4.copyWith(
-                    color: AppColors.blurtext,
-                    fontSize: 14,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 3),
-            child: Row(
-              children: [
-                SvgPicture.asset('assets/images/project/building_icon.svg'),
-                SizedBox(width: 4),
-                Text(
-                  companyType,
-                  style: h4.copyWith(
-                    color: AppColors.blurtext,
-                    fontSize: 14,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 3),
-            child: Row(
-              children: [
-                SvgPicture.asset('assets/images/project/dollar_icon.svg'),
-                SizedBox(width: 4),
-                Text(
-                  price,
-                  style: h4.copyWith(
-                    color: AppColors.blurtext,
-                    fontSize: 14,
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPendingRequestCard({
-    required String name,
-    required String projectType,
-    required String date,
-    required String time,
-    required String profileImage,
+    required bool isPending,
   }) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -334,13 +165,18 @@ class ProjectRequestView extends GetView<ProjectRequestController> {
                       ),
                     ),
                     const SizedBox(height: 4),
-                    Text(
-                      projectType,
-                      style: TextStyle(
-                        color: AppColors.gray13,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                      ),
+                    Row(
+                      children: [
+                        SvgPicture.asset('assets/images/project/bag_icon.svg'),
+                        SizedBox(width: 4),
+                        Text(
+                          lenderName,
+                          style: h4.copyWith(
+                            color: AppColors.gray13,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -348,75 +184,98 @@ class ProjectRequestView extends GetView<ProjectRequestController> {
             ],
           ),
           const SizedBox(height: 12),
-          Row(
-            children: [
-              Icon(
-                Icons.calendar_today_outlined,
-                size: 16,
-                color: AppColors.gray13,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                date,
-                style: TextStyle(
-                  color: AppColors.gray13,
-                  fontSize: 14,
-                ),
-              ),
-              const SizedBox(width: 16),
-              Icon(
-                Icons.access_time,
-                size: 16,
-                color: AppColors.gray13,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                time,
-                style: TextStyle(
-                  color: AppColors.gray13,
-                  fontSize: 14,
-                ),
-              ),
-            ],
+          Text(
+            companyName,
+            style: h3.copyWith(
+              color: AppColors.appColor2,
+              fontSize: 16,
+            ),
           ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: CustomButton(
-                  label: 'Decline',
-                  onPressed: () {
-                    // Handle decline action
-                    _handleDeclineRequest(name);
-                  },
-                  isWhite: true,
-                  txtClr: Colors.red,
-                  borderColor: Colors.red,
-                  height: 35,
-                  fontSize: 14,
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 2),
+            child: Row(
+              children: [
+                SvgPicture.asset('assets/images/project/map_icon.svg'),
+                SizedBox(width: 3),
+                Text(
+                  location,
+                  style: h4.copyWith(
+                    color: AppColors.blurtext,
+                    fontSize: 14,
+                  ),
                 ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: CustomButton(
-                  label: 'Accept',
-                  onPressed: () {
-                    // Handle accept action
-                    _handleAcceptRequest(name);
-                  },
-                  height: 35,
-                  fontSize: 14,
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 3),
+            child: Row(
+              children: [
+                SvgPicture.asset('assets/images/project/building_icon.svg'),
+                SizedBox(width: 4),
+                Text(
+                  companyType,
+                  style: h4.copyWith(
+                    color: AppColors.blurtext,
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
+          ),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 3),
+              child: Row(
+                children: [
+                  SvgPicture.asset('assets/images/project/dollar_icon.svg'),
+                  SizedBox(width: 4),
+                  Text(
+                    price,
+                    style: h4.copyWith(
+                      color: AppColors.blurtext,
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          if (isPending) ...[
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: CustomButton(
+                    label: 'Decline',
+                    onPressed: () {
+                      _handleDeclineRequest(name);
+                    },
+                    isWhite: true,
+                    txtClr: Colors.red,
+                    borderColor: Colors.red,
+                    height: 35,
+                    fontSize: 14,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: CustomButton(
+                    label: 'Accept',
+                    onPressed: () {
+                      _handleAcceptRequest(name);
+                    },
+                    height: 35,
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
+          ],
         ],
       ),
     );
   }
 
   void _handleAcceptRequest(String name) {
-    // Add your accept request logic here
     Get.snackbar(
       'Request Accepted',
       'You have accepted the project request from $name',
@@ -428,7 +287,6 @@ class ProjectRequestView extends GetView<ProjectRequestController> {
   }
 
   void _handleDeclineRequest(String name) {
-    // Add your decline request logic here
     Get.snackbar(
       'Request Declined',
       'You have declined the project request from $name',
