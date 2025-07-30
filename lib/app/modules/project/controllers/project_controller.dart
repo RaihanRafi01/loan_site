@@ -27,7 +27,7 @@ class ProjectController extends GetxController {
   final permitExpireDateController = TextEditingController();
 
   var currentStep = 1.obs;
-  var showConfirm = false.obs;
+  //var showConfirm = false.obs;
 
   final contractorControllers = <Map<String, TextEditingController>>[].obs;
 
@@ -37,13 +37,13 @@ class ProjectController extends GetxController {
     // Add one contractor input field by default
     addContractor();
   }
-  void showConfirmationAndNavigate() {
+  /*void showConfirmationAndNavigate() {
     showConfirm.value = true;
     Future.delayed(const Duration(seconds: 3), () {
       showConfirm.value = false;
       Get.offAll(() => const SetMilestoneView());
     });
-  }
+  }*/
 
   void addContractor() {
     contractorControllers.add({

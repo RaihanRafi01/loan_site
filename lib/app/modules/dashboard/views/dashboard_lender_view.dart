@@ -7,6 +7,7 @@ import 'package:loan_site/app/modules/contractor/views/contractor_view.dart';
 import 'package:loan_site/app/modules/home/views/home_view.dart';
 import 'package:loan_site/app/modules/progress/views/progress_view.dart';
 import 'package:loan_site/app/modules/project_lender/views/project_lender_view.dart';
+import 'package:loan_site/app/modules/project_request/views/project_request_view.dart';
 import 'package:loan_site/app/modules/settings/views/settings_view.dart';
 import '../../../../common/appColors.dart';
 import '../../../../common/customFont.dart';
@@ -25,6 +26,7 @@ class DashboardLenderView extends GetView<DashboardController> {
     final List<Widget> pages = [
       const HomeLenderView(),
       const ProjectLenderView(),
+      const ProjectRequestView(),
       const SettingsView(isBorrower: false,),
     ];
 
@@ -74,11 +76,22 @@ class DashboardLenderView extends GetView<DashboardController> {
               ),
               GButton(
                 icon: Icons.settings,
-                text: 'Settings',
+                text: 'Request',
                 textStyle: h2.copyWith(fontSize: 16,color: controller.selectedIndex.value == 2 ? AppColors.appColor2 : null),
                 leading: SvgPicture.asset(
-                  'assets/images/nav/settings_icon.svg',
+                  'assets/images/nav/request_icon.svg',
                   color: controller.selectedIndex.value == 2 ? AppColors.appColor2 : null,
+                ),
+                iconActiveColor: Colors.white,
+                iconColor: Colors.black,
+              ),
+              GButton(
+                icon: Icons.settings,
+                text: 'Settings',
+                textStyle: h2.copyWith(fontSize: 16,color: controller.selectedIndex.value == 3 ? AppColors.appColor2 : null),
+                leading: SvgPicture.asset(
+                  'assets/images/nav/settings_icon.svg',
+                  color: controller.selectedIndex.value == 3 ? AppColors.appColor2 : null,
                 ),
                 iconActiveColor: Colors.white,
                 iconColor: Colors.black,

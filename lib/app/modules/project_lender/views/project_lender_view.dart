@@ -111,7 +111,15 @@ class ProjectLenderView extends GetView<ProjectLenderController> {
   }) {
     return Container(
       padding: const EdgeInsets.all(16),
+
       decoration: BoxDecoration(
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
         color: Colors.white,
         borderRadius: BorderRadius.circular(6),
       ), // No boxShadow

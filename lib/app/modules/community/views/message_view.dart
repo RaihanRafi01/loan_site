@@ -52,7 +52,7 @@ class MessageView extends GetView<MessageController> {
           // Search Bar
           Container(
             margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
             decoration: BoxDecoration(
               color: AppColors.cardSky,
               borderRadius: BorderRadius.circular(25),
@@ -65,11 +65,16 @@ class MessageView extends GetView<MessageController> {
                   size: 20,
                 ),
                 const SizedBox(width: 12),
-                Text(
-                  'Search here',
-                  style: TextStyle(
-                    color: Colors.grey[600],
-                    fontSize: 16,
+                Expanded(
+                  child: TextField(
+                    decoration: InputDecoration(
+                      hintText: 'Search here',
+                      hintStyle: TextStyle(
+                        color: Colors.grey[600],
+                        fontSize: 16,
+                      ),
+                      border: InputBorder.none,
+                    ),
                   ),
                 ),
               ],

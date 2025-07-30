@@ -102,6 +102,7 @@ class OnboardingStepsView extends GetView<OnboardingController> {
                           const SizedBox(height: 16),
                           CustomButton(
                             isWhite: true,
+                            txtClr: AppColors.textColor3,
                             label: 'Login',
                             onPressed: () {
                              Get.offAll(AuthView());

@@ -16,6 +16,7 @@ abstract class Routes {
   static const NOTIFICATION = _Paths.NOTIFICATION;
   static const PROJECT_LENDER = _Paths.PROJECT_LENDER;
   static const HOME_LENDER = _Paths.HOME_LENDER;
+  static const PROJECT_REQUEST = _Paths.PROJECT_REQUEST;
 }
 
 abstract class _Paths {
@@ -33,4 +34,5 @@ abstract class _Paths {
   static const NOTIFICATION = '/notification';
   static const PROJECT_LENDER = '/project-lender';
   static const HOME_LENDER = '/home-lender';
+  static const PROJECT_REQUEST = '/project-request';
 }

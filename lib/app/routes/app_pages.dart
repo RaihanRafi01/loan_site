@@ -24,8 +24,11 @@ import '../modules/project/bindings/project_binding.dart';
 import '../modules/project/views/create_project_view.dart';
 import '../modules/project/views/onboarding_project_view.dart';
 import '../modules/project/views/project_view.dart';
+import '../modules/project/views/select_lender_view.dart';
 import '../modules/project_lender/bindings/project_lender_binding.dart';
 import '../modules/project_lender/views/project_lender_view.dart';
+import '../modules/project_request/bindings/project_request_binding.dart';
+import '../modules/project_request/views/project_request_view.dart';
 import '../modules/settings/bindings/settings_binding.dart';
 import '../modules/settings/views/settings_view.dart';
 
@@ -96,6 +99,11 @@ class AppPages {
       name: _Paths.HOME_LENDER,
       page: () => const HomeLenderView(),
       binding: HomeLenderBinding(),
+    ),
+    GetPage(
+      name: _Paths.PROJECT_REQUEST,
+      page: () => const ProjectRequestView(),
+      binding: ProjectRequestBinding(),
     ),
   ];
 }

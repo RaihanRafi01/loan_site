@@ -65,7 +65,7 @@ class CustomButton extends StatelessWidget {
             ],
             Text(
               label,
-              style: h3.copyWith(fontSize: fontSize, color: isWhite ? AppColors.textColor3 : txtClr),
+              style: h3.copyWith(fontSize: fontSize, color: txtClr),
             ),
             if (svgPath2 != null) ...[
               const SizedBox(width: 4),

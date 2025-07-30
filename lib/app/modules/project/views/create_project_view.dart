@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:loan_site/app/modules/project/views/project_view.dart';
+import 'package:loan_site/app/modules/project/views/select_lender_view.dart';
 import 'package:loan_site/common/widgets/customButton.dart';
 import 'package:loan_site/common/widgets/customTextField.dart';
 import '../../../../common/appColors.dart';
@@ -45,8 +46,7 @@ class CreateProjectView extends GetView<ProjectController> {
           ),
         )),
       ),
-      body: Obx(
-    () => Stack(
+      body: Stack(
         children: [
           Column(
             children: [
@@ -230,12 +230,13 @@ class CreateProjectView extends GetView<ProjectController> {
                   currentStep.value = 3; // Go to final step
                 } else if (currentStep.value == 3) {
                   // Handle submit action
-                  controller.showConfirmationAndNavigate();
+                  //controller.showConfirmationAndNavigate();
+                  Get.to(SelectLenderView());
                 }
               },
             )),
           ),
-          if (controller.showConfirm.value)
+          /*if (controller.showConfirm.value)
             Positioned.fill(
               child: GestureDetector(
                 onTap: () {
@@ -285,10 +286,9 @@ class CreateProjectView extends GetView<ProjectController> {
                   ],
                 ),
               ),
-            ),
+            ),*/
         ],
-      ),
-    ));
+      ));
   }
 
   // Helper method to get display step number
