@@ -34,13 +34,14 @@ class LoginScreen extends GetView<AuthController> {
                   prefixSvgPath: 'assets/images/auth/mail_icon.svg',
                   controller: controller.emailController,
                 ),
-                CustomTextField(
-                  obscureText: true,
+                Obx(() => CustomTextField(
+                  obscureText: controller.isPasswordHidden.value, // Use reactive value
                   labelText: 'Password',
                   prefixSvgPath: 'assets/images/auth/lock_icon.svg',
                   suffixSvgPath: 'assets/images/auth/eye_icon.svg',
+                  onSuffixTap: controller.togglePasswordVisibility,
                   controller: controller.passwordController,
-                ),
+                )),
                 Row(
                   children: [
                     Obx(
@@ -65,7 +66,8 @@ class LoginScreen extends GetView<AuthController> {
                 ),
                 const SizedBox(height: 20),
                 CustomButton(label: 'Log In', onPressed: () {
-                  Get.offAll(OnboardingProjectView());
+                  controller.signIn();
+                  //Get.offAll(OnboardingProjectView());
                 }),
                 const SizedBox(height: 24),
                 Row(

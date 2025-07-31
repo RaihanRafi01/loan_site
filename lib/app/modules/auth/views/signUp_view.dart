@@ -46,24 +46,26 @@ class SignUpScreen extends GetView<AuthController> {
                         prefixSvgPath: 'assets/images/auth/phone_icon.svg',
                         controller: controller.phoneController,
                       ),
-                      CustomTextField(
-                        obscureText: true,
+                  Obx(() =>CustomTextField(
+                        obscureText: controller.isPasswordHidden.value,
                         labelText: 'Password',
                         prefixSvgPath: 'assets/images/auth/lock_icon.svg',
                         suffixSvgPath: 'assets/images/auth/eye_icon.svg',
+                        onSuffixTap: controller.togglePasswordVisibility,
                         controller: controller.passwordController,
-                      ),
-                      CustomTextField(
-                        obscureText: true,
+                      )),
+                  Obx(() => CustomTextField(
+                        obscureText: controller.isConfirmPasswordHidden.value,
                         labelText: 'Confirm Password',
                         prefixSvgPath: 'assets/images/auth/lock_icon.svg',
                         suffixSvgPath: 'assets/images/auth/eye_icon.svg',
+                        onSuffixTap: controller.toggleConfirmPasswordVisibility,
                         controller: controller.confirmPasswordController,
-                      ),
+                      )),
                       SizedBox(height: 30),
                       CustomButton(
                         label: 'Register',
-                        onPressed: () => controller.showConfirmationAndNavigate(),
+                        onPressed: () => controller.signUp(),
                       ),
                       const SizedBox(height: 24),
                       Row(

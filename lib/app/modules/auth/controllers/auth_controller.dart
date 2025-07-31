@@ -6,17 +6,15 @@ import 'package:loan_site/app/modules/auth/views/login_view.dart';
 import 'package:loan_site/app/modules/auth/views/send_otp_view.dart';
 import 'package:loan_site/app/modules/auth/views/signUp_view.dart';
 import 'package:loan_site/app/modules/auth/views/verification_screen.dart';
+import 'package:loan_site/app/modules/project/views/onboarding_project_view.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
-import '../../project/views/onboarding_project_view.dart';
+import '../../../../common/widgets/custom_snackbar.dart';
+import '../../../data/api.dart';
+import '../../../data/base_client.dart';
 
-enum AuthScreen {
-  login,
-  signup,
-  forgotPassword,
-  verification,
-  sendOtp,
-  createPassword,
-}
+
 
 enum ResetMethod {
   email,
@@ -25,7 +23,6 @@ enum ResetMethod {
 
 class AuthController extends GetxController {
   // Current screen state
-  final currentScreen = AuthScreen.login.obs;
   final resetMethod = ResetMethod.email.obs;
 
   // Form controllers
@@ -44,16 +41,15 @@ class AuthController extends GetxController {
   final isRememberMe = false.obs;
   var showConfirm = false.obs;
 
-
   void showConfirmationAndNavigate() {
     showConfirm.value = true;
     Future.delayed(const Duration(seconds: 3), () {
       showConfirm.value = false;
-      Get.offAll(() => const OnboardingProjectView(newUser: true,));
+      Get.offAll(VerificationScreen());
+      //Get.offAll(() => const OnboardingProjectView(newUser: true));
     });
   }
-  // Navigation stack to track history
-  final navigationStack = <AuthScreen>[AuthScreen.signup].obs;
+
 
   void setResetMethod(ResetMethod method) {
     resetMethod.value = method;
@@ -64,7 +60,6 @@ class AuthController extends GetxController {
   }
 
   // Navigation methods
-
   void navigateToCreatePassword() {
     Get.to(CreatePasswordScreen());
     clearForm();
@@ -96,16 +91,9 @@ class AuthController extends GetxController {
   }
 
   Future<bool> handleBackNavigation() async {
-    if (navigationStack.length <= 1) {
-      return true; // Allow app to close if at root screen
-    }
-
-    navigationStack.removeLast();
-    currentScreen.value = navigationStack.last;
     clearForm();
     return false; // Prevent default back behavior
   }
-
 
   // Toggle methods
   void togglePasswordVisibility() {
@@ -142,54 +130,6 @@ class AuthController extends GetxController {
   }
 
   // Auth methods
-  void signIn() async {
-    if (!_validateEmail(emailController.text)) {
-      Get.snackbar(
-        'Error',
-        'Please enter a valid email address',
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: Colors.red.shade100,
-        colorText: Colors.red.shade800,
-      );
-      return;
-    }
-
-    if (!_validatePassword(passwordController.text)) {
-      Get.snackbar(
-        'Error',
-        'Password must be at least 6 characters long',
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: Colors.red.shade100,
-        colorText: Colors.red.shade800,
-      );
-      return;
-    }
-
-    isLoading.value = true;
-
-    try {
-      await Future.delayed(const Duration(seconds: 2));
-      Get.snackbar(
-        'Success',
-        'Signed in successfully!',
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: Colors.green.shade100,
-        colorText: Colors.green.shade800,
-      );
-      clearForm();
-    } catch (e) {
-      Get.snackbar(
-        'Error',
-        'Failed to sign in. Please try again.',
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: Colors.red.shade100,
-        colorText: Colors.red.shade800,
-      );
-    } finally {
-      isLoading.value = false;
-    }
-  }
-
   void signUp() async {
     if (!_validateName(nameController.text)) {
       Get.snackbar(
@@ -213,6 +153,17 @@ class AuthController extends GetxController {
       return;
     }
 
+   /* if (!_validatePhone(phoneController.text)) {
+      Get.snackbar(
+        'Error',
+        'Please enter a valid phone number',
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: Colors.red.shade100,
+        colorText: Colors.red.shade800,
+      );
+      return;
+    }*/
+
     if (!_validatePassword(passwordController.text)) {
       Get.snackbar(
         'Error',
@@ -235,7 +186,7 @@ class AuthController extends GetxController {
       return;
     }
 
-    if (!isTermsAccepted.value) {
+    /*if (!isTermsAccepted.value) {
       Get.snackbar(
         'Error',
         'Please accept the terms and conditions',
@@ -244,28 +195,104 @@ class AuthController extends GetxController {
         colorText: Colors.red.shade800,
       );
       return;
+    }*/
+
+    isLoading.value = true;
+
+    try {
+      // Prepare the request body
+      final body = jsonEncode({
+        'name': nameController.text.trim(),
+        'email': emailController.text.trim(),
+        'phone': phoneController.text.trim(),
+        'password': passwordController.text,
+        "user_role": "borrower",
+        //"company_name": "Wilson Capital Lending"
+      });
+
+
+      // Make the API call using BaseClient
+      final response = await BaseClient.postRequest(
+        api: Api.signup,
+        body: body,
+        headers: BaseClient.basicHeaders,
+      );
+
+      // Handle the response manually for specific status codes
+      if (response.statusCode == 201) {
+        // Successful account creation
+        Get.snackbar(
+          'Success',
+          'Account created successfully! Please verify your email.',
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: Colors.green.shade100,
+          colorText: Colors.green.shade800,
+        );
+        showConfirmationAndNavigate();
+      } else if (response.statusCode == 200) {
+        // User already exists but is inactive, OTP sent
+        final responseData = jsonDecode(response.body);
+        final message = responseData['message'] ?? 'A new OTP has been sent to your email.';
+        Get.snackbar(
+          'Info',
+          message,
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: Colors.blue.shade100,
+          colorText: Colors.blue.shade800,
+        );
+        //navigateToVerification();
+      } else {
+        // Let BaseClient.handleResponse handle other status codes
+        final result = await BaseClient.handleResponse(response);
+        // If handleResponse doesn't throw an error, treat as success
+        Get.snackbar(
+          'Success',
+          'Account created successfully! Please verify your email.',
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: Colors.green.shade100,
+          colorText: Colors.green.shade800,
+        );
+        //showConfirmationAndNavigate();
+      }
+    } catch (e) {
+      Get.snackbar(
+        'Error',
+        e.toString(),
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: Colors.red.shade100,
+        colorText: Colors.red.shade800,
+      );
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  void signIn() async {
+    if (!_validateEmail(emailController.text)) {
+      kSnackBar(title: 'Warning',message: 'Please enter a valid email address',bgColor: Colors.red.shade200);
+      return;
+    }
+
+    if (!_validatePassword(passwordController.text)) {
+      kSnackBar(title: 'Warning',message: 'Password must be at least 6 characters long',bgColor: Colors.red.shade200);
+      return;
     }
 
     isLoading.value = true;
 
     try {
       await Future.delayed(const Duration(seconds: 2));
-      navigateToVerification();
-      Get.snackbar(
-        'Success',
-        'Account created successfully! Please verify your email.',
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: Colors.green.shade100,
-        colorText: Colors.green.shade800,
-      );
+      kSnackBar(title: 'Success',message: 'Signed in successfully!',);
+      clearForm();
     } catch (e) {
       Get.snackbar(
         'Error',
-        'Failed to create account. Please try again.',
+        'Failed to sign in. Please try again.',
         snackPosition: SnackPosition.TOP,
         backgroundColor: Colors.red.shade100,
         colorText: Colors.red.shade800,
       );
+      kSnackBar(title: 'Warning',message: 'Failed to sign in. Please try again.',bgColor: Colors.red.shade200);
     } finally {
       isLoading.value = false;
     }
@@ -273,24 +300,12 @@ class AuthController extends GetxController {
 
   void sendOtp() async {
     if (resetMethod.value == ResetMethod.email && !_validateEmail(emailController.text)) {
-      Get.snackbar(
-        'Error',
-        'Please enter a valid email address',
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: Colors.red.shade100,
-        colorText: Colors.red.shade800,
-      );
+      kSnackBar(title: 'Warning',message: 'Please enter a valid email address',bgColor: Colors.red.shade200);
       return;
     }
 
     if (resetMethod.value == ResetMethod.sms && !_validatePhone(phoneController.text)) {
-      Get.snackbar(
-        'Error',
-        'Please enter a valid phone number',
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: Colors.red.shade100,
-        colorText: Colors.red.shade800,
-      );
+      kSnackBar(title: 'Warning',message: 'Please enter a valid phone number',bgColor: Colors.red.shade200);
       return;
     }
 
@@ -299,23 +314,11 @@ class AuthController extends GetxController {
     try {
       await Future.delayed(const Duration(seconds: 2));
       navigateToVerification();
-      Get.snackbar(
-        'Success',
-        resetMethod.value == ResetMethod.email
-            ? 'OTP sent to your email!'
-            : 'OTP sent to your phone!',
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: Colors.green.shade100,
-        colorText: Colors.green.shade800,
-      );
+      kSnackBar(title: 'Success',message: resetMethod.value == ResetMethod.email
+          ? 'OTP sent to your email!'
+          : 'OTP sent to your phone!',);
     } catch (e) {
-      Get.snackbar(
-        'Error',
-        'Failed to send OTP. Please try again.',
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: Colors.red.shade100,
-        colorText: Colors.red.shade800,
-      );
+      kSnackBar(message: 'Failed to send OTP. Please try again.',bgColor: Colors.red.shade200);
     } finally {
       isLoading.value = false;
     }
@@ -323,13 +326,7 @@ class AuthController extends GetxController {
 
   void verifyOtp() async {
     if (!_validateVerificationCode()) {
-      Get.snackbar(
-        'Error',
-        'Please enter a valid verification code',
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: Colors.red.shade100,
-        colorText: Colors.red.shade800,
-      );
+      kSnackBar(title: 'Incorrect OTP',message: 'Please enter a valid verification code',bgColor: Colors.red.shade200);
       return;
     }
 
@@ -337,15 +334,9 @@ class AuthController extends GetxController {
 
     try {
       await Future.delayed(const Duration(seconds: 2));
-      Get.snackbar(
-        'Success',
-        resetMethod.value == ResetMethod.email
-            ? 'Email verified successfully!'
-            : 'Phone verified successfully!',
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: Colors.green.shade100,
-        colorText: Colors.green.shade800,
-      );
+      kSnackBar(title: 'Success',message: resetMethod.value == ResetMethod.email
+          ? 'Email verified successfully!'
+          : 'Phone verified successfully!',);
       navigateToLogin();
     } catch (e) {
       Get.snackbar(
@@ -365,23 +356,11 @@ class AuthController extends GetxController {
 
     try {
       await Future.delayed(const Duration(seconds: 1));
-      Get.snackbar(
-        'Success',
-        resetMethod.value == ResetMethod.email
-            ? 'Verification code resent to your email!'
-            : 'Verification code resent to your phone!',
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: Colors.green.shade100,
-        colorText: Colors.green.shade800,
-      );
+      kSnackBar(title: 'Success',message: resetMethod.value == ResetMethod.email
+          ? 'Verification code resent to your email!'
+          : 'Verification code resent to your phone!',);
     } catch (e) {
-      Get.snackbar(
-        'Error',
-        'Failed to resend code. Please try again.',
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: Colors.red.shade100,
-        colorText: Colors.red.shade800,
-      );
+      kSnackBar(message: 'Failed to resend code. Please try again.',bgColor: Colors.red.shade200);
     } finally {
       isLoading.value = false;
     }
@@ -392,13 +371,7 @@ class AuthController extends GetxController {
 
     try {
       await Future.delayed(const Duration(seconds: 2));
-      Get.snackbar(
-        'Success',
-        'Signed in with Google successfully!',
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: Colors.green.shade100,
-        colorText: Colors.green.shade800,
-      );
+      kSnackBar(title: 'Success',message: 'Signed in with Google successfully!',);
       clearForm();
     } catch (e) {
       Get.snackbar(
@@ -418,22 +391,10 @@ class AuthController extends GetxController {
 
     try {
       await Future.delayed(const Duration(seconds: 2));
-      Get.snackbar(
-        'Success',
-        'Signed in with Facebook successfully!',
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: Colors.green.shade100,
-        colorText: Colors.green.shade800,
-      );
+      kSnackBar(title: 'Success',message: 'Signed in with Facebook successfully!',);
       clearForm();
     } catch (e) {
-      Get.snackbar(
-        'Error',
-        'Failed to sign in with Facebook. Please try again.',
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: Colors.red.shade100,
-        colorText: Colors.red.shade800,
-      );
+      kSnackBar(message: 'Failed to sign in with Facebook. Please try again.!',);
     } finally {
       isLoading.value = false;
     }
