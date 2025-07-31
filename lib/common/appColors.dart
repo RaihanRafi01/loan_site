@@ -81,6 +81,10 @@ class AppColors {
   static const Color lenderSky = Color(0xFF1E90FF);
   static const Color lenderGreen = Color(0xFF10B981);
 
+  
+
+  static Color snackBarWarning = Colors.red.shade200;
+
 
 
 
