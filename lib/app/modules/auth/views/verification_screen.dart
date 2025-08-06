@@ -6,7 +6,11 @@ import '../../../../common/widgets/customButton.dart';
 import '../../../../common/widgets/custom_title_subTitle.dart';
 import '../controllers/auth_controller.dart';
 class VerificationScreen extends GetView<AuthController> {
-  const VerificationScreen({super.key});
+
+  final bool isForgot;
+
+  const VerificationScreen({super.key,this.isForgot = false});
+
 
   @override
   Widget build(BuildContext context) {
@@ -86,12 +90,13 @@ class VerificationScreen extends GetView<AuthController> {
                 ),
               ),
               const SizedBox(height: 32),
-              CustomButton(
+              Obx(() => CustomButton(
                 label: controller.resetMethod.value == ResetMethod.email
                     ? 'Verify Email'
                     : 'Verify Phone',
-                onPressed: controller.navigateToCreatePassword,
-              ),
+                onPressed: ()=> controller.verifyOtp(true,isForgot),
+                isLoading: controller.isLoading.value, // Pass loading state
+              )),
               const SizedBox(height: 24),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -102,7 +107,9 @@ class VerificationScreen extends GetView<AuthController> {
                   ),
                   SizedBox(width: 5),
                   GestureDetector(
-                    onTap: controller.resendCode,
+                    onTap: (){
+                      controller.resendCode('email');
+                    },
                     child: Text(
                       'Resend',
                       style: TextStyle(

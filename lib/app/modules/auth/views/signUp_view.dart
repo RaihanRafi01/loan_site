@@ -63,10 +63,11 @@ class SignUpScreen extends GetView<AuthController> {
                         controller: controller.confirmPasswordController,
                       )),
                       SizedBox(height: 30),
-                      CustomButton(
+                      Obx(() => CustomButton(
                         label: 'Register',
                         onPressed: () => controller.signUp(),
-                      ),
+                        isLoading: controller.isLoading.value, // Pass loading state
+                      )),
                       const SizedBox(height: 24),
                       Row(
                         children: [

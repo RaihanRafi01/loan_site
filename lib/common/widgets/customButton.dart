@@ -16,6 +16,7 @@ class CustomButton extends StatelessWidget {
   final double? height;
   final double radius;
   final double fontSize;
+  final bool isLoading; // New parameter for loading state
 
   const CustomButton({
     Key? key,
@@ -31,12 +32,13 @@ class CustomButton extends StatelessWidget {
     this.height = 50,
     this.radius = 48,
     this.fontSize = 20,
+    this.isLoading = false, // Default to false
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: onPressed,
+      onTap: isLoading ? null : onPressed, // Disable tap when loading
       child: Container(
         width: width,
         height: height,
@@ -54,7 +56,12 @@ class CustomButton extends StatelessWidget {
           borderRadius: BorderRadius.circular(radius),
         ),
         alignment: Alignment.center,
-        child: Row(
+        child: isLoading
+            ? CircularProgressIndicator(
+          valueColor: AlwaysStoppedAnimation<Color>(txtClr),
+          strokeWidth: 2,
+        )
+            : Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             if (svgPath != null) ...[

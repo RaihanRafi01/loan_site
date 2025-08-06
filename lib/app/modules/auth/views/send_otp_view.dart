@@ -38,10 +38,11 @@ class SendOtpScreen extends GetView<AuthController> {
                 ),
               ),
               const SizedBox(height: 20),
-              CustomButton(
+          Obx(() => CustomButton(
                 label: 'Send OTP',
                 onPressed: () => controller.sendOtp(),
-              ),
+                isLoading: controller.isLoading.value,
+              )),
             ],
           ),
         ),

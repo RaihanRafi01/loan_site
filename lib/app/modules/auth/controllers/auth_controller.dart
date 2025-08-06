@@ -6,10 +6,8 @@ import 'package:loan_site/app/modules/auth/views/login_view.dart';
 import 'package:loan_site/app/modules/auth/views/send_otp_view.dart';
 import 'package:loan_site/app/modules/auth/views/signUp_view.dart';
 import 'package:loan_site/app/modules/auth/views/verification_screen.dart';
-import 'package:loan_site/app/modules/project/views/onboarding_project_view.dart';
+import 'package:loan_site/app/modules/dashboard/views/dashboard_view.dart';
 import 'dart:convert';
-import 'package:http/http.dart' as http;
-
 import '../../../../common/appColors.dart';
 import '../../../../common/widgets/custom_snackbar.dart';
 import '../../../data/api.dart';
@@ -79,11 +77,6 @@ class AuthController extends GetxController {
   void navigateToForgotPassword() {
     Get.to(ForgotPasswordScreen());
     clearForm();
-  }
-
-  void navigateToVerification() {
-    Get.to(VerificationScreen());
-    //clearForm();
   }
 
   void navigateToSendOtp() {
@@ -222,9 +215,43 @@ class AuthController extends GetxController {
     isLoading.value = true;
 
     try {
-      await Future.delayed(const Duration(seconds: 2));
-      kSnackBar(title: 'Success',message: 'Signed in successfully!',);
-      clearForm();
+
+      final body = jsonEncode({
+        'name': nameController.text.trim(),
+        'email': emailController.text.trim(),
+        'phone': phoneController.text.trim(),
+        'password': passwordController.text,
+        "user_role": "borrower",
+        //"company_name": "Wilson Capital Lending"
+      });
+
+
+      // Make the API call using BaseClient
+      final response = await BaseClient.postRequest(
+        api: Api.signup,
+        body: body,
+        headers: BaseClient.basicHeaders,
+      );
+
+      // Handle the response manually for specific status codes
+      if (response.statusCode == 201) {
+        // Successful account creation
+        kSnackBar(title: 'Success',message: 'Signed in successfully!',);
+        clearForm();
+      } else if (response.statusCode == 200) {
+        // User already exists but is inactive, OTP sent
+        final responseData = jsonDecode(response.body);
+        final message = responseData['message'] ?? 'A new OTP has been sent to your email.';
+        kSnackBar(title: 'Info',message: message);
+        //navigateToVerification();
+      } else {
+        // Let BaseClient.handleResponse handle other status codes
+        final result = await BaseClient.handleResponse(response);
+        // If handleResponse doesn't throw an error, treat as success
+        //showConfirmationAndNavigate();
+      }
+
+
     } catch (e) {
       Get.snackbar(
         'Error',
@@ -253,11 +280,14 @@ class AuthController extends GetxController {
     isLoading.value = true;
 
     try {
-      await Future.delayed(const Duration(seconds: 2));
-      navigateToVerification();
-      kSnackBar(title: 'Success',message: resetMethod.value == ResetMethod.email
-          ? 'OTP sent to your email!'
-          : 'OTP sent to your phone!',);
+
+      bool success = await resendCode(resetMethod.value == ResetMethod.email ? 'email' : 'phone');
+
+      // Only navigate if resendCode was successful (status code 201)
+      if (success) {
+        Get.to(VerificationScreen(isForgot: true,));
+      }
+
     } catch (e) {
       kSnackBar(message: 'Failed to send OTP. Please try again.',bgColor: AppColors.snackBarWarning);
     } finally {
@@ -265,7 +295,7 @@ class AuthController extends GetxController {
     }
   }
 
-  void verifyOtp() async {
+  void verifyOtp(bool isFirstTime, bool? isForgot) async {
     if (!_validateVerificationCode()) {
       kSnackBar(title: 'Incorrect OTP',message: 'Please enter a valid verification code',bgColor: AppColors.snackBarWarning);
       return;
@@ -274,11 +304,49 @@ class AuthController extends GetxController {
     isLoading.value = true;
 
     try {
-      await Future.delayed(const Duration(seconds: 2));
-      kSnackBar(title: 'Success',message: resetMethod.value == ResetMethod.email
-          ? 'Email verified successfully!'
-          : 'Phone verified successfully!',);
-      navigateToLogin();
+
+      final otp = verificationCodeControllers.map((controller) => controller.text).join();
+
+      final body = jsonEncode({
+        'email': emailController.text.trim(),
+        'otp': otp,
+      });
+
+
+      // Make the API call using BaseClient
+      final response = await BaseClient.postRequest(
+        api: Api.verifyOtp,
+        body: body,
+        headers: BaseClient.basicHeaders,
+      );
+
+      // Handle the response manually for specific status codes
+      if (response.statusCode >= 200 && response.statusCode <= 210) {
+        kSnackBar(title: 'Success',message: resetMethod.value == ResetMethod.email
+            ? 'Email verified successfully!'
+            : 'Phone verified successfully!',);
+
+        if(isFirstTime){
+          Get.offAll(DashboardView());
+        }else{
+          navigateToLogin();
+        }
+
+        if(isForgot!){
+          navigateToCreatePassword();
+        }
+
+
+      }
+      else if (response.statusCode == 400){
+        kSnackBar(title: 'Invalid OTP', message: 'Please provide correct OTP',bgColor: AppColors.snackBarWarning);
+      }
+      else {
+        // Let BaseClient.handleResponse handle other status codes
+        await BaseClient.handleResponse(response);
+      }
+
+
     } catch (e) {
       Get.snackbar(
         'Error',
@@ -292,16 +360,45 @@ class AuthController extends GetxController {
     }
   }
 
-  void resendCode() async {
+  Future<bool> resendCode(String type) async {
     isLoading.value = true;
 
     try {
-      await Future.delayed(const Duration(seconds: 1));
-      kSnackBar(title: 'Success',message: resetMethod.value == ResetMethod.email
-          ? 'Verification code resent to your email!'
-          : 'Verification code resent to your phone!',);
+      // Prepare the request body
+      final body = jsonEncode({
+        'email': emailController.text,
+        "type": type,
+        //"company_name": "Wilson Capital Lending"
+      });
+
+      // Make the API call using BaseClient
+      final response = await BaseClient.postRequest(
+        api: Api.resendOtp,
+        body: body,
+        headers: BaseClient.basicHeaders,
+      );
+
+      // Handle the response manually for specific status codes
+      if (response.statusCode == 200) {
+        kSnackBar(
+          title: 'Success',
+          message: resetMethod.value == ResetMethod.email
+              ? 'Verification code resent to your email!'
+              : 'Verification code resent to your phone!',
+        );
+        return true; // Indicate success
+      } else if (response.statusCode == 404) {
+        kSnackBar(title: 'Warning', message: 'User does not exist');
+        return false; // Indicate failure
+      } else {
+        // Let BaseClient.handleResponse handle other status codes
+        await BaseClient.handleResponse(response);
+        return false; // Assume failure for other cases
+      }
     } catch (e) {
-      kSnackBar(message: 'Failed to resend code. Please try again.',bgColor: AppColors.snackBarWarning);
+      print('Error: ===============>>>>>>> $e');
+      kSnackBar(message: 'Failed to resend code. Please try again.', bgColor: AppColors.snackBarWarning);
+      return false; // Indicate failure on exception
     } finally {
       isLoading.value = false;
     }
