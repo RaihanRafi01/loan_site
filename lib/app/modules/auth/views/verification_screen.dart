@@ -108,7 +108,7 @@ class VerificationScreen extends GetView<AuthController> {
                   SizedBox(width: 5),
                   GestureDetector(
                     onTap: (){
-                      controller.resendCode('email');
+                      controller.resendCode();
                     },
                     child: Text(
                       'Resend',

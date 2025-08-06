@@ -12,7 +12,10 @@ class Api {
   static const logout = "$baseUrl/logout/";
   static const verifyOtp = "$baseUrl/accounts/activate/"; //done
   static const resendOtp = "$baseUrl/accounts/resend-otp/"; //done
-  static const updatePassword = "$baseUrl/accounts/profile/change-password/"; // pending
+  static const resetPasswordRequest = "$baseUrl/accounts/pass-reset-request/"; //done
+  static const resetPasswordActivate = "$baseUrl/accounts/reset-request-activate/"; //done
+  static const resetPassword = "$baseUrl/accounts/reset-password/"; //done
+  static const createToken = "$baseUrl/accounts/custom-token-refresh/"; // working
 
 
 

@@ -34,18 +34,21 @@ class LoginScreen extends GetView<AuthController> {
                   prefixSvgPath: 'assets/images/auth/mail_icon.svg',
                   controller: controller.emailController,
                 ),
-                Obx(() => CustomTextField(
-                  obscureText: controller.isPasswordHidden.value, // Use reactive value
-                  labelText: 'Password',
-                  prefixSvgPath: 'assets/images/auth/lock_icon.svg',
-                  suffixSvgPath: 'assets/images/auth/eye_icon.svg',
-                  onSuffixTap: controller.togglePasswordVisibility,
-                  controller: controller.passwordController,
-                )),
+                Obx(
+                  () => CustomTextField(
+                    obscureText: controller.isPasswordHidden.value,
+                    // Use reactive value
+                    labelText: 'Password',
+                    prefixSvgPath: 'assets/images/auth/lock_icon.svg',
+                    suffixSvgPath: 'assets/images/auth/eye_icon.svg',
+                    onSuffixTap: controller.togglePasswordVisibility,
+                    controller: controller.passwordController,
+                  ),
+                ),
                 Row(
                   children: [
                     Obx(
-                          () => Checkbox(
+                      () => Checkbox(
                         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         activeColor: AppColors.appColor,
                         checkColor: Colors.white,
@@ -65,10 +68,16 @@ class LoginScreen extends GetView<AuthController> {
                   ],
                 ),
                 const SizedBox(height: 20),
-                CustomButton(label: 'Log In', onPressed: () {
-                  controller.signIn();
-                  //Get.offAll(OnboardingProjectView());
-                }),
+                Obx(
+                  () => CustomButton(
+                    label: 'Log In',
+                    onPressed: () {
+                      controller.signIn();
+                      //Get.offAll(OnboardingProjectView());
+                    },
+                    isLoading: controller.isLoading.value,
+                  ),
+                ),
                 const SizedBox(height: 24),
                 Row(
                   children: [

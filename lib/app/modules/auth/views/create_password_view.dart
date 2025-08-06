@@ -64,7 +64,7 @@ class CreatePasswordScreen extends GetView<AuthController> {
                   ],
                 ),
                 SizedBox(height: 20),
-                CustomButton(label: 'Done', onPressed: ()=> controller.navigateToLogin()),
+                CustomButton(label: 'Done', onPressed: ()=> controller.createNewPassword()),
               ],
             ),
           ),
