@@ -59,9 +59,14 @@ class AuthController extends GetxController {
   }
 
   // Navigation methods
+
   void navigateToCreatePassword() {
     Get.to(CreatePasswordScreen());
-    clearForm();
+    // Do not clear emailController or phoneController to preserve them
+    passwordController.clear();
+    confirmPasswordController.clear();
+    nameController.clear();
+    isTermsAccepted.value = false;
   }
 
   void navigateToLogin() {
@@ -217,32 +222,27 @@ class AuthController extends GetxController {
     try {
 
       final body = jsonEncode({
-        'name': nameController.text.trim(),
         'email': emailController.text.trim(),
-        'phone': phoneController.text.trim(),
         'password': passwordController.text,
-        "user_role": "borrower",
         //"company_name": "Wilson Capital Lending"
       });
 
 
       // Make the API call using BaseClient
       final response = await BaseClient.postRequest(
-        api: Api.signup,
+        api: Api.login,
         body: body,
         headers: BaseClient.basicHeaders,
       );
-
       // Handle the response manually for specific status codes
-      if (response.statusCode == 201) {
-        // Successful account creation
+      if (response.statusCode == 200) {
+
         kSnackBar(title: 'Success',message: 'Signed in successfully!',);
         clearForm();
-      } else if (response.statusCode == 200) {
+        Get.offAll(DashboardView());
+      } else if (response.statusCode == 400) {
         // User already exists but is inactive, OTP sent
-        final responseData = jsonDecode(response.body);
-        final message = responseData['message'] ?? 'A new OTP has been sent to your email.';
-        kSnackBar(title: 'Info',message: message);
+        kSnackBar(title: 'Warning',message: 'Invalid credentials',bgColor: AppColors.snackBarWarning);
         //navigateToVerification();
       } else {
         // Let BaseClient.handleResponse handle other status codes
@@ -403,6 +403,88 @@ class AuthController extends GetxController {
       isLoading.value = false;
     }
   }
+
+
+  // In AuthController class
+
+// Add this new method for creating a new password
+  void createNewPassword() async {
+    // Validate password
+    if (!_validatePassword(passwordController.text)) {
+      kSnackBar(
+        title: 'Warning',
+        message: 'Password must be at least 6 characters long',
+        bgColor: AppColors.snackBarWarning,
+      );
+      return;
+    }
+
+    // Validate confirm password
+    if (passwordController.text != confirmPasswordController.text) {
+      kSnackBar(
+        title: 'Warning',
+        message: 'Passwords do not match',
+        bgColor: AppColors.snackBarWarning,
+      );
+      return;
+    }
+
+    // Validate email (ensure it's not empty from previous flow)
+    if (emailController.text.isEmpty && phoneController.text.isEmpty) {
+      kSnackBar(
+        title: 'Warning',
+        message: 'Email or phone number is required',
+        bgColor: AppColors.snackBarWarning,
+      );
+      return;
+    }
+
+    isLoading.value = true;
+
+    try {
+      // Prepare the request body
+      final body = jsonEncode({
+        if (emailController.text.isNotEmpty) 'email': emailController.text.trim(),
+        if (phoneController.text.isNotEmpty) 'phone': phoneController.text.trim(),
+        'password': passwordController.text,
+      });
+
+      // Make the API call using BaseClient
+      final response = await BaseClient.postRequest(
+        api: Api.updatePassword, // Ensure this is defined in your Api class
+        body: body,
+        headers: BaseClient.basicHeaders,
+      );
+
+      // Handle the response
+      if (response.statusCode >= 200 && response.statusCode <= 210) {
+        kSnackBar(
+          title: 'Success',
+          message: 'Password updated successfully!',
+        );
+        navigateToLogin(); // Navigate to LoginScreen on success
+      } else if (response.statusCode == 404) {
+        kSnackBar(
+          title: 'Warning',
+          message: 'User does not exist',
+          bgColor: AppColors.snackBarWarning,
+        );
+      } else {
+        await BaseClient.handleResponse(response);
+      }
+    } catch (e) {
+      kSnackBar(
+        title: 'Warning',
+        message: 'Failed to update password. Please try again.',
+        bgColor: AppColors.snackBarWarning,
+      );
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+// Modify navigateToCreatePassword to preserve email/phone
+
 
   void signInWithGoogle() async {
     isLoading.value = true;
