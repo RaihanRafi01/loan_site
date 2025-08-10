@@ -1,5 +1,6 @@
 import 'package:get/get.dart';
 import 'package:loan_site/app/modules/auth/views/login_view.dart';
+import 'package:loan_site/app/modules/project/views/create_project_view.dart';
 import '../modules/auth/bindings/auth_binding.dart';
 import '../modules/auth/views/create_password_view.dart';
 import '../modules/community/bindings/community_binding.dart';
@@ -32,7 +33,7 @@ part 'app_routes.dart';
 class AppPages {
   AppPages._();
 
-  static const INITIAL = Routes.AUTH;
+  static const INITIAL = Routes.DASHBOARD;
 
   static final routes = [
     GetPage(
@@ -52,7 +53,7 @@ class AppPages {
     ),
     GetPage(
       name: _Paths.DASHBOARD,
-      page: () => const DashboardView(),
+      page: () => const CreateProjectView(),
       binding: DashboardBinding(),
     ),
     GetPage(
