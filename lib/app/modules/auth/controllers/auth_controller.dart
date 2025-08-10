@@ -129,7 +129,7 @@ class AuthController extends GetxController {
   }) {
     final body = <String, String>{};
     if (email != null) body['email'] = _sanitizeInput(email);
-    if (phone != null) body['phone_number'] = _sanitizeInput(phone);
+    if (phone != null) body['phone'] = _sanitizeInput(phone);
     if (password != null) body['password'] = password;
     if (name != null) body['name'] = _sanitizeInput(name);
     if (otp != null) body['otp'] = otp;

@@ -129,9 +129,9 @@ class BaseClient {
   // Handle response with retry logic for 401 errors
   static Future<dynamic> handleResponse(http.Response response, {Future<http.Response> Function()? retryRequest}) async {
     try {
+      debugPrint('💥💥💥💥💥💥💥💥💥💥 🚀 ➤➤➤ Code: ${response.statusCode}');
+      debugPrint('💥💥💥💥💥💥💥💥💥💥 🚀 ➤➤➤ Response: ${response.body}');
       if (response.statusCode >= 200 && response.statusCode <= 210) {
-        debugPrint('SuccessCode: ${response.statusCode}');
-        debugPrint('SuccessResponse: ${response.body}');
 
         if (response.body.isNotEmpty) {
           return json.decode(response.body);
@@ -149,7 +149,6 @@ class BaseClient {
         throw "Resource not found";
       } else if (response.statusCode == 400) {
         debugPrint('BadRequestResponse: ${response.body}');
-        throw _extractErrorMessage(response, "Bad request");
       } else if (response.statusCode == 403) {
         throw "Forbidden";
       } else if (response.statusCode == 406) {
@@ -233,7 +232,7 @@ class BaseClient {
       }
     } catch (e) {
       debugPrint('Refresh token error: $e');
-      throw "Unable to refresh token: $e";
+      throw "Unable to refresh token please try again later";
     }
   }
 

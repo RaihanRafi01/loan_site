@@ -10,6 +10,7 @@ import '../controllers/settings_controller.dart';
 
 class ChangePasswordView extends GetView<SettingsController> {
   const ChangePasswordView({super.key});
+
   @override
   Widget build(BuildContext context) {
     Get.put(SettingsController());
@@ -21,43 +22,39 @@ class ChangePasswordView extends GetView<SettingsController> {
         scrolledUnderElevation: 0,
         title: Text(
           'Change Password',
-          style: h2.copyWith(
-            color: AppColors.textColor,
-            fontSize: 22,
-          ),
+          style: h2.copyWith(color: AppColors.textColor, fontSize: 22),
         ),
         centerTitle: true,
       ),
       body: SingleChildScrollView(
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center, // Keep center for avatar and greeting
+          crossAxisAlignment: CrossAxisAlignment.center,
+          // Keep center for avatar and greeting
           children: [
             const SizedBox(height: 16),
             const CircleAvatar(
               radius: 55,
-              backgroundImage: AssetImage('assets/images/settings/profile_image.png'), // Replace with your image path
+              backgroundImage: AssetImage(
+                'assets/images/settings/profile_image.png',
+              ), // Replace with your image path
             ),
             const SizedBox(height: 16),
             Text(
               'Hello Angelo!',
-              style: h2.copyWith(
-                fontSize: 30,
-                color: AppColors.textColor,
-              ),
+              style: h2.copyWith(fontSize: 30, color: AppColors.textColor),
             ),
             const SizedBox(height: 2),
             Text(
               'angelo@gmail.com',
-              style: h4.copyWith(
-                fontSize: 18,
-                color: AppColors.blurtext4,
-              ),
+              style: h4.copyWith(fontSize: 18, color: AppColors.blurtext4),
             ),
             const SizedBox(height: 16),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16,vertical: 20), // Add padding for left-aligned content
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+              // Add padding for left-aligned content
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start, // Align text and input field to start
+                crossAxisAlignment: CrossAxisAlignment.start,
+                // Align text and input field to start
                 children: [
                   Text(
                     'Enter Current Password',
@@ -67,15 +64,14 @@ class ChangePasswordView extends GetView<SettingsController> {
                     ),
                   ),
                   Obx(
-                        () => CustomTextField(
-                          radius: 10,
+                    () => CustomTextField(
+                      radius: 10,
                       labelText: 'Enter password',
                       controller: controller.passwordController,
                       obscureText: controller.obscureCurrentPassword.value,
                       suffixSvgPath: 'assets/images/auth/eye_icon.svg',
                       onSuffixTap: () {
                         controller.toggleCurrentPasswordVisibility();
-
                       },
                     ),
                   ),
@@ -87,8 +83,8 @@ class ChangePasswordView extends GetView<SettingsController> {
                     ),
                   ),
                   Obx(
-                        () => CustomTextField(
-                          radius: 10,
+                    () => CustomTextField(
+                      radius: 10,
                       labelText: 'Enter password',
                       controller: controller.newPasswordController,
                       obscureText: controller.obscureNewPassword.value,
@@ -106,8 +102,8 @@ class ChangePasswordView extends GetView<SettingsController> {
                     ),
                   ),
                   Obx(
-                        () => CustomTextField(
-                          radius: 10,
+                    () => CustomTextField(
+                      radius: 10,
                       labelText: 'Enter password',
                       controller: controller.confirmPasswordController,
                       obscureText: controller.obscureConfirmPassword.value,
@@ -118,9 +114,12 @@ class ChangePasswordView extends GetView<SettingsController> {
                     ),
                   ),
                   const SizedBox(height: 20),
-                  CustomButton(
-                    label: 'Done',
-                    onPressed: () {},
+                  Obx(
+                    () => CustomButton(
+                      isLoading: controller.isLoading.value,
+                      label: 'Done',
+                      onPressed: () => controller.changePassword(),
+                    ),
                   ),
                   const SizedBox(height: 20),
                 ],

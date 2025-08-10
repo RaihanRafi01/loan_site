@@ -16,8 +16,9 @@ class Api {
   static const resetPasswordActivate = "$baseUrl/accounts/reset-request-activate/";     //done
   static const resetPassword = "$baseUrl/accounts/reset-password/";     //done
   static const createToken = "$baseUrl/accounts/custom-token-refresh/";   // done
-  static const profileChangePassword = "$baseUrl/accounts/profile/change-password/";   // working
-  static const profileUpdate = "$baseUrl/accounts/profile/update/";   //
+  static const profileChangePassword = "$baseUrl/accounts/profile/change-password/";   // done
+  static const profileUpdate = "$baseUrl/accounts/profile/update/";   // working
+  static const getProfile = "$baseUrl/accounts/profile/";   // working
 
 
 
