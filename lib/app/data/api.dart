@@ -21,6 +21,11 @@ class Api {
   static const profileUpdate = "$baseUrl/accounts/profile/update/";   // done
   static const getProfile = "$baseUrl/accounts/profile/";   // done
 
+  /// Project
+
+  static const createProject = "$baseUrl/project/create/";   // working
+  static  setProjectMilestone(project_id) => "$baseUrl/project/set-milestone/$project_id/";   // working
+
 
 
   /// posts

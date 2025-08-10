@@ -8,69 +8,85 @@ import 'package:loan_site/common/appColors.dart';
 import 'package:loan_site/common/customFont.dart';
 import 'package:loan_site/common/widgets/customButton.dart';
 
+import '../controllers/project_controller.dart';
+
 // Model to represent a lender
 class Lender {
   final String imageUrl;
   final String name;
+  final int id; // Added ID field
   RxBool isChecked;
 
-  Lender({required this.imageUrl, required this.name, bool isChecked = false})
-    : isChecked = isChecked.obs;
+  Lender({required this.imageUrl, required this.name, required this.id, bool isChecked = false})
+      : isChecked = isChecked.obs;
 }
 
 class SelectLenderController extends GetxController {
-  // List of lenders with their checkbox states
   RxList<Lender> lenders = <Lender>[].obs;
-  RxInt selectedIndex = (-1).obs; // Track the single selected lender
+  RxInt selectedIndex = (-1).obs;
   var showConfirm = false.obs;
-  void showConfirmationAndNavigate() {
-    showConfirm.value = true;
-    Future.delayed(const Duration(seconds: 3), () {
-      showConfirm.value = false;
-      Get.offAll(() => const SetMilestoneView());
-    });
-  }
 
   @override
   void onInit() {
     super.onInit();
     lenders.addAll([
       Lender(
-        imageUrl:
-            'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face',
+        imageUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face',
         name: 'Jack',
+        id: 45, // Example ID
       ),
       Lender(
-        imageUrl:
-            'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=150&h=150&fit=crop&crop=face',
+        imageUrl: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=150&h=150&fit=crop&crop=face',
         name: 'Flores',
+        id: 46,
       ),
       Lender(
-        imageUrl:
-            'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face',
+        imageUrl: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face',
         name: 'Miles',
+        id: 47,
       ),
       Lender(
-        imageUrl:
-            'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=150&h=150&fit=crop&crop=face',
+        imageUrl: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=150&h=150&fit=crop&crop=face',
         name: 'Arthur',
+        id: 48,
       ),
       Lender(
-        imageUrl:
-            'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
+        imageUrl: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
         name: 'Esther',
+        id: 49,
       ),
-
     ]);
   }
 
-  // Method to select a single lender
   void selectLender(int index) {
     if (selectedIndex.value != -1) {
       lenders[selectedIndex.value].isChecked.value = false;
     }
     lenders[index].isChecked.value = true;
     selectedIndex.value = index;
+  }
+
+  void showConfirmationAndNavigate() {
+    if (selectedIndex.value == -1) {
+      Get.snackbar(
+        "Error",
+        "Please select a lender before proceeding.",
+        backgroundColor: AppColors.snackBarWarning,
+        colorText: AppColors.textColor,
+      );
+      return;
+    }
+
+    showConfirm.value = true;
+    // Pass the selected lender ID to ProjectController
+    final projectController = Get.find<ProjectController>();
+    projectController.setSelectedLenderId(lenders[selectedIndex.value].id);
+
+    Future.delayed(const Duration(seconds: 1), () {
+      showConfirm.value = false;
+      // Trigger project creation
+      projectController.createProject();
+    });
   }
 }
 

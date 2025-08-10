@@ -1,5 +1,4 @@
 import 'dart:ui';
-
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -18,8 +17,7 @@ class CreateProjectView extends GetView<ProjectController> {
   @override
   Widget build(BuildContext context) {
     Get.put(ProjectController());
-    // State to track current step
-    final currentStep = controller.currentStep ?? 1.obs;
+    final currentStep = controller.currentStep;
 
     return Scaffold(
       backgroundColor: AppColors.appBc,
@@ -38,9 +36,9 @@ class CreateProjectView extends GetView<ProjectController> {
             icon: Icon(Icons.arrow_back, color: AppColors.textColor),
             onPressed: () {
               if (currentStep.value == 25) {
-                currentStep.value = 2; // Go back to step 2 from review step
+                currentStep.value = 2;
               } else if (currentStep.value > 1) {
-                currentStep.value--; // Normal back navigation
+                currentStep.value--;
               }
             },
           ),
@@ -50,7 +48,6 @@ class CreateProjectView extends GetView<ProjectController> {
         children: [
           Column(
             children: [
-              // Sticky step progress indicator
               Container(
                 color: AppColors.appBc,
                 padding: const EdgeInsets.all(16.0),
@@ -152,7 +149,6 @@ class CreateProjectView extends GetView<ProjectController> {
                   ],
                 ),
               ),
-              // Fixed Contractor Details header for Step 2
               Obx(() => Visibility(
                 visible: currentStep.value == 2,
                 child: Container(
@@ -179,7 +175,6 @@ class CreateProjectView extends GetView<ProjectController> {
                   ),
                 ),
               )),
-              // Fixed Review Contractor header for Step 2.5
               Obx(() => Visibility(
                 visible: currentStep.value == 25,
                 child: Container(
@@ -205,8 +200,9 @@ class CreateProjectView extends GetView<ProjectController> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Obx(() => _buildStepContent(currentStep.value)),
-                        const SizedBox(height: 80), // Add padding for sticky button
+                        Obx(() => _buildStepContent(currentStep.value,context)),
+
+                        const SizedBox(height: 80),
                       ],
                     ),
                   ),
@@ -214,7 +210,6 @@ class CreateProjectView extends GetView<ProjectController> {
               ),
             ],
           ),
-          // Sticky Next/Submit button
           Positioned(
             left: 20,
             right: 20,
@@ -225,85 +220,31 @@ class CreateProjectView extends GetView<ProjectController> {
                 if (currentStep.value == 1) {
                   currentStep.value = 2;
                 } else if (currentStep.value == 2) {
-                  currentStep.value = 25; // Go to review step
+                  currentStep.value = 25;
                 } else if (currentStep.value == 25) {
-                  currentStep.value = 3; // Go to final step
+                  currentStep.value = 3;
                 } else if (currentStep.value == 3) {
-                  // Handle submit action
-                  //controller.showConfirmationAndNavigate();
                   Get.to(SelectLenderView());
                 }
               },
             )),
           ),
-          /*if (controller.showConfirm.value)
-            Positioned.fill(
-              child: GestureDetector(
-                onTap: () {
-                  controller.showConfirm.value = false; // Dismiss card on outside tap
-                },
-                child: Stack(
-                  children: [
-                    // Blurred background
-                    BackdropFilter(
-                      filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
-                      child: Container(
-                        color: Colors.black.withOpacity(0.2), // Semi-transparent overlay
-                      ),
-                    ),
-                    // Centered card
-                    Center(
-                      child: GestureDetector(
-                        onTap: () {}, // Prevents taps on the card from dismissing it
-                        child: Card(
-                          color: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          elevation: 8,
-                          child: Container(
-                            width: 300,
-                            padding: const EdgeInsets.all(30),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                SvgPicture.asset('assets/images/auth/tic_icon.svg'),
-                                SizedBox(height: 10),
-                                Text(
-                                  'Your project has been created successfully!',
-                                  style: h4.copyWith(
-                                    fontSize: 20,
-                                    color: AppColors.textColor,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),*/
         ],
-      ));
+      ),
+    );
   }
 
-  // Helper method to get display step number
   int _getDisplayStep(int currentStep) {
-    if (currentStep == 25) return 2; // Show step 2.5 as step 2
+    if (currentStep == 25) return 2;
     return currentStep;
   }
 
-  // Helper method to get button text
   String _getButtonText(int currentStep) {
     if (currentStep == 3) return 'Submit';
     return 'Next';
   }
 
-  Widget _buildStepContent(int step) {
+  Widget _buildStepContent(int step, BuildContext context) {
     switch (step) {
       case 1:
         return Column(
@@ -368,8 +309,13 @@ class CreateProjectView extends GetView<ProjectController> {
                             fontSize: 14, color: AppColors.textColor8),
                       ),
                       CustomTextField(
-                        labelText: 'mm/dd/yy',
+                        labelText: 'yyyy-mm-dd',
+                        readOnly: true,
                         controller: controller.projectStartDateController,
+                        suffixSvgPath:
+                        'assets/images/contractor/date_icon.svg',
+                        onSuffixTap: () =>
+                            controller.selectDate(context, controller.projectStartDateController),
                       ),
                     ],
                   ),
@@ -385,8 +331,13 @@ class CreateProjectView extends GetView<ProjectController> {
                             fontSize: 14, color: AppColors.textColor8),
                       ),
                       CustomTextField(
-                        labelText: 'mm/dd/yy',
+                        labelText: 'yyyy-mm-dd',
+                        readOnly: true,
                         controller: controller.projectEndDateController,
+                        suffixSvgPath:
+                        'assets/images/contractor/date_icon.svg',
+                        onSuffixTap: () =>
+                            controller.selectDate(context, controller.projectEndDateController),
                       ),
                     ],
                   ),
@@ -473,7 +424,6 @@ class CreateProjectView extends GetView<ProjectController> {
         return Obx(() => Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Contractor input fields (scrollable)
             ...controller.contractorControllers.asMap().entries.map((entry) {
               final index = entry.key;
               final controllers = entry.value;
@@ -539,8 +489,7 @@ class CreateProjectView extends GetView<ProjectController> {
             }).toList(),
           ],
         ));
-    // Inside the _buildStepContent method, case 25
-      case 25: // Review Contractor Step
+      case 25:
         return Obx(() => Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -549,15 +498,14 @@ class CreateProjectView extends GetView<ProjectController> {
               final index = entry.key;
               final controllers = entry.value;
 
-              // Define styles for titles and text values
               final titleStyle = h4.copyWith(
                 fontSize: 16,
-                color: AppColors.textColor2, // Darker color for titles
+                color: AppColors.textColor2,
               );
 
               final valueStyle = h3.copyWith(
                 fontSize: 16,
-                color: AppColors.textColor, // Lighter color for values
+                color: AppColors.textColor,
               );
 
               return Container(
@@ -591,7 +539,6 @@ class CreateProjectView extends GetView<ProjectController> {
                         GestureDetector(
                           onTap: () {
                             // Go back to edit this contractor
-                            // You might want to implement specific contractor editing here
                           },
                           child: Text(
                             'Remove',
@@ -715,8 +662,13 @@ class CreateProjectView extends GetView<ProjectController> {
                             fontSize: 14, color: AppColors.textColor8),
                       ),
                       CustomTextField(
-                        labelText: 'mm/dd/yy',
+                        labelText: 'yyyy-mm-dd',
+                        readOnly: true,
                         controller: controller.permitIssueDateController,
+                        suffixSvgPath:
+                        'assets/images/contractor/date_icon.svg',
+                        onSuffixTap: () =>
+                            controller.selectDate(context, controller.permitIssueDateController),
                       ),
                     ],
                   ),
@@ -732,8 +684,13 @@ class CreateProjectView extends GetView<ProjectController> {
                             fontSize: 14, color: AppColors.textColor8),
                       ),
                       CustomTextField(
-                        labelText: 'mm/dd/yy',
+                        labelText: 'yyyy-mm-dd',
+                        readOnly: true,
                         controller: controller.permitExpireDateController,
+                        suffixSvgPath:
+                        'assets/images/contractor/date_icon.svg',
+                        onSuffixTap: () =>
+                            controller.selectDate(context, controller.permitExpireDateController),
                       ),
                     ],
                   ),
