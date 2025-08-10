@@ -75,6 +75,7 @@ class ChangePasswordView extends GetView<SettingsController> {
                       suffixSvgPath: 'assets/images/auth/eye_icon.svg',
                       onSuffixTap: () {
                         controller.toggleCurrentPasswordVisibility();
+
                       },
                     ),
                   ),

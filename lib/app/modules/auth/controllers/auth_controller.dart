@@ -16,8 +16,12 @@ import '../../../data/base_client.dart';
 enum ResetMethod { email, sms }
 
 class AuthController extends GetxController {
-  // Current screen state
-  final resetMethod = ResetMethod.email.obs;
+  // Constants
+  static const int _otpLength = 4;
+  static const int _minPasswordLength = 6;
+  static const int _successStatusLower = 200;
+  static const int _successStatusUpper = 210;
+  static const Duration _confirmationDelay = Duration(seconds: 3);
 
   // Form controllers
   final emailController = TextEditingController();
@@ -26,8 +30,9 @@ class AuthController extends GetxController {
   final confirmPasswordController = TextEditingController();
   final nameController = TextEditingController();
   final verificationCodeControllers = List.generate(
-    4,
-    (_) => TextEditingController(),
+    _otpLength,
+        (_) => TextEditingController(),
+    growable: false,
   );
 
   // Observable states
@@ -36,642 +41,455 @@ class AuthController extends GetxController {
   final isTermsAccepted = false.obs;
   final isLoading = false.obs;
   final isRememberMe = false.obs;
-  var showConfirm = false.obs;
+  final showConfirm = false.obs;
+  final resetMethod = ResetMethod.email.obs;
 
-  void showConfirmationAndNavigate() {
-    showConfirm.value = true;
-    Future.delayed(const Duration(seconds: 3), () {
-      showConfirm.value = false;
-      Get.offAll(VerificationScreen());
-      //Get.offAll(() => const OnboardingProjectView(newUser: true));
-    });
-  }
-
-  void setResetMethod(ResetMethod method) {
-    resetMethod.value = method;
-  }
-
-  void toggleRememberMe(bool value) {
-    isRememberMe.value = value;
-  }
-
-  // Navigation methods
-
+  // Navigation Methods
   void navigateToCreatePassword() {
-    Get.to(CreatePasswordScreen());
-    // Do not clear emailController or phoneController to preserve them
-    passwordController.clear();
-    confirmPasswordController.clear();
-    nameController.clear();
-    isTermsAccepted.value = false;
+    Get.to(() => CreatePasswordScreen());
   }
 
   void navigateToLogin() {
-    Get.to(LoginScreen());
+    Get.to(() => LoginScreen());
     clearForm();
   }
 
   void navigateToSignUp() {
-    Get.to(SignUpScreen());
+    Get.to(() => SignUpScreen());
     clearForm();
   }
 
   void navigateToForgotPassword() {
-    Get.to(ForgotPasswordScreen());
+    Get.to(() => ForgotPasswordScreen());
     clearForm();
   }
 
   void navigateToSendOtp() {
-    Get.to(SendOtpScreen());
+    Get.to(() => SendOtpScreen());
     clearForm();
   }
 
   Future<bool> handleBackNavigation() async {
     clearForm();
-    return false; // Prevent default back behavior
+    return false;
   }
 
-  // Toggle methods
-  void togglePasswordVisibility() {
-    isPasswordHidden.value = !isPasswordHidden.value;
+  // UI State Management
+  void setResetMethod(ResetMethod method) => resetMethod.value = method;
+
+  void toggleRememberMe(bool value) => isRememberMe.value = value;
+
+  void togglePasswordVisibility() => isPasswordHidden.toggle();
+
+  void toggleConfirmPasswordVisibility() => isConfirmPasswordHidden.toggle();
+
+  void toggleTermsAcceptance() => isTermsAccepted.toggle();
+
+  void showConfirmationAndNavigate() {
+    showConfirm.value = true;
+    Future.delayed(_confirmationDelay, () {
+      showConfirm.value = false;
+      Get.offAll(() => VerificationScreen());
+    });
   }
 
-  void toggleConfirmPasswordVisibility() {
-    isConfirmPasswordHidden.value = !isConfirmPasswordHidden.value;
+  // Validation Methods
+  bool _validateEmail(String? email) {
+    if (email == null || email.trim().isEmpty) return false;
+    return RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email.trim());
   }
 
-  void toggleTermsAcceptance() {
-    isTermsAccepted.value = !isTermsAccepted.value;
+  bool _validatePhone(String? phone) {
+    if (phone == null || phone.trim().isEmpty) return false;
+    return RegExp(r'^\+?1?\d{9,15}$').hasMatch(phone.trim());
   }
 
-  // Validation methods
-  bool _validateEmail(String email) {
-    return RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email);
+  bool _validatePassword(String? password) {
+    return password != null && password.length >= _minPasswordLength;
   }
 
-  bool _validatePhone(String phone) {
-    return RegExp(r'^\+?1?\d{9,15}$').hasMatch(phone);
-  }
-
-  bool _validatePassword(String password) {
-    return password.length >= 6;
-  }
-
-  bool _validateName(String name) {
-    return name.trim().isNotEmpty;
+  bool _validateName(String? name) {
+    return name != null && name.trim().isNotEmpty;
   }
 
   bool _validateVerificationCode() {
-    return verificationCodeControllers.every(
-      (controller) => controller.text.length == 1,
-    );
+    return verificationCodeControllers.every((controller) =>
+    controller.text.isNotEmpty && controller.text.length == 1);
   }
 
-  // Auth methods
-  void signUp() async {
-    if (!_validateName(nameController.text)) {
-      kSnackBar(
-        title: 'Warning',
-        message: 'Please enter your full name',
-        bgColor: AppColors.snackBarWarning,
-      );
-      return;
+  // Helper Methods
+  String _sanitizeInput(String? input) => input?.trim() ?? '';
+
+  Map<String, String> _getBasicAuthBody({
+    String? email,
+    String? phone,
+    String? password,
+    String? name,
+    String? otp,
+  }) {
+    final body = <String, String>{};
+    if (email != null) body['email'] = _sanitizeInput(email);
+    if (phone != null) body['phone_number'] = _sanitizeInput(phone);
+    if (password != null) body['password'] = password;
+    if (name != null) body['name'] = _sanitizeInput(name);
+    if (otp != null) body['otp'] = otp;
+    return body;
+  }
+
+  // Auth Methods
+  Future<void> signUp() async {
+    final email = emailController.text;
+    final password = passwordController.text;
+    final confirmPassword = confirmPasswordController.text;
+    final name = nameController.text;
+
+    if (!_validateName(name)) {
+      return _showWarning('Please enter your full name');
     }
 
-    if (!_validateEmail(emailController.text)) {
-      kSnackBar(
-        title: 'Warning',
-        message: 'Please enter a valid email address',
-        bgColor: AppColors.snackBarWarning,
-      );
-      return;
+    if (!_validateEmail(email)) {
+      return _showWarning('Please enter a valid email address');
     }
 
-    if (!_validatePassword(passwordController.text)) {
-      kSnackBar(
-        title: 'Warning',
-        message: 'Password must be at least 6 characters long',
-        bgColor: AppColors.snackBarWarning,
-      );
-      return;
+    if (!_validatePassword(password)) {
+      return _showWarning('Password must be at least $_minPasswordLength characters long');
     }
 
-    if (passwordController.text != confirmPasswordController.text) {
-      kSnackBar(
-        title: 'Warning',
-        message: 'Passwords do not match',
-        bgColor: AppColors.snackBarWarning,
-      );
-      return;
+    if (password != confirmPassword) {
+      return _showWarning('Passwords do not match');
     }
-
-    /*if (!isTermsAccepted.value) {
-      Get.snackbar(
-        'Error',
-        'Please accept the terms and conditions',
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: Colors.red.shade100,
-        colorText: Colors.red.shade800,
-      );
-      return;
-    }*/
 
     isLoading.value = true;
-
     try {
-      // Prepare the request body
       final body = jsonEncode({
-        'name': nameController.text.trim(),
-        'email': emailController.text.trim(),
-        'phone': phoneController.text.trim(),
-        'password': passwordController.text,
-        "user_role": "borrower",
-        //"company_name": "Wilson Capital Lending"
+        ..._getBasicAuthBody(
+          name: name,
+          email: email,
+          phone: phoneController.text,
+          password: password,
+        ),
+        'user_role': 'borrower',
       });
 
-      // Make the API call using BaseClient
       final response = await BaseClient.postRequest(
         api: Api.signup,
         body: body,
         headers: BaseClient.basicHeaders,
       );
 
-      // Handle the response manually for specific status codes
-      if (response.statusCode == 201) {
-        // Successful account creation
-        kSnackBar(
-          title: 'Success',
-          message: 'Account created successfully! Please verify your email.',
-        );
-        showConfirmationAndNavigate();
-      } else if (response.statusCode == 200) {
-        // User already exists but is inactive, OTP sent
-        final responseData = jsonDecode(response.body);
-        final message =
-            responseData['message'] ?? 'A new OTP has been sent to your email.';
-        kSnackBar(title: 'Info', message: message);
-        //navigateToVerification();
-      } else {
-        // Let BaseClient.handleResponse handle other status codes
-        final result = await BaseClient.handleResponse(response);
-        // If handleResponse doesn't throw an error, treat as success
-        //showConfirmationAndNavigate();
-      }
+      await _handleSignUpResponse(response);
     } catch (e) {
-      kSnackBar(
-        title: 'Warning',
-        message: e.toString(),
-        bgColor: AppColors.snackBarWarning,
-      );
+      print('Sign-up error: $e');
+      _showWarning(e.toString());
     } finally {
       isLoading.value = false;
     }
   }
 
-  void signIn() async {
-    if (!_validateEmail(emailController.text)) {
+  Future<void> _handleSignUpResponse(dynamic response) async {
+    if (response.statusCode == 201) {
       kSnackBar(
-        title: 'Warning',
-        message: 'Please enter a valid email address',
-        bgColor: AppColors.snackBarWarning,
+        title: 'Success',
+        message: 'Account created successfully! Please verify your email.',
       );
-      return;
+      showConfirmationAndNavigate();
+    } else if (response.statusCode == 200) {
+      final responseData = jsonDecode(response.body);
+      final message = responseData['message'] ?? 'A new OTP has been sent to your email.';
+      kSnackBar(title: 'Info', message: message);
+    } else {
+      //await BaseClient.handleResponse(response);
+    }
+  }
+
+  Future<void> signIn() async {
+    final email = emailController.text;
+    final password = passwordController.text;
+
+    if (!_validateEmail(email)) {
+      return _showWarning('Please enter a valid email address');
     }
 
-    if (!_validatePassword(passwordController.text)) {
-      kSnackBar(
-        title: 'Warning',
-        message: 'Password must be at least 6 characters long',
-        bgColor: AppColors.snackBarWarning,
-      );
-      return;
+    if (!_validatePassword(password)) {
+      return _showWarning('Password must be at least $_minPasswordLength characters long');
     }
 
     isLoading.value = true;
-
     try {
-      final body = jsonEncode({
-        'email': emailController.text.trim(),
-        'password': passwordController.text,
-        //"company_name": "Wilson Capital Lending"
-      });
-
-      // Make the API call using BaseClient
+      final body = jsonEncode(_getBasicAuthBody(email: email, password: password));
       final response = await BaseClient.postRequest(
         api: Api.login,
         body: body,
         headers: BaseClient.basicHeaders,
       );
-      // Handle the response manually for specific status codes
-      if (response.statusCode == 200) {
-        final responseData = jsonDecode(response.body);
 
-        print(
-          '==========access_token=============================>>> ${responseData['access_token']}',
-        );
-        print(
-          '==========refresh_token=============================>>> ${responseData['refresh_token']}',
-        );
-        // Store tokens in secure storage
-        await BaseClient.storeTokens(
-          accessToken: responseData['access_token'],
-          refreshToken: responseData['refresh_token'],
-        );
-        kSnackBar(title: 'Success', message: 'Signed in successfully!');
-        clearForm();
-        Get.offAll(DashboardView());
-      } else if (response.statusCode == 400) {
-        // User already exists but is inactive, OTP sent
-        kSnackBar(
-          title: 'Warning',
-          message: 'Invalid credentials',
-          bgColor: AppColors.snackBarWarning,
-        );
-        //navigateToVerification();
-      } else {
-        // Let BaseClient.handleResponse handle other status codes
-        final result = await BaseClient.handleResponse(response);
-        // If handleResponse doesn't throw an error, treat as success
-        //showConfirmationAndNavigate();
-      }
+      await _handleSignInResponse(response);
     } catch (e) {
-      print('error ======>>> $e');
-      kSnackBar(
-        title: 'Warning',
-        message: 'Failed to sign in. Please try again.',
-        bgColor: AppColors.snackBarWarning,
-      );
+      print('Sign-in error: $e');
+      _showWarning('Failed to sign in. Please try again.');
     } finally {
       isLoading.value = false;
     }
   }
 
-  void sendOtp() async {
-    if (resetMethod.value == ResetMethod.email &&
-        !_validateEmail(emailController.text)) {
-      kSnackBar(
-        title: 'Warning',
-        message: 'Please enter a valid email address',
-        bgColor: AppColors.snackBarWarning,
+  Future<void> _handleSignInResponse(dynamic response) async {
+    if (response.statusCode == 200) {
+      final responseData = jsonDecode(response.body);
+      await BaseClient.storeTokens(
+        accessToken: responseData['access_token'],
+        refreshToken: responseData['refresh_token'],
       );
-      return;
+      kSnackBar(title: 'Success', message: 'Signed in successfully!');
+      clearForm();
+      Get.offAll(() => DashboardView());
+    } else if (response.statusCode == 400) {
+      _showWarning('Invalid credentials');
+    } else {
+      //await BaseClient.handleResponse(response);
+    }
+  }
+
+  Future<void> sendOtp() async {
+    final email = emailController.text;
+    final phone = phoneController.text;
+
+    if (resetMethod.value == ResetMethod.email && !_validateEmail(email)) {
+      return _showWarning('Please enter a valid email address');
     }
 
-    if (resetMethod.value == ResetMethod.sms &&
-        !_validatePhone(phoneController.text)) {
-      kSnackBar(
-        title: 'Warning',
-        message: 'Please enter a valid phone number',
-        bgColor: AppColors.snackBarWarning,
-      );
-      return;
-    }
+   /* if (resetMethod.value == ResetMethod.sms && !_validatePhone(phone)) {
+      return _showWarning('Please enter a valid phone number');
+    }*/
 
     isLoading.value = true;
-
     try {
-      final body = jsonEncode({
-        if (resetMethod.value == ResetMethod.email)
-          'email': emailController.text.trim()
-        else
-          'phone_number': phoneController.text,
-      });
+      final body = jsonEncode(_getBasicAuthBody(
+        email: resetMethod.value == ResetMethod.email ? email : null,
+        phone: resetMethod.value == ResetMethod.sms ? phone : null,
+      ));
 
-      // Make the API call using BaseClient
       final response = await BaseClient.postRequest(
         api: Api.resetPasswordRequest,
         body: body,
         headers: BaseClient.basicHeaders,
       );
-      // Handle the response manually for specific status codes
-      if (response.statusCode == 200) {
-        kSnackBar(title: 'Success', message: 'Otp Sent Successfully');
-        Get.off(VerificationScreen(isForgot: true,));
-      } else if (response.statusCode == 400) {
-        // User already exists but is inactive, OTP sent
-        kSnackBar(
-          title: 'Warning',
-          message: 'No user found with the provided credentials.',
-          bgColor: AppColors.snackBarWarning,
-        );
-        //navigateToVerification();
-      } else {
-        // Let BaseClient.handleResponse handle other status codes
-        final result = await BaseClient.handleResponse(response);
-        // If handleResponse doesn't throw an error, treat as success
-        //showConfirmationAndNavigate();
-      }
 
-
+      await _handleSendOtpResponse(response);
     } catch (e) {
-      kSnackBar(
-        message: 'Failed to send OTP. Please try again.',
-        bgColor: AppColors.snackBarWarning,
-      );
+      print('Send OTP error: $e');
+      _showWarning('Failed to send OTP. Please try again.');
     } finally {
       isLoading.value = false;
     }
   }
 
-  void verifyOtp(bool isFirstTime, bool? isForgot) async {
+  Future<void> _handleSendOtpResponse(dynamic response) async {
+    if (response.statusCode == 200) {
+      kSnackBar(title: 'Success', message: 'OTP Sent Successfully');
+      Get.off(() => VerificationScreen(isForgot: true));
+    } else if (response.statusCode == 400) {
+      _showWarning('No user found with the provided credentials.');
+    } else {
+     // await BaseClient.handleResponse(response);
+    }
+  }
+
+  Future<void> verifyOtp(bool isFirstTime, bool? isForgot) async {
     if (!_validateVerificationCode()) {
-      kSnackBar(
-        title: 'Incorrect OTP',
-        message: 'Please enter a valid verification code',
-        bgColor: AppColors.snackBarWarning,
-      );
-      return;
+      return _showWarning('Please enter a valid verification code', title: 'Incorrect OTP');
     }
 
     isLoading.value = true;
+    try {
+      final otp = verificationCodeControllers.map((c) => c.text).join();
+      final api = isForgot == true ? Api.resetPasswordActivate : Api.verifyOtp;
+      final body = jsonEncode(_getBasicAuthBody(
+        email: resetMethod.value == ResetMethod.email ? emailController.text : null,
+        phone: resetMethod.value == ResetMethod.sms ? phoneController.text : null,
+        otp: otp,
+      ));
 
-    if(isForgot!){
-      try {
-        final otp = verificationCodeControllers
-            .map((controller) => controller.text)
-            .join();
+      final response = await BaseClient.postRequest(
+        api: api,
+        body: body,
+        headers: BaseClient.basicHeaders,
+      );
 
-
-        final body = jsonEncode({
-          if (resetMethod.value == ResetMethod.email)
-            'email': emailController.text.trim()
-          else
-            'phone_number': phoneController.text,
-          'otp': otp,
-        });
-
-        // Make the API call using BaseClient
-        final response = await BaseClient.postRequest(
-          api: Api.resetPasswordActivate,
-          body: body,
-          headers: BaseClient.basicHeaders,
-        );
-
-        // Handle the response manually for specific status codes
-        if (response.statusCode >= 200 && response.statusCode <= 210) {
-          final responseData = jsonDecode(response.body);
-          kSnackBar(
-            title: 'Success',
-            message: resetMethod.value == ResetMethod.email
-                ? 'Email verified successfully!'
-                : 'Phone verified successfully!',
-          );
-
-          print(
-            '==========access_token=============================>>> ${responseData['access_token']}',
-          );
-          print(
-            '==========refresh_token=============================>>> ${responseData['refresh']}',
-          );
-          // Store tokens in secure storage
-          await BaseClient.storeTokens(
-            accessToken: responseData['access_token'],
-            refreshToken: responseData['refresh'],
-          );
-
-          navigateToCreatePassword();
-
-        } else if (response.statusCode == 400) {
-          kSnackBar(
-            title: 'Invalid OTP',
-            message: 'Please provide correct OTP',
-            bgColor: AppColors.snackBarWarning,
-          );
-        } else {
-          // Let BaseClient.handleResponse handle other status codes
-          await BaseClient.handleResponse(response);
-        }
-      } catch (e) {
-        Get.snackbar(
-          'Error',
-          'Failed to verify OTP. Please try again.',
-          snackPosition: SnackPosition.TOP,
-          backgroundColor: Colors.red.shade100,
-          colorText: Colors.red.shade800,
-        );
-      } finally {
-        isLoading.value = false;
-      }
+      await _handleVerifyOtpResponse(response, isFirstTime, isForgot);
+    } catch (e) {
+      print('Verify OTP error: $e');
+      _showWarning('Failed to verify OTP. Please try again.');
+    } finally {
+      isLoading.value = false;
     }
+  }
 
-    else{
-      try {
-        final otp = verificationCodeControllers
-            .map((controller) => controller.text)
-            .join();
+  Future<void> _handleVerifyOtpResponse(dynamic response, bool isFirstTime, bool? isForgot) async {
+    if (response.statusCode >= _successStatusLower && response.statusCode <= _successStatusUpper) {
+      final message = resetMethod.value == ResetMethod.email
+          ? 'Email verified successfully!'
+          : 'Phone verified successfully!';
+      kSnackBar(title: 'Success', message: message);
 
-        final body = jsonEncode({
-          'email': emailController.text.trim(),
-          'otp': otp,
-        });
-
-        // Make the API call using BaseClient
-        final response = await BaseClient.postRequest(
-          api: Api.verifyOtp,
-          body: body,
-          headers: BaseClient.basicHeaders,
+      if (isForgot == true) {
+        final responseData = jsonDecode(response.body);
+        await BaseClient.storeTokens(
+          accessToken: responseData['access_token'],
+          refreshToken: responseData['refresh'],
         );
-
-        // Handle the response manually for specific status codes
-        if (response.statusCode >= 200 && response.statusCode <= 210) {
-          kSnackBar(
-            title: 'Success',
-            message: resetMethod.value == ResetMethod.email
-                ? 'Email verified successfully!'
-                : 'Phone verified successfully!',
-          );
-
-          if (isFirstTime) {
-            Get.offAll(DashboardView());
-          } else {
-            navigateToLogin();
-          }
-
-        } else if (response.statusCode == 400) {
-          kSnackBar(
-            title: 'Invalid OTP',
-            message: 'Please provide correct OTP',
-            bgColor: AppColors.snackBarWarning,
-          );
-        } else {
-          // Let BaseClient.handleResponse handle other status codes
-          await BaseClient.handleResponse(response);
-        }
-      } catch (e) {
-        Get.snackbar(
-          'Error',
-          'Failed to verify OTP. Please try again.',
-          snackPosition: SnackPosition.TOP,
-          backgroundColor: Colors.red.shade100,
-          colorText: Colors.red.shade800,
-        );
-      } finally {
-        isLoading.value = false;
+        navigateToCreatePassword();
+      } else {
+        isFirstTime ? Get.offAll(() => DashboardView()) : navigateToLogin();
       }
+    } else if (response.statusCode == 400) {
+      _showWarning('Please provide correct OTP', title: 'Invalid OTP');
+    } else {
+      //await BaseClient.handleResponse(response);
     }
   }
 
   Future<bool> resendCode() async {
     isLoading.value = true;
-
     try {
-      // Prepare the request body
       final body = jsonEncode({
-        'email': emailController.text,
-        "type": 'email',
-        //"company_name": "Wilson Capital Lending"
+        ..._getBasicAuthBody(email: emailController.text),
+        'type': 'email',
       });
 
-      // Make the API call using BaseClient
       final response = await BaseClient.postRequest(
         api: Api.resendOtp,
         body: body,
         headers: BaseClient.basicHeaders,
       );
 
-      // Handle the response manually for specific status codes
-      if (response.statusCode == 200) {
-        kSnackBar(
-          title: 'Success',
-          message: resetMethod.value == ResetMethod.email
-              ? 'Verification code resent to your email!'
-              : 'Verification code resent to your phone!',
-        );
-        return true; // Indicate success
-      } else if (response.statusCode == 404) {
-        kSnackBar(title: 'Warning', message: 'User does not exist');
-        return false; // Indicate failure
-      } else {
-        // Let BaseClient.handleResponse handle other status codes
-        await BaseClient.handleResponse(response);
-        return false; // Assume failure for other cases
-      }
+      return await _handleResendCodeResponse(response);
     } catch (e) {
-      print('Error: ===============>>>>>>> $e');
-      kSnackBar(
-        message: 'Failed to resend code. Please try again.',
-        bgColor: AppColors.snackBarWarning,
-      );
-      return false; // Indicate failure on exception
+      print('Resend code error: $e');
+      _showWarning('Failed to resend code. Please try again.');
+      return false;
     } finally {
       isLoading.value = false;
     }
   }
 
-  // In AuthController class
-
-  // Add this new method for creating a new password
-  void createNewPassword() async {
-    // Validate password
-    if (!_validatePassword(passwordController.text)) {
+  Future<bool> _handleResendCodeResponse(dynamic response) async {
+    if (response.statusCode == 200) {
       kSnackBar(
-        title: 'Warning',
-        message: 'Password must be at least 6 characters long',
-        bgColor: AppColors.snackBarWarning,
+        title: 'Success',
+        message: resetMethod.value == ResetMethod.email
+            ? 'Verification code resent to your email!'
+            : 'Verification code resent to your phone!',
       );
-      return;
+      return true;
+    } else if (response.statusCode == 404) {
+      _showWarning('User does not exist');
+      return false;
+    } else {
+      //await BaseClient.handleResponse(response);
+      return false;
+    }
+  }
+
+  Future<void> createNewPassword() async {
+    final password = passwordController.text;
+    final confirmPassword = confirmPasswordController.text;
+
+    if (!_validatePassword(password)) {
+      return _showWarning('Password must be at least $_minPasswordLength characters long');
     }
 
-    // Validate confirm password
-    if (passwordController.text != confirmPasswordController.text) {
-      kSnackBar(
-        title: 'Warning',
-        message: 'Passwords do not match',
-        bgColor: AppColors.snackBarWarning,
-      );
-      return;
+    if (password != confirmPassword) {
+      return _showWarning('Passwords do not match');
     }
 
     isLoading.value = true;
-
     try {
-      // Prepare the request body
-      final body = jsonEncode({'new_password': passwordController.text});
-
-      // Make the API call using BaseClient
+      final body = jsonEncode({'new_password': password});
       final response = await BaseClient.postRequest(
-        api: Api.resetPassword, // Ensure this is defined in your Api class
+        api: Api.resetPassword,
         body: body,
         headers: BaseClient.authHeaders(),
       );
 
-      // Handle the response
-      if (response.statusCode >= 200 && response.statusCode <= 210) {
-        kSnackBar(title: 'Success', message: 'Password updated successfully!');
-        navigateToLogin(); // Navigate to LoginScreen on success
-      } else if (response.statusCode == 404) {
-        kSnackBar(
-          title: 'Warning',
-          message: 'User does not exist',
-          bgColor: AppColors.snackBarWarning,
-        );
-      } else {
-        await BaseClient.handleResponse(response);
-      }
+      await _handleCreateNewPasswordResponse(response, password);
     } catch (e) {
-      print('______________>>>>>>>>>>>> $e');
-      kSnackBar(
-        title: 'Warning',
-        message: 'Failed to update password. Please try again.',
-        bgColor: AppColors.snackBarWarning,
-      );
+      print('Create password error: $e');
+      _showWarning('Failed to update password. Please try again.');
     } finally {
       isLoading.value = false;
     }
   }
 
-  // Modify navigateToCreatePassword to preserve email/phone
+  Future<void> _handleCreateNewPasswordResponse(dynamic response, String password) async {
+    if (response.statusCode >= _successStatusLower && response.statusCode <= _successStatusUpper) {
+      kSnackBar(title: 'Success', message: 'Password updated successfully!');
+      navigateToLogin();
+    } else if (response.statusCode == 404) {
+      _showWarning('User does not exist');
+    } else {
+      final body = jsonEncode({'new_password': password});
+      await BaseClient.handleResponse(
+        response,
+        retryRequest: () => BaseClient.postRequest(
+          api: Api.resetPassword,
+          body: body,
+          headers: BaseClient.authHeaders(),
+        ),
+      );
 
-  void signInWithGoogle() async {
+      // If handleResponse succeeds (e.g., after token refresh and retry), treat as success
+      kSnackBar(title: 'Success', message: 'Password updated successfully!');
+      navigateToLogin();
+    }
+  }
+
+  Future<void> signInWithGoogle() async {
     isLoading.value = true;
-
     try {
       await Future.delayed(const Duration(seconds: 2));
-      kSnackBar(
-        title: 'Success',
-        message: 'Signed in with Google successfully!',
-      );
+      kSnackBar(title: 'Success', message: 'Signed in with Google successfully!');
       clearForm();
     } catch (e) {
-      Get.snackbar(
-        'Error',
-        'Failed to sign in with Google. Please try again.',
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: Colors.red.shade100,
-        colorText: Colors.red.shade800,
-      );
+      print('Google sign-in error: $e');
+      _showWarning('Failed to sign in with Google. Please try again.');
     } finally {
       isLoading.value = false;
     }
   }
 
-  void signInWithFacebook() async {
+  Future<void> signInWithFacebook() async {
     isLoading.value = true;
-
     try {
       await Future.delayed(const Duration(seconds: 2));
-      kSnackBar(
-        title: 'Success',
-        message: 'Signed in with Facebook successfully!',
-      );
+      kSnackBar(title: 'Success', message: 'Signed in with Facebook successfully!');
       clearForm();
     } catch (e) {
-      kSnackBar(message: 'Failed to sign in with Facebook. Please try again.!');
+      print('Facebook sign-in error: $e');
+      _showWarning('Failed to sign in with Facebook. Please try again.');
     } finally {
       isLoading.value = false;
     }
   }
 
+  // UI Feedback
+  void _showWarning(String message, {String title = 'Warning'}) {
+    kSnackBar(
+      title: title,
+      message: message,
+      bgColor: AppColors.snackBarWarning,
+    );
+  }
+
+  // Cleanup
   void clearForm() {
     emailController.clear();
     passwordController.clear();
     confirmPasswordController.clear();
     nameController.clear();
     phoneController.clear();
-    for (var controller in verificationCodeControllers) {
-      controller.clear();
-    }
+    verificationCodeControllers.forEach((controller) => controller.clear());
     isTermsAccepted.value = false;
+    isRememberMe.value = false;
   }
 
   @override
@@ -681,9 +499,7 @@ class AuthController extends GetxController {
     confirmPasswordController.dispose();
     nameController.dispose();
     phoneController.dispose();
-    for (var controller in verificationCodeControllers) {
-      controller.dispose();
-    }
+    verificationCodeControllers.forEach((controller) => controller.dispose());
     super.onClose();
   }
 }

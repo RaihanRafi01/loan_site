@@ -9,6 +9,7 @@ class SettingsController extends GetxController {
   final newPasswordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
   final descriptionController = TextEditingController();
+  final profilePasswordController = TextEditingController();
 
   // Reactive boolean to manage obscureText state for password field
   final obscureCurrentPassword = true.obs;
@@ -22,7 +23,8 @@ class SettingsController extends GetxController {
     nameController.text = 'Sam Lee';
     emailController.text = 'Samlee@gmail.com';
     phoneController.text = '123 456 785';
-    passwordController.text = 'sdfsdfsdfdf';
+    passwordController.text = '';
+    profilePasswordController.text = 'testPassword123';
     confirmPasswordController.text = '';
   }
 

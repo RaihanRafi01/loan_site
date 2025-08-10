@@ -82,6 +82,7 @@ class AccountSettingsView extends GetView<SettingsController> {
                   ),
                   CustomTextField(
                     radius: 10,
+                    readOnly: true,
                     labelText: 'Samlee@gmail.com',
                     controller: controller.emailController,
                   ),
@@ -104,18 +105,14 @@ class AccountSettingsView extends GetView<SettingsController> {
                       color: AppColors.textColor,
                     ),
                   ),
-                  Obx(
-                        () => CustomTextField(
+                  CustomTextField(
                           radius: 10,
+                      readOnly: true,
                       labelText: 'Enter password',
-                      controller: controller.passwordController,
-                      obscureText: controller.obscureCurrentPassword.value,
+                      controller: controller.profilePasswordController,
+                      obscureText: true,
                       suffixSvgPath: 'assets/images/auth/eye_icon.svg',
-                      onSuffixTap: () {
-                        controller.toggleCurrentPasswordVisibility();
-                      },
                     ),
-                  ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [

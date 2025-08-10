@@ -6,6 +6,7 @@ import '../../../../common/widgets/customButton.dart';
 import '../../../../common/widgets/customTextField.dart';
 import '../../../../common/widgets/custom_title_subTitle.dart';
 import '../controllers/auth_controller.dart';
+
 class CreatePasswordScreen extends GetView<AuthController> {
   const CreatePasswordScreen({super.key});
 
@@ -26,25 +27,31 @@ class CreatePasswordScreen extends GetView<AuthController> {
                   subtitle: 'Please enter a new password for next time Log In',
                 ),
                 const SizedBox(height: 40),
-                CustomTextField(
-                  obscureText: true,
-                  labelText: 'Password',
-                  prefixSvgPath: 'assets/images/auth/lock_icon.svg',
-                  suffixSvgPath: 'assets/images/auth/eye_icon.svg',
-                  controller: controller.passwordController,
+                Obx(
+                  () => CustomTextField(
+                    obscureText: controller.isPasswordHidden.value,
+                    labelText: 'Password',
+                    prefixSvgPath: 'assets/images/auth/lock_icon.svg',
+                    suffixSvgPath: 'assets/images/auth/eye_icon.svg',
+                    controller: controller.passwordController,
+                    onSuffixTap: controller.togglePasswordVisibility,
+                  ),
                 ),
-                CustomTextField(
-                  obscureText: true,
-                  labelText: 'Confirm Password',
-                  prefixSvgPath: 'assets/images/auth/lock_icon.svg',
-                  suffixSvgPath: 'assets/images/auth/eye_icon.svg',
-                  controller: controller.confirmPasswordController,
+                Obx(
+                  () => CustomTextField(
+                    obscureText: controller.isConfirmPasswordHidden.value,
+                    labelText: 'Confirm Password',
+                    prefixSvgPath: 'assets/images/auth/lock_icon.svg',
+                    suffixSvgPath: 'assets/images/auth/eye_icon.svg',
+                    controller: controller.confirmPasswordController,
+                    onSuffixTap: controller.toggleConfirmPasswordVisibility,
+                  ),
                 ),
                 SizedBox(height: 30),
                 Row(
                   children: [
                     Obx(
-                          () => Checkbox(
+                      () => Checkbox(
                         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         activeColor: AppColors.appColor,
                         checkColor: Colors.white,
@@ -64,7 +71,10 @@ class CreatePasswordScreen extends GetView<AuthController> {
                   ],
                 ),
                 SizedBox(height: 20),
-                CustomButton(label: 'Done', onPressed: ()=> controller.createNewPassword()),
+                CustomButton(
+                  label: 'Done',
+                  onPressed: () => controller.createNewPassword(),
+                ),
               ],
             ),
           ),

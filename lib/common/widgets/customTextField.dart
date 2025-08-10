@@ -15,6 +15,7 @@ class CustomTextField extends StatelessWidget {
   final int maxLine;
   final double radius;
   final Color bgClr;
+  final bool readOnly;
 
   const CustomTextField({
     super.key,
@@ -29,6 +30,7 @@ class CustomTextField extends StatelessWidget {
     this.maxLine = 1,
     this.radius = 100,
     this.bgClr = AppColors.textInputField,
+    this.readOnly = false,
   });
 
   @override
@@ -40,6 +42,7 @@ class CustomTextField extends StatelessWidget {
         controller: controller,
         obscureText: obscureText,
         keyboardType: keyboardType,
+        readOnly: readOnly,
         decoration: InputDecoration(
           hintText: labelText,
           hintStyle: h4.copyWith(color: AppColors.blurtext2, fontSize: 16),

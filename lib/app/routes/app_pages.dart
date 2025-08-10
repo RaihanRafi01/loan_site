@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
 import 'package:loan_site/app/modules/auth/views/login_view.dart';
 import '../modules/auth/bindings/auth_binding.dart';
+import '../modules/auth/views/create_password_view.dart';
 import '../modules/community/bindings/community_binding.dart';
 import '../modules/community/views/community_view.dart';
 import '../modules/contractor/bindings/contractor_binding.dart';
@@ -31,7 +32,7 @@ part 'app_routes.dart';
 class AppPages {
   AppPages._();
 
-  static const INITIAL = Routes.AUTH;
+  static const INITIAL = Routes.DASHBOARD;
 
   static final routes = [
     GetPage(

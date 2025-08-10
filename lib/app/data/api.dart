@@ -6,16 +6,18 @@ class Api {
 
 
   ///auth
-  static const signup = "$baseUrl/accounts/signup/";//done
-  static const login = "$baseUrl/accounts/login/";
+  static const signup = "$baseUrl/accounts/signup/";     //done
+  static const login = "$baseUrl/accounts/login/";    //done
   static const socialAuth = "$baseUrl/accounts/social-signup-signin/";
   static const logout = "$baseUrl/logout/";
-  static const verifyOtp = "$baseUrl/accounts/activate/"; //done
-  static const resendOtp = "$baseUrl/accounts/resend-otp/"; //done
-  static const resetPasswordRequest = "$baseUrl/accounts/pass-reset-request/"; //done
-  static const resetPasswordActivate = "$baseUrl/accounts/reset-request-activate/"; //done
-  static const resetPassword = "$baseUrl/accounts/reset-password/"; //done
-  static const createToken = "$baseUrl/accounts/custom-token-refresh/"; // working
+  static const verifyOtp = "$baseUrl/accounts/activate/";    //done
+  static const resendOtp = "$baseUrl/accounts/resend-otp/";    //done
+  static const resetPasswordRequest = "$baseUrl/accounts/pass-reset-request/";    //done
+  static const resetPasswordActivate = "$baseUrl/accounts/reset-request-activate/";     //done
+  static const resetPassword = "$baseUrl/accounts/reset-password/";     //done
+  static const createToken = "$baseUrl/accounts/custom-token-refresh/";   // done
+  static const profileChangePassword = "$baseUrl/accounts/profile/change-password/";   // working
+  static const profileUpdate = "$baseUrl/accounts/profile/update/";   //
 
 
 
