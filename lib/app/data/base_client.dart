@@ -72,8 +72,8 @@ class BaseClient {
       body: body,
       headers: resolvedHeaders,
     );
-    debugPrint("<================= response statusCode ====== ${response.statusCode} ==========>");
-    debugPrint("<================= response ====== ${response.body} ===========>");
+    debugPrint('💥💥💥💥💥💥💥💥💥💥 🚀 ➤➤➤ Code: ${response.statusCode}');
+    debugPrint('💥💥💥💥💥💥💥💥💥💥 🚀 ➤➤➤ Response: ${response.body}');
 
     return response;
   }
@@ -91,6 +91,8 @@ class BaseClient {
       body: body,
       headers: resolvedHeaders,
     );
+    debugPrint('💥💥💥💥💥💥💥💥💥💥 🚀 ➤➤➤ Code: ${response.statusCode}');
+    debugPrint('💥💥💥💥💥💥💥💥💥💥 🚀 ➤➤➤ Response: ${response.body}');
     return response;
   }
 
@@ -107,7 +109,32 @@ class BaseClient {
       body: body,
       headers: resolvedHeaders,
     );
+    debugPrint('💥💥💥💥💥💥💥💥💥💥 🚀 ➤➤➤ Code: ${response.statusCode}');
+    debugPrint('💥💥💥💥💥💥💥💥💥💥 🚀 ➤➤➤ Response: ${response.body}');
     return response;
+  }
+
+  static Future<http.Response> multipartRequest({
+    required String api,
+    required Map<String, String> fields,
+    File? image,
+    Future<Map<String, String>>? headers,
+  }) async {
+    debugPrint("API Hit (Multipart): $api");
+    debugPrint("Fields: $fields");
+    final resolvedHeaders = headers != null ? await headers : <String, String>{};
+    var request = http.MultipartRequest('PUT', Uri.parse(api));
+    request.headers.addAll(resolvedHeaders);
+    request.fields.addAll(fields);
+    if (image != null) {
+      request.files.add(await http.MultipartFile.fromPath('image', image.path));
+    }
+    final response = await request.send();
+    final responseBody = await http.Response.fromStream(response);
+    debugPrint('💥💥💥💥💥💥💥💥💥💥 🚀 ➤➤➤ Code: ${responseBody.statusCode}');
+    debugPrint('💥💥💥💥💥💥💥💥💥💥 🚀 ➤➤➤ Response: ${responseBody.body}');
+
+    return responseBody;
   }
 
   static Future<http.Response> deleteRequest({
@@ -129,10 +156,9 @@ class BaseClient {
   // Handle response with retry logic for 401 errors
   static Future<dynamic> handleResponse(http.Response response, {Future<http.Response> Function()? retryRequest}) async {
     try {
-      debugPrint('💥💥💥💥💥💥💥💥💥💥 🚀 ➤➤➤ Code: ${response.statusCode}');
-      debugPrint('💥💥💥💥💥💥💥💥💥💥 🚀 ➤➤➤ Response: ${response.body}');
+      debugPrint('💥💥💥💥💥💥💥💥💥💥 handleResponse 🚀 ➤➤➤ Code: ${response.statusCode}');
+      debugPrint('💥💥💥💥💥💥💥💥💥💥 handleResponse 🚀 ➤➤➤ Response: ${response.body}');
       if (response.statusCode >= 200 && response.statusCode <= 210) {
-
         if (response.body.isNotEmpty) {
           return json.decode(response.body);
         } else {
@@ -180,6 +206,8 @@ class BaseClient {
         final data = jsonDecode(response.body);
         if (data['errors'] != null) {
           return data['errors'] is String ? data['errors'] : data['errors']['email']?[0] ?? defaultMessage;
+        } else if (data['detail'] != null) {
+          return data['detail'];
         }
         return data['message'] ?? defaultMessage;
       } catch (_) {
@@ -203,7 +231,6 @@ class BaseClient {
       }
 
       final body = jsonEncode({'refresh_token': refreshToken});
-
 
       debugPrint("Refreshing token with API: ${Api.createToken}");
       debugPrint("Refresh token body: $body");

@@ -4,9 +4,10 @@ import 'package:loan_site/app/modules/settings/controllers/settings_controller.d
 import 'package:loan_site/app/modules/settings/views/change_password_view.dart';
 import 'package:loan_site/common/widgets/customButton.dart';
 import 'package:loan_site/common/widgets/customTextField.dart';
-
 import '../../../../common/appColors.dart';
 import '../../../../common/customFont.dart';
+import 'dart:io';
+import 'package:cached_network_image/cached_network_image.dart';  // Import CachedNetworkImage
 
 class AccountSettingsView extends GetView<SettingsController> {
   const AccountSettingsView({super.key});
@@ -32,34 +33,71 @@ class AccountSettingsView extends GetView<SettingsController> {
       ),
       body: SingleChildScrollView(
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center, // Keep center for avatar and greeting
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             const SizedBox(height: 16),
-            const CircleAvatar(
-              radius: 55,
-              backgroundImage: AssetImage('assets/images/settings/profile_image.png'), // Replace with your image path
+            Stack(
+              alignment: Alignment.bottomRight,
+              children: [
+                Obx(
+                      () => CircleAvatar(
+                    radius: 55,
+                    backgroundImage: controller.selectedImage.value != null
+                        ? FileImage(controller.selectedImage.value!)
+                        : controller.profileImageUrl.value.isNotEmpty
+                        ? CachedNetworkImageProvider(
+                      controller.profileImageUrl.value,
+                      errorListener: (exception) {
+                        debugPrint('Image load error: $exception');
+                        controller.profileImageUrl.value = '';
+                      },
+                    ) as ImageProvider
+                        : const AssetImage('assets/images/settings/profile_image.png'),
+                  ),
+                ),
+                GestureDetector(
+                  onTap: controller.pickImage,
+                  child: Container(
+                    padding: const EdgeInsets.all(5),
+                    decoration: BoxDecoration(
+                      color: AppColors.appColor,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.camera_alt,
+                      color: Colors.white,
+                      size: 20,
+                    ),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 16),
-            Text(
-              'Hello Angelo!',
-              style: h2.copyWith(
-                fontSize: 30,
-                color: AppColors.textColor,
+            Obx(
+                  () => Text(
+                'Hello ${controller.name.value}!',
+                textAlign: TextAlign.center,
+                style: h2.copyWith(
+                  fontSize: 30,
+                  color: AppColors.textColor,
+                ),
               ),
             ),
             const SizedBox(height: 2),
-            Text(
-              'angelo@gmail.com',
-              style: h4.copyWith(
-                fontSize: 18,
-                color: AppColors.blurtext4,
+            Obx(
+                  () => Text(
+                controller.email.value,
+                style: h4.copyWith(
+                  fontSize: 18,
+                  color: AppColors.blurtext4,
+                ),
               ),
             ),
             const SizedBox(height: 16),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16), // Add padding for left-aligned content
+              padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start, // Align text and input field to start
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     'Full Name',
@@ -70,7 +108,7 @@ class AccountSettingsView extends GetView<SettingsController> {
                   ),
                   CustomTextField(
                     radius: 10,
-                    labelText: 'Sam Lee',
+                    labelText: 'Full Name',
                     controller: controller.nameController,
                   ),
                   Text(
@@ -83,7 +121,7 @@ class AccountSettingsView extends GetView<SettingsController> {
                   CustomTextField(
                     radius: 10,
                     readOnly: true,
-                    labelText: 'Samlee@gmail.com',
+                    labelText: 'Email',
                     controller: controller.emailController,
                   ),
                   Text(
@@ -95,7 +133,7 @@ class AccountSettingsView extends GetView<SettingsController> {
                   ),
                   CustomTextField(
                     radius: 10,
-                    labelText: '123 456 785',
+                    labelText: 'Phone Number',
                     controller: controller.phoneController,
                   ),
                   Text(
@@ -106,18 +144,18 @@ class AccountSettingsView extends GetView<SettingsController> {
                     ),
                   ),
                   CustomTextField(
-                          radius: 10,
-                      readOnly: true,
-                      labelText: 'Enter password',
-                      controller: controller.profilePasswordController,
-                      obscureText: true,
-                      suffixSvgPath: 'assets/images/auth/eye_icon.svg',
-                    ),
+                    radius: 10,
+                    readOnly: true,
+                    labelText: 'Password',
+                    controller: controller.profilePasswordController,
+                    obscureText: true,
+                    suffixSvgPath: 'assets/images/auth/eye_icon.svg',
+                  ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
                       GestureDetector(
-                        onTap: ()=> Get.to(ChangePasswordView()),
+                        onTap: () => Get.to(ChangePasswordView()),
                         child: Text(
                           'Change Password',
                           style: h4.copyWith(
@@ -131,9 +169,13 @@ class AccountSettingsView extends GetView<SettingsController> {
                     ],
                   ),
                   const SizedBox(height: 20),
-                  CustomButton(
-                    label: 'Edit Details',
-                    onPressed: () {},
+                  Obx(
+                        () => CustomButton(
+                      label: controller.isLoading.value ? 'Updating...' : 'Edit Details',
+                      onPressed: () {
+                        controller.isLoading.value ? null : controller.updateProfile();
+                      },
+                    ),
                   ),
                   const SizedBox(height: 40),
                 ],

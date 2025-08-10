@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
@@ -16,6 +17,9 @@ class SettingsView extends GetView<SettingsController> {
 
   @override
   Widget build(BuildContext context) {
+    // Ensure SettingsController is initialized
+    Get.put(SettingsController());
+
     return Scaffold(
       backgroundColor: AppColors.appBc,
       appBar: AppBar(
@@ -38,37 +42,61 @@ class SettingsView extends GetView<SettingsController> {
             padding: const EdgeInsets.all(20),
             child: Row(
               children: [
-                CircleAvatar(
-                  radius: 50,
-                  backgroundImage: AssetImage('assets/images/settings/profile_image.png'), // Replace with your image path
+                Obx(
+                      () => CircleAvatar(
+                    radius: 50,
+                    backgroundImage: controller.selectedImage.value != null
+                        ? FileImage(controller.selectedImage.value!)
+                        : controller.profileImageUrl.value.isNotEmpty
+                        ? CachedNetworkImageProvider(
+                      controller.profileImageUrl.value,
+                      errorListener: (exception) {
+                        debugPrint('Image load error: $exception');
+                        controller.profileImageUrl.value = '';
+                      },
+                    ) as ImageProvider
+                        : const AssetImage('assets/images/settings/profile_image.png'),
+                    child: controller.selectedImage.value == null &&
+                        controller.profileImageUrl.value.isEmpty
+                        ? null
+                        : null,
+                  ),
                 ),
                 const SizedBox(width: 15),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Angelo',
-                      style: h2.copyWith(
-                        fontSize: 30,
-                        color: AppColors.textColor,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Obx(
+                            () => Text(
+                          controller.name.value.isEmpty
+                              ? 'User'
+                              : controller.name.value,
+                          style: h2.copyWith(
+                            fontSize: 30,
+                            color: AppColors.textColor,
+                          ),
+                        ),
                       ),
-                    ),
-                    SizedBox(height: 2),
-                    Text(
-                      'angelo@gmail.com',
-                      style: h4.copyWith(
-                        fontSize: 18,
-                        color: AppColors.blurtext4
+                      const SizedBox(height: 2),
+                      Obx(
+                            () => Text(
+                          controller.email.value.isEmpty
+                              ? 'email@example.com'
+                              : controller.email.value,
+                          style: h4.copyWith(
+                            fontSize: 18,
+                            color: AppColors.blurtext4,
+                          ),
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ],
             ),
           ),
-
           const SizedBox(height: 10),
-
           // Settings Options
           Expanded(
             child: Container(
@@ -78,7 +106,7 @@ class SettingsView extends GetView<SettingsController> {
                   _buildSettingsItem(
                     svgPath: 'assets/images/settings/settings_icon.svg',
                     title: 'Account Settings',
-                    onTap: ()=> Get.to(AccountSettingsView()),
+                    onTap: () => Get.to(const AccountSettingsView()),
                   ),
                   _buildSettingsItem(
                     svgPath: 'assets/images/settings/noti_icon.svg',
@@ -89,29 +117,28 @@ class SettingsView extends GetView<SettingsController> {
                     hasSwitch: true,
                     switchValue: true,
                   ),
-                  if(isBorrower)
-                  _buildSettingsItem(
-                    svgPath: 'assets/images/settings/flag_icon.svg',
-                    title: 'My Project',
-                    onTap: () {
-                      Get.to(ProjectListView());
-                    },
-                  ),
+                  if (isBorrower)
+                    _buildSettingsItem(
+                      svgPath: 'assets/images/settings/flag_icon.svg',
+                      title: 'My Project',
+                      onTap: () {
+                        Get.to(const ProjectListView());
+                      },
+                    ),
                   _buildSettingsItem(
                     svgPath: 'assets/images/settings/help_icon.svg',
                     title: 'Help & Support',
-                    onTap: ()=> Get.to(HelpSupportView()),
+                    onTap: () => Get.to(const HelpSupportView()),
                   ),
                   _buildSettingsItem(
                     svgPath: 'assets/images/settings/terms_icon.svg',
                     title: 'Terms & Condition',
-                    onTap: ()=> Get.to(TermsConditionView()),
+                    onTap: () => Get.to(const TermsConditionView()),
                   ),
                 ],
               ),
             ),
           ),
-
           // Log Out Button
           Container(
             padding: const EdgeInsets.all(20),
@@ -132,8 +159,12 @@ class SettingsView extends GetView<SettingsController> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.power_settings_new_outlined, color:  AppColors.clrRed, size: 20),
-                    SizedBox(width: 8),
+                    const Icon(
+                      Icons.power_settings_new_outlined,
+                      color: AppColors.clrRed,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 8),
                     Text(
                       'Log Out',
                       style: h3.copyWith(
@@ -198,10 +229,7 @@ class SettingsView extends GetView<SettingsController> {
               child: Text('Cancel',style: h3.copyWith(color: AppColors.textColor),),
             ),
             TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                Get.offAll(LoginScreen()); // Example navigation
-              },
+              onPressed: controller.logout,
               child: Text('Log Out', style: h3.copyWith(color: AppColors.clrRed)),
             ),
           ],

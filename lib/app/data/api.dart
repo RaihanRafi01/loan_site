@@ -2,6 +2,7 @@ class Api {
   /// base url
 
   static const baseUrl = "http://10.10.13.73:7000/api/v1";
+  static const baseUrlPicture = "http://10.10.13.73:7000";
   //static const socket = "https://socket.thirdshotslot.co.uk/";
 
 
@@ -9,7 +10,7 @@ class Api {
   static const signup = "$baseUrl/accounts/signup/";     //done
   static const login = "$baseUrl/accounts/login/";    //done
   static const socialAuth = "$baseUrl/accounts/social-signup-signin/";
-  static const logout = "$baseUrl/logout/";
+  static const logout = "$baseUrl/accounts/logout/";    // working
   static const verifyOtp = "$baseUrl/accounts/activate/";    //done
   static const resendOtp = "$baseUrl/accounts/resend-otp/";    //done
   static const resetPasswordRequest = "$baseUrl/accounts/pass-reset-request/";    //done
@@ -17,8 +18,8 @@ class Api {
   static const resetPassword = "$baseUrl/accounts/reset-password/";     //done
   static const createToken = "$baseUrl/accounts/custom-token-refresh/";   // done
   static const profileChangePassword = "$baseUrl/accounts/profile/change-password/";   // done
-  static const profileUpdate = "$baseUrl/accounts/profile/update/";   // working
-  static const getProfile = "$baseUrl/accounts/profile/";   // working
+  static const profileUpdate = "$baseUrl/accounts/profile/update/";   // done
+  static const getProfile = "$baseUrl/accounts/profile/";   // done
 
 
 
