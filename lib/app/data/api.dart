@@ -23,8 +23,9 @@ class Api {
 
   /// Project
 
-  static const createProject = "$baseUrl/project/create/";   // working
-  static  setProjectMilestone(project_id) => "$baseUrl/project/set-milestone/$project_id/";   // working
+  static const createProject = "$baseUrl/project/create/";   // done
+  static  setProjectMilestone(project_id) => "$baseUrl/project/set-milestone/$project_id/";   // done
+  static const getAllProject = "$baseUrl/project/list/all/";   // working
 
 
 

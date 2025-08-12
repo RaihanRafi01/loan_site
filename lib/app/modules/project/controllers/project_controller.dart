@@ -6,6 +6,7 @@ import 'package:loan_site/app/modules/project/views/set_milestone_view.dart';
 
 import '../../../data/api.dart';
 import '../../../data/base_client.dart';
+import '../../../data/models/project.dart';
 
 class ProjectController extends GetxController {
   // Text controllers for project details
@@ -39,12 +40,45 @@ class ProjectController extends GetxController {
   // Store project ID
   var projectId = 0.obs;
 
+  var projects = <Project>[].obs;
+
   @override
   void onInit() {
     super.onInit();
     // Add one contractor input field by default
     addContractor();
+    fetchProjects();
   }
+
+  // Fetch all projects
+  Future<void> fetchProjects() async {
+    try {
+      // Make GET request to fetch projects
+      final response = await BaseClient.getRequest(
+        api: Api.getAllProject, // Replace with the correct URL
+        headers: BaseClient.authHeaders(),
+      );
+
+      // Handle the response
+      final data = await BaseClient.handleResponse(response,retryRequest: () => BaseClient.getRequest(
+        api: Api.getAllProject,
+        headers: BaseClient.authHeaders(),
+      ),);
+
+      if (data != null) {
+        // Map the response to the Project model
+        final List<Project> projectList = (data as List)
+            .map((json) => Project.fromJson(json))
+            .toList();
+        projects.value = projectList; // Update the project list
+      }
+    } catch (e) {
+      print("Error fetching projects: $e");
+      Get.snackbar('Error', 'Failed to fetch projects');
+    }
+  }
+
+
 
   void addContractor() {
     contractorControllers.add({

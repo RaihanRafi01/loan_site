@@ -13,6 +13,7 @@ class ProjectListView extends GetView<ProjectController> {
 
   @override
   Widget build(BuildContext context) {
+    Get.put(ProjectController());
     return Scaffold(
       backgroundColor: AppColors.appBc,
       appBar: AppBar(
@@ -20,7 +21,7 @@ class ProjectListView extends GetView<ProjectController> {
         backgroundColor: AppColors.appBc,
         elevation: 0,
         title: Text(
-          'My Project',
+          'My Projects',
           style: h2.copyWith(
             color: AppColors.textColor,
             fontSize: 22,
@@ -34,30 +35,38 @@ class ProjectListView extends GetView<ProjectController> {
           children: [
             // Projects List
             Expanded(
-              child: ListView(
-                children: [
-                  _buildProjectCard(
-                    title: 'Sunset Grove Residences',
-                    onTap: () {
-                     Get.to(ProjectView());
+              child: Obx(() {
+                if (controller.projects.isEmpty) {
+                  return Center(child: CircularProgressIndicator());
+                } else {
+                  return ListView.builder(
+                    itemCount: controller.projects.length,
+                    itemBuilder: (context, index) {
+                      final project = controller.projects[index];
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8.0),
+                        child: _buildProjectCard(
+                          title: project.name, // Display project name
+                          onTap: () {
+                            Get.to(ProjectView()); // Navigate to the project detail view
+                          },
+                        ),
+                      );
                     },
-                  ),
-                  const SizedBox(height: 12),
-                  _buildProjectCard(
-                    title: 'Sunset Grove Residences',
-                    onTap: () {
-                      Get.to(ProjectView());
-                    },
-                  ),
-                ],
-              ),
+                  );
+                }
+              }),
             ),
 
             // Create Project Button
             const SizedBox(height: 16),
-            CustomButton(label: 'Create Project', svgPath: 'assets/images/project/plus_icon.svg', onPressed: (){
-              Get.to(CreateProjectView());
-            }),
+            CustomButton(
+              label: 'Create Project',
+              svgPath: 'assets/images/project/plus_icon.svg',
+              onPressed: () {
+                Get.to(CreateProjectView());
+              },
+            ),
             const SizedBox(height: 16),
           ],
         ),
