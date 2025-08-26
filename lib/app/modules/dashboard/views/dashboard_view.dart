@@ -29,7 +29,7 @@ class DashboardView extends GetView<DashboardController> {
     ];
 
     return Scaffold(
-      body: SafeArea(child: Obx(() => pages[controller.selectedIndex.value])), // Display the current page
+      body: Obx(() => pages[controller.selectedIndex.value]), // Display the current page
       bottomNavigationBar: Obx(() => Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
