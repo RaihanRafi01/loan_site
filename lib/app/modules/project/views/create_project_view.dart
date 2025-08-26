@@ -538,7 +538,8 @@ class CreateProjectView extends GetView<ProjectController> {
                         ),
                         GestureDetector(
                           onTap: () {
-                            // Go back to edit this contractor
+                            // Remove the contractor at the current index
+                            controller.removeContractor(index);
                           },
                           child: Text(
                             'Remove',

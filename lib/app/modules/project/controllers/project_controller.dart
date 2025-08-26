@@ -172,4 +172,17 @@ class ProjectController extends GetxController {
     }
   }
 
+  void removeContractor(int index) {
+    if (index >= 0 && index < contractorControllers.length) {
+      // Dispose of the TextEditingControllers to prevent memory leaks
+      contractorControllers[index].forEach((key, controller) {
+        controller.dispose();
+      });
+      // Remove the contractor from the list
+      contractorControllers.removeAt(index);
+      // Update the UI reactively
+      contractorControllers.refresh();
+    }
+  }
+
 }
