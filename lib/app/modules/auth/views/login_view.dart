@@ -3,6 +3,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import '../../../../common/appColors.dart';
 import '../../../../common/customFont.dart';
+import '../../../../common/widgets/chooseRolePopupWidget.dart';
 import '../../../../common/widgets/customButton.dart';
 import '../../../../common/widgets/customTextField.dart';
 import '../../../../common/widgets/custom_title_subTitle.dart';
@@ -127,7 +128,14 @@ class LoginScreen extends GetView<AuthController> {
                     ),
                     SizedBox(width: 10),
                     GestureDetector(
-                      onTap: () => controller.navigateToSignUp(),
+                      onTap: () {
+                        Get.dialog(
+                          barrierDismissible: true,
+                          barrierColor: Colors.black.withOpacity(0.7),
+                          const ChooseRolePopupWidget(),
+                        );
+                        //controller.navigateToSignUp()
+                      } ,
                       child: Text(
                         'Register',
                         style: h4.copyWith(

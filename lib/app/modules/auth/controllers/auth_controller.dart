@@ -29,6 +29,7 @@ class AuthController extends GetxController {
   final passwordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
   final nameController = TextEditingController();
+  final lender_codeController = TextEditingController();
   final verificationCodeControllers = List.generate(
     _otpLength,
         (_) => TextEditingController(),
@@ -54,10 +55,6 @@ class AuthController extends GetxController {
     clearForm();
   }
 
-  void navigateToSignUp() {
-    Get.to(() => SignUpScreen());
-    clearForm();
-  }
 
   void navigateToForgotPassword() {
     Get.to(() => ForgotPasswordScreen());
@@ -126,6 +123,7 @@ class AuthController extends GetxController {
     String? password,
     String? name,
     String? otp,
+    String? lender_code,
   }) {
     final body = <String, String>{};
     if (email != null) body['email'] = _sanitizeInput(email);
@@ -133,15 +131,17 @@ class AuthController extends GetxController {
     if (password != null) body['password'] = password;
     if (name != null) body['name'] = _sanitizeInput(name);
     if (otp != null) body['otp'] = otp;
+    if (lender_code != null) body['lender_code'] = lender_code;
     return body;
   }
 
   // Auth Methods
-  Future<void> signUp() async {
+  Future<void> signUp({required String role}) async {
     final email = emailController.text;
     final password = passwordController.text;
     final confirmPassword = confirmPasswordController.text;
     final name = nameController.text;
+    final lender_code = lender_codeController.text;
 
     if (!_validateName(name)) {
       return _showWarning('Please enter your full name');
@@ -167,8 +167,9 @@ class AuthController extends GetxController {
           email: email,
           phone: phoneController.text,
           password: password,
+          lender_code: lender_code
         ),
-        'user_role': 'borrower',
+        'user_role': role,
       });
 
       final response = await BaseClient.postRequest(
@@ -331,12 +332,13 @@ class AuthController extends GetxController {
           : 'Phone verified successfully!';
       kSnackBar(title: 'Success', message: message);
 
+      final responseData = jsonDecode(response.body);
+      await BaseClient.storeTokens(
+        accessToken: responseData['access_token'],
+        refreshToken: responseData['refresh_token'],
+      );
+
       if (isForgot == true) {
-        final responseData = jsonDecode(response.body);
-        await BaseClient.storeTokens(
-          accessToken: responseData['access_token'],
-          refreshToken: responseData['refresh'],
-        );
         navigateToCreatePassword();
       } else {
         isFirstTime ? Get.offAll(() => DashboardView()) : navigateToLogin();
@@ -487,6 +489,7 @@ class AuthController extends GetxController {
     confirmPasswordController.clear();
     nameController.clear();
     phoneController.clear();
+    lender_codeController.clear();
     verificationCodeControllers.forEach((controller) => controller.clear());
     isTermsAccepted.value = false;
     isRememberMe.value = false;
@@ -499,6 +502,7 @@ class AuthController extends GetxController {
     confirmPasswordController.dispose();
     nameController.dispose();
     phoneController.dispose();
+    lender_codeController.dispose();
     verificationCodeControllers.forEach((controller) => controller.dispose());
     super.onClose();
   }

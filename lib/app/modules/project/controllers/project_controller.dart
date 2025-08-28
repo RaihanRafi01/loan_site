@@ -108,7 +108,7 @@ class ProjectController extends GetxController {
           "start_date": projectStartDateController.text,
           "end_date": projectEndDateController.text,
           "description": projectDescriptionController.text,
-          "lender_id": selectedLenderId.value,
+          //"lender_id": selectedLenderId.value,
           "permit_number": permitNumberController.text,
           "permit_type": permitTypeController.text,
           "permit_issued_date": permitIssueDateController.text,

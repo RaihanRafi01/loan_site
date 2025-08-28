@@ -10,7 +10,7 @@ class Api {
   static const signup = "$baseUrl/accounts/signup/";     //done
   static const login = "$baseUrl/accounts/login/";    //done
   static const socialAuth = "$baseUrl/accounts/social-signup-signin/";
-  static const logout = "$baseUrl/accounts/logout/";    // working
+  static const logout = "$baseUrl/accounts/logout/";    // done
   static const verifyOtp = "$baseUrl/accounts/activate/";    //done
   static const resendOtp = "$baseUrl/accounts/resend-otp/";    //done
   static const resetPasswordRequest = "$baseUrl/accounts/pass-reset-request/";    //done

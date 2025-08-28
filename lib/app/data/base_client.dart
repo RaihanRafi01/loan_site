@@ -16,6 +16,7 @@ class BaseClient {
   static Future<void> storeTokens({required String accessToken, required String refreshToken}) async {
     await _storage.write(key: 'access_token', value: accessToken);
     await _storage.write(key: 'refresh_token', value: refreshToken);
+    print('access =======================>>>>>>>>>>>>> $accessToken  \n refresh =======================>>>>>>>>>>>>> refreshToken ');
   }
 
   // Retrieve access token from secure storage
@@ -32,10 +33,12 @@ class BaseClient {
   static Future<void> clearTokens() async {
     await _storage.delete(key: 'access_token');
     await _storage.delete(key: 'refresh_token');
+    print('DELETE=======================>>>>>>>>>>>>>');
   }
 
   static Future<Map<String, String>> authHeaders() async {
     String? token = await getAccessToken();
+    print('getAccessToken =======================>>>>>>>>>>>>> $token');
     return {
       'Content-Type': 'application/json',
       'Authorization': 'Bearer ${token ?? ''}',
