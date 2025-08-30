@@ -136,6 +136,7 @@ class CommunityController extends GetxController {
 
   final myPosts = RxList<Post>([]);
   final currentUser = Rx<User?>(null);
+  final currentReplies = RxList<Comment>([]);
 
   @override
   void onInit() {
@@ -259,6 +260,53 @@ class CommunityController extends GetxController {
     } catch (e) {
       print('Post comment error: $e');
       _showWarning('Failed to add comment. Please try again.');
+    }
+  }
+
+  Future<void> fetchCommentReplies(int commentId) async {
+    try {
+      final apiUrl = Api.getAllcommentReplies(commentId.toString()); // Assuming Api.commentReplies = '/comments/{id}/replies/'
+      final response = await BaseClient.getRequest(
+        api: apiUrl,
+        headers: BaseClient.authHeaders(),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        currentReplies.value = (data['results'] as List).map((e) => Comment.fromJson(e)).toList();
+      } else {
+        _showWarning('Failed to fetch replies: ${response.reasonPhrase}');
+      }
+    } catch (e) {
+      print('Fetch replies error: $e');
+      _showWarning('Failed to fetch replies. Please try again.');
+    }
+  }
+
+  Future<void> postReply(int commentId, String content) async {
+    if (content.trim().isEmpty) {
+      _showWarning('Please enter a reply.');
+      return;
+    }
+
+    try {
+      final apiUrl = Api.commentReplies(commentId.toString());
+      final body = jsonEncode({"content": content});
+      final response = await BaseClient.postRequest(
+        api: apiUrl,
+        body: body,
+        headers: BaseClient.authHeaders(),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        Get.snackbar('Success', 'Reply added successfully!');
+        fetchCommentReplies(commentId); // Refresh replies
+      } else {
+        _showWarning('Failed to add reply: ${response.reasonPhrase}');
+      }
+    } catch (e) {
+      print('Post reply error: $e');
+      _showWarning('Failed to add reply. Please try again.');
     }
   }
 

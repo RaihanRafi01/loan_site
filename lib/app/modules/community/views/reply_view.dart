@@ -3,31 +3,31 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import '../../../../common/appColors.dart';
 import '../../../../common/customFont.dart';
+import '../controllers/community_controller.dart';
 
-class ReplyView extends StatefulWidget {
-  final Map<String, dynamic> comment;
-
-  const ReplyView({super.key, required this.comment});
-
-  @override
-  State<ReplyView> createState() => _ReplyViewState();
-}
-
-class _ReplyViewState extends State<ReplyView> {
+class ReplyView extends GetView<CommunityController> {
+  final Comment comment;
   final TextEditingController _replyController = TextEditingController();
-  final List<Map<String, dynamic>> _replies = [
-    // Sample replies (you can replace this with actual reply data)
-    {
-      'name': 'Jane Doe',
-      'avatar':
-      'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&crop=face',
-      'comment': 'This is a sample reply to the comment.',
-      'timeAgo': '30m ago',
-    },
-  ];
+
+  ReplyView({super.key, required this.comment});
+
+  String getTimeAgo(DateTime dateTime) {
+    final now = DateTime.now();
+    final difference = now.difference(dateTime).abs();
+    if (difference.inDays > 0) {
+      return '${difference.inDays}d';
+    } else if (difference.inHours > 0) {
+      return '${difference.inHours}h';
+    } else if (difference.inMinutes > 0) {
+      return '${difference.inMinutes}m';
+    } else {
+      return 'Just now';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    controller.fetchCommentReplies(comment.id);
     return Scaffold(
       backgroundColor: AppColors.appBc,
       appBar: AppBar(
@@ -50,7 +50,7 @@ class _ReplyViewState extends State<ReplyView> {
           Container(
             color: AppColors.appBc,
             padding: const EdgeInsets.all(16),
-            child: _buildCommentItem(widget.comment),
+            child: _buildCommentItem(comment),
           ),
 
           // Replies Section Header
@@ -74,13 +74,13 @@ class _ReplyViewState extends State<ReplyView> {
           Expanded(
             child: Container(
               color: AppColors.appBc,
-              child: ListView.builder(
+              child: Obx(() => ListView.builder(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
-                itemCount: _replies.length,
+                itemCount: controller.currentReplies.length,
                 itemBuilder: (context, index) {
-                  return _buildReplyItem(_replies[index]);
+                  return _buildReplyItem(controller.currentReplies[index]);
                 },
-              ),
+              )),
             ),
           ),
 
@@ -94,7 +94,7 @@ class _ReplyViewState extends State<ReplyView> {
     );
   }
 
-  Widget _buildCommentItem(Map<String, dynamic> comment) {
+  Widget _buildCommentItem(Comment comment) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 12),
       child: Row(
@@ -102,7 +102,7 @@ class _ReplyViewState extends State<ReplyView> {
         children: [
           CircleAvatar(
             radius: 18,
-            backgroundImage: NetworkImage(comment['avatar']),
+            backgroundImage: NetworkImage(comment.user.image ?? 'https://via.placeholder.com/100'),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -110,7 +110,7 @@ class _ReplyViewState extends State<ReplyView> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  comment['name'],
+                  comment.user.name,
                   style: h2.copyWith(
                     fontSize: 20,
                     color: AppColors.textColor,
@@ -118,14 +118,14 @@ class _ReplyViewState extends State<ReplyView> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  comment['comment'],
+                  comment.content,
                   style: h4.copyWith(fontSize: 16, color: AppColors.textColor11),
                 ),
                 const SizedBox(height: 8),
                 Row(
                   children: [
                     Text(
-                      comment['timeAgo'],
+                      getTimeAgo(DateTime.parse(comment.createdAt)),
                       style: h3.copyWith(fontSize: 12, color: AppColors.gray10),
                     ),
                     const SizedBox(width: 16),
@@ -154,7 +154,7 @@ class _ReplyViewState extends State<ReplyView> {
     );
   }
 
-  Widget _buildReplyItem(Map<String, dynamic> reply) {
+  Widget _buildReplyItem(Comment reply) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 12),
       child: Row(
@@ -162,7 +162,7 @@ class _ReplyViewState extends State<ReplyView> {
         children: [
           CircleAvatar(
             radius: 18,
-            backgroundImage: NetworkImage(reply['avatar']),
+            backgroundImage: NetworkImage(reply.user.image ?? 'https://via.placeholder.com/100'),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -170,7 +170,7 @@ class _ReplyViewState extends State<ReplyView> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  reply['name'],
+                  reply.user.name,
                   style: h2.copyWith(
                     fontSize: 20,
                     color: AppColors.textColor,
@@ -178,14 +178,14 @@ class _ReplyViewState extends State<ReplyView> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  reply['comment'],
+                  reply.content,
                   style: h4.copyWith(fontSize: 16, color: AppColors.textColor11),
                 ),
                 const SizedBox(height: 8),
                 Row(
                   children: [
                     Text(
-                      reply['timeAgo'],
+                      getTimeAgo(DateTime.parse(reply.createdAt)),
                       style: h3.copyWith(fontSize: 12, color: AppColors.gray10),
                     ),
                     const SizedBox(width: 16),
@@ -266,23 +266,7 @@ class _ReplyViewState extends State<ReplyView> {
   }
 
   void _addReply() {
-    if (_replyController.text.trim().isNotEmpty) {
-      setState(() {
-        _replies.insert(0, {
-          'name': 'You',
-          'avatar':
-          'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face',
-          'comment': _replyController.text.trim(),
-          'timeAgo': 'now',
-        });
-      });
-      _replyController.clear();
-    }
-  }
-
-  @override
-  void dispose() {
-    _replyController.dispose();
-    super.dispose();
+    controller.postReply(comment.id, _replyController.text);
+    _replyController.clear();
   }
 }

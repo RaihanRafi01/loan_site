@@ -95,7 +95,7 @@ class CommentsView extends GetView<CommunityController> {
 
   String getTimeAgo(DateTime dateTime) {
     final now = DateTime.now();
-    final difference = now.difference(dateTime);
+    final difference = now.difference(dateTime).abs();
     if (difference.inDays > 0) {
       return '${difference.inDays}d';
     } else if (difference.inHours > 0) {
@@ -229,7 +229,7 @@ class CommentsView extends GetView<CommunityController> {
                     const SizedBox(width: 16),
                     GestureDetector(
                       onTap: () {
-                        Get.to(ReplyView(comment: comment));
+                        Get.to(() => ReplyView(comment: comment));
                       },
                       child: Text(
                         'Reply',
@@ -454,10 +454,5 @@ class CommentsView extends GetView<CommunityController> {
         ),
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    _commentController.dispose();
   }
 }

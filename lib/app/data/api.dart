@@ -30,11 +30,13 @@ class Api {
 
 
   /// community
-  static const createPost = "$baseUrl/community/posts/";  //working
+  static const createPost = "$baseUrl/community/posts/";  //done
 
-  static const myPosts = "$baseUrl/community/posts/my/";
+  static const myPosts = "$baseUrl/community/posts/my/"; //done
 
-  static likePost(post_id) => "$baseUrl/community/posts/$post_id/like/";
+  static likePost(post_id) => "$baseUrl/community/posts/$post_id/like/"; // done
 
-  static createComment(post_id) => "$baseUrl/community/posts/$post_id/comments/";
+  static createComment(post_id) => "$baseUrl/community/posts/$post_id/comments/";  // done
+  static commentReplies(comment_id) => "$baseUrl/community/posts/$comment_id/comments/reply/"; // not created in backed
+  static getAllcommentReplies(comment_id) => "$baseUrl/community/posts/$comment_id/comments/reply/"; // not created in backed
 }
