@@ -1,19 +1,112 @@
 import 'dart:convert';
-import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:http/http.dart' as http;  // Added for MultipartRequest.
+import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 
 import '../../../../common/appColors.dart';
 import '../../../../common/widgets/custom_snackbar.dart';
 import '../../../data/api.dart';
 import '../../../data/base_client.dart';
 
+// Add models
+class User {
+  final int id;
+  final String name;
+  final String email;
+  final String? image;
+
+  User({
+    required this.id,
+    required this.name,
+    required this.email,
+    this.image,
+  });
+
+  factory User.fromJson(Map<String, dynamic> json) {
+    return User(
+      id: json['id'],
+      name: json['name'],
+      email: json['email'],
+      image: json['image'],
+    );
+  }
+}
+
+class Post {
+  final int id;
+  final User user;
+  final String title;
+  final String content;
+  final String? image;
+  final String? tags;
+  final int likeCount;
+  final int commentCount;
+  final int likesCount;
+  final int sharesCount;
+  final bool isLikedByUser;
+  final bool isSharedByUser;
+  final bool isNotInterestedByUser;
+  final List<dynamic> comments;
+  final String createdAt;
+  final String updatedAt;
+
+  Post({
+    required this.id,
+    required this.user,
+    required this.title,
+    required this.content,
+    this.image,
+    this.tags,
+    required this.likeCount,
+    required this.commentCount,
+    required this.likesCount,
+    required this.sharesCount,
+    required this.isLikedByUser,
+    required this.isSharedByUser,
+    required this.isNotInterestedByUser,
+    required this.comments,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+
+  factory Post.fromJson(Map<String, dynamic> json) {
+    return Post(
+      id: json['id'],
+      user: User.fromJson(json['user']),
+      title: json['title'],
+      content: json['content'],
+      image: json['image'],
+      tags: json['tags'],
+      likeCount: json['like_count'],
+      commentCount: json['comment_count'],
+      likesCount: json['likes_count'],
+      sharesCount: json['shares_count'],
+      isLikedByUser: json['is_liked_by_user'],
+      isSharedByUser: json['is_shared_by_user'],
+      isNotInterestedByUser: json['is_not_interested_by_user'],
+      comments: json['comments'],
+      createdAt: json['created_at'],
+      updatedAt: json['updated_at'],
+    );
+  }
+}
+
 class CommunityController extends GetxController {
   final statusController = TextEditingController();
   final pickedMedia = RxList<File>([]);
   final isLoading = false.obs;
+
+  final myPosts = RxList<Post>([]);
+  final currentUser = Rx<User?>(null);
+
+  @override
+  void onInit() {
+    super.onInit();
+    fetchMyPosts();
+  }
 
   void _showWarning(String message, {String title = 'Warning'}) {
     kSnackBar(
@@ -52,6 +145,8 @@ class CommunityController extends GetxController {
         Get.snackbar('Success', 'Post created successfully!');
         statusController.clear();
         pickedMedia.clear();
+        // Refresh posts after creating a new one
+        fetchMyPosts();
       } else {
         _showWarning('Failed to create post: ${response.reasonPhrase}');
       }
@@ -60,6 +155,28 @@ class CommunityController extends GetxController {
       _showWarning('Failed to create post. Please try again.');
     } finally {
       isLoading.value = false;
+    }
+  }
+
+  Future<void> fetchMyPosts() async {
+    try {
+      final response = await BaseClient.getRequest(
+        api: Api.myPosts, // Assuming Api.myPosts is defined in data/api.dart, e.g., static String myPosts = '/posts/my/';
+        headers: BaseClient.authHeaders(),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        myPosts.value = (data['results'] as List).map((e) => Post.fromJson(e)).toList();
+        if (myPosts.isNotEmpty) {
+          currentUser.value = myPosts[0].user;
+        }
+      } else {
+        _showWarning('Failed to fetch posts: ${response.reasonPhrase}');
+      }
+    } catch (e) {
+      print('Fetch posts error: $e');
+      _showWarning('Failed to fetch posts. Please try again.');
     }
   }
 

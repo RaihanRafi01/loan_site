@@ -9,8 +9,9 @@ import 'package:loan_site/common/widgets/customButton.dart';
 
 import '../../../../common/appColors.dart';
 import '../../../../common/customFont.dart';
+import '../controllers/community_controller.dart'; // Import the controller
 
-class OwnProfileView extends GetView {
+class OwnProfileView extends GetView<CommunityController> {
   const OwnProfileView({super.key});
 
   @override
@@ -20,23 +21,23 @@ class OwnProfileView extends GetView {
       body: SafeArea(
         child: Column(
           children: [
-            Padding(
+            Obx(() => Padding(
               padding: const EdgeInsets.all(12),
               child: Row(
                 children: [
                   CircleAvatar(
                     radius: 40,
-                    backgroundImage: NetworkImage(
-                      'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face',
-                    ),
+                    backgroundImage: controller.currentUser.value?.image != null
+                        ? NetworkImage(controller.currentUser.value!.image!)
+                        : const NetworkImage('https://via.placeholder.com/100'), // Placeholder
                   ),
-                  SizedBox(width: 10),
+                  const SizedBox(width: 10),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Hello Angelo!',
+                          'Hello ${controller.currentUser.value?.name ?? 'User'}!',
                           style: h2.copyWith(
                             fontSize: 24,
                             color: AppColors.textColor,
@@ -45,7 +46,7 @@ class OwnProfileView extends GetView {
                         const SizedBox(height: 4),
                         // Email
                         Text(
-                          'zanlee@gmail.com',
+                          controller.currentUser.value?.email ?? '',
                           style: h4.copyWith(
                             fontSize: 16,
                             color: AppColors.blurtext4,
@@ -60,7 +61,7 @@ class OwnProfileView extends GetView {
                     height: 36,
                     label: 'Create Post',
                     onPressed: () {
-                      Get.to(CreatePostView());
+                      Get.to(const CreatePostView());
                     },
                     bgClr: [AppColors.cardSky, AppColors.cardSky],
                     txtClr: AppColors.appColor2,
@@ -68,7 +69,7 @@ class OwnProfileView extends GetView {
                   ),
                 ],
               ),
-            ),
+            )),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Divider(color: AppColors.dividerClr2),
@@ -116,7 +117,7 @@ class OwnProfileView extends GetView {
                             ),
                             const SizedBox(width: 8),
                             Text(
-                              'Edit Post',
+                              'All',
                               style: h4.copyWith(
                                 color: AppColors.textColor,
                                 fontSize: 16,
@@ -131,7 +132,7 @@ class OwnProfileView extends GetView {
                           children: [
                             const SizedBox(width: 12),
                             Text(
-                              'Edit Post',
+                              'Newest',
                               style: h4.copyWith(
                                 color: AppColors.textColor,
                                 fontSize: 16,
@@ -146,7 +147,7 @@ class OwnProfileView extends GetView {
                           children: [
                             const SizedBox(width: 12),
                             Text(
-                              'Edit Post',
+                              'Oldest',
                               style: h4.copyWith(
                                 color: AppColors.textColor,
                                 fontSize: 16,
@@ -157,9 +158,8 @@ class OwnProfileView extends GetView {
                       ),
                     ],
                     onChanged: (value) {
-                      if (value == 'edit_post') {
-                        print('Selected: Not Interested');
-                      }
+                      // TODO: Implement sorting based on value
+                      print('Selected filter: $value');
                     },
                     dropdownStyleData: DropdownStyleData(
                       width: 150,
@@ -180,48 +180,21 @@ class OwnProfileView extends GetView {
               ),
             ),
             Expanded(
-              child: ListView(
-                children: [
-                  _buildPostItem(
-                    username: 'Cleve',
-                    userAvatar:
-                        'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face',
-                    timeAgo: '2h',
-                    images: [
-                      'https://images.unsplash.com/photo-1581833971358-2c8b550f87b3?w=400&h=300&fit=crop',
-                      'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=400&h=300&fit=crop',
-                      'https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=400&h=300&fit=crop',
-                      'https://images.unsplash.com/photo-1581291518857-4e27b48ff24e?w=400&h=300&fit=crop',
-                    ],
-                    likes: 101,
-                    comments: 101,
-                  ),
-                  _buildPostItem(
-                    username: 'Cleve',
-                    userAvatar:
-                        'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face',
-                    timeAgo: '4h',
-                    images: [
-                      'https://images.unsplash.com/photo-1497366216548-37526070297c?w=400&h=300&fit=crop',
-                      'https://images.unsplash.com/photo-1497366412874-3415097a27e7?w=400&h=300&fit=crop',
-                      'https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=400&h=300&fit=crop',
-                    ],
-                    likes: 87,
-                    comments: 23,
-                  ),
-                  _buildPostItem(
-                    username: 'Cleve',
-                    userAvatar:
-                        'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face',
-                    timeAgo: '6h',
-                    images: [
-                      'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400&h=600&fit=crop',
-                    ],
-                    likes: 142,
-                    comments: 56,
-                  ),
-                ],
-              ),
+              child: Obx(() => ListView.builder(
+                itemCount: controller.myPosts.length,
+                itemBuilder: (context, index) {
+                  final post = controller.myPosts[index];
+                  return _buildPostItem(
+                    username: post.user.name,
+                    userAvatar: post.user.image ?? 'https://via.placeholder.com/100',
+                    timeAgo: getTimeAgo(DateTime.parse(post.createdAt)),
+                    content: post.content, // Dynamic content
+                    images: post.image != null ? [post.image!] : [],
+                    likes: post.likeCount,
+                    comments: post.commentCount,
+                  );
+                },
+              )),
             ),
           ],
         ),
@@ -229,10 +202,25 @@ class OwnProfileView extends GetView {
     );
   }
 
+  String getTimeAgo(DateTime dateTime) {
+    final now = DateTime.now();
+    final difference = now.difference(dateTime);
+    if (difference.inDays > 0) {
+      return '${difference.inDays}d';
+    } else if (difference.inHours > 0) {
+      return '${difference.inHours}h';
+    } else if (difference.inMinutes > 0) {
+      return '${difference.inMinutes}m';
+    } else {
+      return 'Just now';
+    }
+  }
+
   Widget _buildPostItem({
     required String username,
     required String userAvatar,
     required String timeAgo,
+    required String content,
     required List<String> images,
     required int likes,
     required int comments,
@@ -299,7 +287,8 @@ class OwnProfileView extends GetView {
                   ],
                   onChanged: (value) {
                     if (value == 'edit_post') {
-                      print('Selected: Not Interested');
+                      print('Selected: Edit Post');
+                      // TODO: Implement edit post functionality
                     }
                   },
                   dropdownStyleData: DropdownStyleData(
@@ -323,7 +312,7 @@ class OwnProfileView extends GetView {
           Padding(
             padding: const EdgeInsets.only(bottom: 8.0, top: 4),
             child: Text(
-              'Caption',
+              content,
               style: h2.copyWith(fontSize: 16, color: AppColors.textColor),
             ),
           ),
