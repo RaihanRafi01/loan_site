@@ -180,6 +180,26 @@ class CommunityController extends GetxController {
     }
   }
 
+  Future<void> toggleLike(int postId, bool currentlyLiked) async {
+    try {
+      final apiUrl = Api.likePost(postId.toString()); // Assuming Api.likePost = '/posts/{id}/like/'
+      final response = await BaseClient.postRequest(
+        api: apiUrl,
+        body: jsonEncode({}),
+        headers: BaseClient.authHeaders(),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        fetchMyPosts(); // Refresh to update like count and status
+      } else {
+        _showWarning('Failed to toggle like: ${response.reasonPhrase}');
+      }
+    } catch (e) {
+      print('Toggle like error: $e');
+      _showWarning('Failed to toggle like. Please try again.');
+    }
+  }
+
   @override
   void onClose() {
     statusController.dispose();

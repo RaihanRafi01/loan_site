@@ -192,6 +192,7 @@ class OwnProfileView extends GetView<CommunityController> {
                     images: post.image != null ? [post.image!] : [],
                     likes: post.likeCount,
                     comments: post.commentCount,
+                    post: post, // Pass the post for like functionality
                   );
                 },
               )),
@@ -224,6 +225,7 @@ class OwnProfileView extends GetView<CommunityController> {
     required List<String> images,
     required int likes,
     required int comments,
+    required Post post,
   }) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
@@ -322,8 +324,12 @@ class OwnProfileView extends GetView<CommunityController> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               CommunityView().buildActionButton(
-                'assets/images/community/love_icon.svg',
+                post.isLikedByUser ? 'assets/images/community/love_icon_filled.svg' : 'assets/images/community/love_icon.svg',
                 likes.toString(),
+                onPressed: (){
+                  print('like tapped');
+                  controller.toggleLike(post.id, post.isLikedByUser);
+                }
               ),
               CommunityView().buildActionButton(
                 'assets/images/community/comment_icon.svg',

@@ -615,6 +615,7 @@ class CommunityView extends GetView<CommunityController> {
   }
 
   Widget buildActionButton(String svgPath, String count, {
+    VoidCallback? onPressed,
     String? username,
     String? userAvatar,
     String? timeAgo,
@@ -623,7 +624,7 @@ class CommunityView extends GetView<CommunityController> {
     int? comments,
   }) {
     return GestureDetector(
-      onTap: () {
+      onTap: onPressed ?? () {
         // Check if this is the comment button
         if (svgPath.contains('comment_icon') &&
             username != null &&
