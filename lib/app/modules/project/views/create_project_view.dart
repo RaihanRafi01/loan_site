@@ -224,7 +224,7 @@ class CreateProjectView extends GetView<ProjectController> {
                 } else if (currentStep.value == 25) {
                   currentStep.value = 3;
                 } else if (currentStep.value == 3) {
-                  Get.to(SelectLenderView());
+                  controller.createProject();
                 }
               },
             )),

@@ -3,11 +3,9 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
-import 'package:loan_site/app/modules/project/views/set_milestone_view.dart';
 import 'package:loan_site/common/appColors.dart';
 import 'package:loan_site/common/customFont.dart';
 import 'package:loan_site/common/widgets/customButton.dart';
-
 import '../controllers/project_controller.dart';
 
 // Model to represent a lender
@@ -24,7 +22,6 @@ class Lender {
 class SelectLenderController extends GetxController {
   RxList<Lender> lenders = <Lender>[].obs;
   RxInt selectedIndex = (-1).obs;
-  var showConfirm = false.obs;
 
   @override
   void onInit() {
@@ -77,15 +74,58 @@ class SelectLenderController extends GetxController {
       return;
     }
 
-    showConfirm.value = true;
     // Pass the selected lender ID to ProjectController
     final projectController = Get.find<ProjectController>();
     projectController.setSelectedLenderId(lenders[selectedIndex.value].id);
 
-    Future.delayed(const Duration(seconds: 1), () {
-      showConfirm.value = false;
-      // Trigger project creation
-      projectController.createProject();
+    // Trigger project creation
+    projectController.createProject().then((_) {
+      // Show confirmation dialog after project creation
+      Get.dialog(
+        Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          elevation: 8,
+          child: Container(
+            width: 300,
+            padding: const EdgeInsets.all(30),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SvgPicture.asset(
+                  'assets/images/auth/tic_icon.svg',
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  'Your project has been created successfully!',
+                  style: h4.copyWith(
+                    fontSize: 20,
+                    color: AppColors.textColor,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 20),
+                CustomButton(
+                  label: 'OK',
+                  onPressed: () {
+                    Get.back(); // Close the dialog
+                  },
+                ),
+              ],
+            ),
+          ),
+        ),
+        barrierDismissible: true, // Allow dismissing by tapping outside
+      );
+    }).catchError((e) {
+      // Handle any errors during project creation
+      Get.snackbar(
+        'Error',
+        'Failed to create project: $e',
+        backgroundColor: AppColors.snackBarWarning,
+        colorText: AppColors.textColor,
+      );
     });
   }
 }
@@ -133,7 +173,7 @@ class LenderHeaderWidget extends StatelessWidget {
             ],
           ),
           Obx(
-            () => Checkbox(
+                () => Checkbox(
               value: isChecked.value,
               onChanged: onCheckChanged,
               activeColor: Colors.blue, // Checkbox color
@@ -171,139 +211,76 @@ class SelectLenderView extends GetView<SelectLenderController> {
         ),
       ),
       body: SafeArea(
-        child: Obx(
-              () => Stack(
-            children: [
-              Column(
-                children: [
-                  Expanded(
-                    child: SingleChildScrollView(
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
+        child: Column(
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    children: [
+                      // Search Bar
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        decoration: BoxDecoration(
+                          color: AppColors.cardSky,
+                          borderRadius: BorderRadius.circular(25),
+                        ),
+                        child: Row(
                           children: [
-                            // Search Bar
-                            Container(
-                              padding:
-                              const EdgeInsets.symmetric(horizontal: 16),
-                              decoration: BoxDecoration(
-                                color: AppColors.cardSky,
-                                borderRadius: BorderRadius.circular(25),
-                              ),
-                              child: Row(
-                                children: [
-                                  Icon(Icons.search,
-                                      color: Colors.grey[600], size: 20),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: TextField(
-                                      decoration: InputDecoration(
-                                        hintText: 'Search here',
-                                        hintStyle: TextStyle(
-                                          color: Colors.grey[600],
-                                          fontSize: 16,
-                                        ),
-                                        border: InputBorder.none,
-                                      ),
-                                    ),
+                            Icon(Icons.search,
+                                color: Colors.grey[600], size: 20),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: TextField(
+                                decoration: InputDecoration(
+                                  hintText: 'Search here',
+                                  hintStyle: TextStyle(
+                                    color: Colors.grey[600],
+                                    fontSize: 16,
                                   ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-                            Obx(
-                                  () => Column(
-                                children: List.generate(
-                                  controller.lenders.length,
-                                      (index) => LenderHeaderWidget(
-                                    imageUrl: controller.lenders[index].imageUrl,
-                                    title: controller.lenders[index].name,
-                                    isChecked: controller.lenders[index].isChecked,
-                                    onCheckChanged: (value) {
-                                      if (value == true) {
-                                        controller.selectLender(index);
-                                      }
-                                    },
-                                  ),
+                                  border: InputBorder.none,
                                 ),
                               ),
                             ),
-                            const SizedBox(height: 80), // Space for the button
                           ],
                         ),
                       ),
-                    ),
-                  ),
-                ],
-              ),
-              // Fixed Confirm Button at the bottom
-              Positioned(
-                left: 16,
-                right: 16,
-                bottom: 16,
-                child: CustomButton(
-                  label: 'Confirm',
-                  onPressed: () {
-                    controller.showConfirmationAndNavigate();
-                  },
-                ),
-              ),
-              // Confirmation dialog
-              if (controller.showConfirm.value)
-                Positioned.fill(
-                  child: GestureDetector(
-                    onTap: () {
-                      controller.showConfirm.value = false; // Dismiss card on outside tap
-                    },
-                    child: Stack(
-                      children: [
-                        // Blurred background
-                        BackdropFilter(
-                          filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
-                          child: Container(
-                            color: Colors.black.withOpacity(0.2), // Semi-transparent overlay
-                          ),
-                        ),
-                        // Centered card
-                        Center(
-                          child: GestureDetector(
-                            onTap: () {}, // Prevents taps on the card from dismissing it
-                            child: Card(
-                              color: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              elevation: 8,
-                              child: Container(
-                                width: 300,
-                                padding: const EdgeInsets.all(30),
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    SvgPicture.asset(
-                                      'assets/images/auth/tic_icon.svg',
-                                    ),
-                                    SizedBox(height: 10),
-                                    Text(
-                                      'Your project has been created successfully!',
-                                      style: h4.copyWith(
-                                        fontSize: 20,
-                                        color: AppColors.textColor,
-                                      ),
-                                      textAlign: TextAlign.center,
-                                    ),
-                                  ],
-                                ),
-                              ),
+                      const SizedBox(height: 16),
+                      Obx(
+                            () => Column(
+                          children: List.generate(
+                            controller.lenders.length,
+                                (index) => LenderHeaderWidget(
+                              imageUrl: controller.lenders[index].imageUrl,
+                              title: controller.lenders[index].name,
+                              isChecked: controller.lenders[index].isChecked,
+                              onCheckChanged: (value) {
+                                if (value == true) {
+                                  controller.selectLender(index);
+                                }
+                              },
                             ),
                           ),
                         ),
-                      ],
-                    ),
+                      ),
+                      const SizedBox(height: 80), // Space for the button
+                    ],
                   ),
                 ),
-            ],
-          ),
+              ),
+            ),
+            // Fixed Confirm Button at the bottom
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: CustomButton(
+                label: 'Confirm',
+                onPressed: () {
+                  controller.showConfirmationAndNavigate();
+                },
+              ),
+            ),
+          ],
         ),
       ),
     );

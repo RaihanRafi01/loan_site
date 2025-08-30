@@ -35,27 +35,23 @@ class ProjectListView extends GetView<ProjectController> {
           children: [
             // Projects List
             Expanded(
-              child: Obx(() {
-                if (controller.projects.isEmpty) {
-                  return Center(child: CircularProgressIndicator());
-                } else {
-                  return ListView.builder(
-                    itemCount: controller.projects.length,
-                    itemBuilder: (context, index) {
-                      final project = controller.projects[index];
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8.0),
-                        child: _buildProjectCard(
-                          title: project.name, // Display project name
-                          onTap: () {
-                            Get.to(ProjectView()); // Navigate to the project detail view
-                          },
-                        ),
-                      );
-                    },
+              child: Obx(() => controller.projects.isEmpty
+                  ? Center(child: Text('No projects are available',style: h3.copyWith(fontSize: 16)))
+                  : ListView.builder(
+                itemCount: controller.projects.length,
+                itemBuilder: (context, index) {
+                  final project = controller.projects[index];
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    child: _buildProjectCard(
+                      title: project.name,
+                      onTap: () {
+                        Get.to(ProjectView());
+                      },
+                    ),
                   );
-                }
-              }),
+                },
+              )),
             ),
 
             // Create Project Button

@@ -1,9 +1,13 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:loan_site/app/modules/project/views/set_milestone_view.dart';
 
+import '../../../../common/appColors.dart';
+import '../../../../common/customFont.dart';
+import '../../../../common/widgets/customButton.dart';
 import '../../../data/api.dart';
 import '../../../data/base_client.dart';
 import '../../../data/models/project.dart';
@@ -55,15 +59,18 @@ class ProjectController extends GetxController {
     try {
       // Make GET request to fetch projects
       final response = await BaseClient.getRequest(
-        api: Api.getAllProject, // Replace with the correct URL
+        api: Api.getAllProject,
         headers: BaseClient.authHeaders(),
       );
 
       // Handle the response
-      final data = await BaseClient.handleResponse(response,retryRequest: () => BaseClient.getRequest(
-        api: Api.getAllProject,
-        headers: BaseClient.authHeaders(),
-      ),);
+      final data = await BaseClient.handleResponse(
+        response,
+        retryRequest: () => BaseClient.getRequest(
+          api: Api.getAllProject,
+          headers: BaseClient.authHeaders(),
+        ),
+      );
 
       if (data != null) {
         // Map the response to the Project model
@@ -71,14 +78,20 @@ class ProjectController extends GetxController {
             .map((json) => Project.fromJson(json))
             .toList();
         projects.value = projectList; // Update the project list
+
+        // Check if the project list is empty
+        if (projectList.isEmpty) {
+          Get.snackbar('Info', 'No projects are available');
+        }
+      } else {
+        // Handle case where data is null
+        Get.snackbar('Error', 'Failed to fetch projects');
       }
     } catch (e) {
       print("Error fetching projects: $e");
       Get.snackbar('Error', 'Failed to fetch projects');
     }
   }
-
-
 
   void addContractor() {
     contractorControllers.add({
@@ -108,7 +121,6 @@ class ProjectController extends GetxController {
           "start_date": projectStartDateController.text,
           "end_date": projectEndDateController.text,
           "description": projectDescriptionController.text,
-          //"lender_id": selectedLenderId.value,
           "permit_number": permitNumberController.text,
           "permit_type": permitTypeController.text,
           "permit_issued_date": permitIssueDateController.text,
@@ -117,19 +129,19 @@ class ProjectController extends GetxController {
         "contractor": contractorControllers
             .map(
               (controller) => {
-                "name": controller['name']!.text,
-                "email": controller['email']!.text,
-                "phone": controller['phone']!.text,
-                "address": controller['details']!.text,
-                // Assuming 'details' maps to 'address'
-                "license_number": controller['license']!.text,
-              },
-            )
+            "name": controller['name']!.text,
+            "email": controller['email']!.text,
+            "phone": controller['phone']!.text,
+            "address": controller['details']!.text,
+            // Assuming 'details' maps to 'address'
+            "license_number": controller['license']!.text,
+          },
+        )
             .toList(),
       };
 
       final response = await BaseClient.postRequest(
-        api: Api.createProject, // Replace with actual API endpoint
+        api: Api.createProject,
         body: jsonEncode(projectData),
         headers: BaseClient.authHeaders(),
       );
@@ -142,6 +154,7 @@ class ProjectController extends GetxController {
           headers: BaseClient.authHeaders(),
         ),
       );
+
       if (result['id'] != null) {
         // Store project ID
         projectId.value = result['id'];
@@ -150,12 +163,64 @@ class ProjectController extends GetxController {
           result['ai_suggested_milestones'] ?? [],
         );
 
-        // Navigate to SetMilestoneView
-        Get.to(() => const SetMilestoneView());
+        // Show confirmation dialog
+        Get.dialog(
+          Dialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            elevation: 8,
+            child: Container(
+              width: 300,
+              padding: const EdgeInsets.all(30),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SvgPicture.asset(
+                    'assets/images/auth/tic_icon.svg',
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    'Your project has been created successfully!',
+                    style: h4.copyWith(
+                      fontSize: 20,
+                      color: AppColors.textColor,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 20),
+                  CustomButton(
+                    label: 'OK',
+                    onPressed: () {
+                      Get.back(); // Close the dialog
+                      // Navigate to SetMilestoneView after dialog is closed
+                      Get.to(() => const SetMilestoneView());
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+          barrierDismissible: true, // Allow dismissing by tapping outside
+        );
+      } else {
+        // Handle case where result['id'] is null
+        Get.snackbar(
+          'Error',
+          'Failed to create project: Invalid response',
+          backgroundColor: AppColors.snackBarWarning,
+          colorText: AppColors.textColor,
+        );
       }
     } catch (e) {
-      // Error handling is managed by BaseClient.handleResponse
       debugPrint("Error creating project: $e");
+      Get.snackbar(
+        'Error',
+        'Failed to create project: $e',
+        backgroundColor: AppColors.snackBarWarning,
+        colorText: AppColors.textColor,
+      );
+      rethrow; // Rethrow to allow caller (e.g., SelectLenderController) to handle
     }
   }
 
@@ -184,5 +249,4 @@ class ProjectController extends GetxController {
       contractorControllers.refresh();
     }
   }
-
 }

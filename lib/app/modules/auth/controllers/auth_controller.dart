@@ -6,6 +6,7 @@ import 'package:loan_site/app/modules/auth/views/login_view.dart';
 import 'package:loan_site/app/modules/auth/views/send_otp_view.dart';
 import 'package:loan_site/app/modules/auth/views/signUp_view.dart';
 import 'package:loan_site/app/modules/auth/views/verification_screen.dart';
+import 'package:loan_site/app/modules/dashboard/views/dashboard_lender_view.dart';
 import 'package:loan_site/app/modules/dashboard/views/dashboard_view.dart';
 import 'dart:convert';
 import '../../../../common/appColors.dart';
@@ -242,7 +243,12 @@ class AuthController extends GetxController {
       );
       kSnackBar(title: 'Success', message: 'Signed in successfully!');
       clearForm();
-      Get.offAll(() => DashboardView());
+      if(responseData['role'] == 'borrower'){
+        Get.offAll(() => DashboardView());
+      }else if (responseData['role'] == 'private_lender') {
+      Get.offAll(() => DashboardLenderView());
+      }
+
     } else if (response.statusCode == 400) {
       _showWarning('Invalid credentials');
     } else {
