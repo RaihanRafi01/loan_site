@@ -35,6 +35,41 @@ class User {
   }
 }
 
+class Comment {
+  final int id;
+  final int post;
+  final User user;
+  final String content;
+  final int likesCount;
+  final bool isLikedByUser;
+  final String createdAt;
+  final String updatedAt;
+
+  Comment({
+    required this.id,
+    required this.post,
+    required this.user,
+    required this.content,
+    required this.likesCount,
+    required this.isLikedByUser,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+
+  factory Comment.fromJson(Map<String, dynamic> json) {
+    return Comment(
+      id: json['id'],
+      post: json['post'],
+      user: User.fromJson(json['user']),
+      content: json['content'],
+      likesCount: json['likes_count'],
+      isLikedByUser: json['is_liked_by_user'],
+      createdAt: json['created_at'],
+      updatedAt: json['updated_at'],
+    );
+  }
+}
+
 class Post {
   final int id;
   final User user;
@@ -49,7 +84,7 @@ class Post {
   final bool isLikedByUser;
   final bool isSharedByUser;
   final bool isNotInterestedByUser;
-  final List<dynamic> comments;
+  final List<Comment> comments;
   final String createdAt;
   final String updatedAt;
 
@@ -87,7 +122,7 @@ class Post {
       isLikedByUser: json['is_liked_by_user'],
       isSharedByUser: json['is_shared_by_user'],
       isNotInterestedByUser: json['is_not_interested_by_user'],
-      comments: json['comments'],
+      comments: (json['comments'] as List).map((e) => Comment.fromJson(e)).toList(),
       createdAt: json['created_at'],
       updatedAt: json['updated_at'],
     );
@@ -197,6 +232,33 @@ class CommunityController extends GetxController {
     } catch (e) {
       print('Toggle like error: $e');
       _showWarning('Failed to toggle like. Please try again.');
+    }
+  }
+
+  Future<void> postComment(int postId, String content) async {
+    if (content.trim().isEmpty) {
+      _showWarning('Please enter a comment.');
+      return;
+    }
+
+    try {
+      final apiUrl = Api.createComment(postId.toString()); // Assuming Api.createComment = '/posts/{id}/comments/'
+      final body = jsonEncode({"content": content});
+      final response = await BaseClient.postRequest(
+        api: apiUrl,
+        body: body,
+        headers: BaseClient.authHeaders(),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        Get.snackbar('Success', 'Comment added successfully!');
+        fetchMyPosts(); // Refresh to update comments
+      } else {
+        _showWarning('Failed to add comment: ${response.reasonPhrase}');
+      }
+    } catch (e) {
+      print('Post comment error: $e');
+      _showWarning('Failed to add comment. Please try again.');
     }
   }
 

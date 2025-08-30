@@ -35,4 +35,6 @@ class Api {
   static const myPosts = "$baseUrl/community/posts/my/";
 
   static likePost(post_id) => "$baseUrl/community/posts/$post_id/like/";
+
+  static createComment(post_id) => "$baseUrl/community/posts/$post_id/comments/";
 }

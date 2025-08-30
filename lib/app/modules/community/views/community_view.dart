@@ -400,12 +400,6 @@ class CommunityView extends GetView<CommunityController> {
               buildActionButton(
                 'assets/images/community/comment_icon.svg',
                 comments.toString(),
-                username: username,
-                userAvatar: userAvatar,
-                timeAgo: timeAgo,
-                images: images,
-                likes: likes,
-                comments: comments,
               ),
               buildActionButton(
                 'assets/images/community/typing_icon.svg',
@@ -616,31 +610,13 @@ class CommunityView extends GetView<CommunityController> {
 
   Widget buildActionButton(String svgPath, String count, {
     VoidCallback? onPressed,
-    String? username,
-    String? userAvatar,
-    String? timeAgo,
-    List<String>? images,
-    int? likes,
-    int? comments,
+    int? postId,
   }) {
     return GestureDetector(
       onTap: onPressed ?? () {
         // Check if this is the comment button
-        if (svgPath.contains('comment_icon') &&
-            username != null &&
-            userAvatar != null &&
-            timeAgo != null &&
-            images != null &&
-            likes != null &&
-            comments != null) {
-          Get.to(CommentsView(
-            username: username,
-            userAvatar: userAvatar,
-            timeAgo: timeAgo,
-            images: images,
-            likes: likes,
-            comments: comments,
-          ));
+        if (svgPath.contains('comment_icon') && postId != null) {
+          Get.to(() => CommentsView(postId: postId));
         }
         if(svgPath == 'assets/images/community/share_icon.svg'){
           Get.to(SharePostView());

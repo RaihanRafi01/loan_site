@@ -324,22 +324,16 @@ class OwnProfileView extends GetView<CommunityController> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               CommunityView().buildActionButton(
-                post.isLikedByUser ? 'assets/images/community/love_icon_filled.svg' : 'assets/images/community/love_icon.svg',
+                post.isLikedByUser ? 'assets/images/community/love_filled_icon.svg' : 'assets/images/community/love_icon.svg',
                 likes.toString(),
-                onPressed: (){
-                  print('like tapped');
+                onPressed: () {
                   controller.toggleLike(post.id, post.isLikedByUser);
-                }
+                },
               ),
               CommunityView().buildActionButton(
                 'assets/images/community/comment_icon.svg',
                 comments.toString(),
-                username: username,
-                userAvatar: userAvatar,
-                timeAgo: timeAgo,
-                images: images,
-                likes: likes,
-                comments: comments,
+                postId: post.id,
               ),
               CommunityView().buildActionButton(
                 'assets/images/community/share_icon.svg',

@@ -4,57 +4,16 @@ import 'package:get/get.dart';
 import 'package:loan_site/app/modules/community/views/reply_view.dart';
 import '../../../../common/appColors.dart';
 import '../../../../common/customFont.dart';
+import '../controllers/community_controller.dart';
 
-class CommentsView extends StatefulWidget {
-  final String username;
-  final String userAvatar;
-  final String timeAgo;
-  final List<String> images;
-  final int likes;
-  final int comments;
-
-  const CommentsView({
-    super.key,
-    required this.username,
-    required this.userAvatar,
-    required this.timeAgo,
-    required this.images,
-    required this.likes,
-    required this.comments,
-  });
-
-  @override
-  State<CommentsView> createState() => _CommentsViewState();
-}
-
-class _CommentsViewState extends State<CommentsView> {
+class CommentsView extends GetView<CommunityController> {
+  final int postId;
   final TextEditingController _commentController = TextEditingController();
-  final List<Map<String, dynamic>> _comments = [
-    {
-      'name': 'Sam Lee',
-      'avatar':
-          'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face',
-      'comment':
-          'Lorem ipsum dolor sit amet consectetur. Lobortis mauris mi vel vel vulputate netus in vel.',
-      'timeAgo': '1hr ago',
-    },
-    {
-      'name': 'Sam Lee',
-      'avatar':
-          'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face',
-      'comment':
-          'Lorem ipsum dolor sit amet consectetur. Lobortis mauris mi vel vel vulputate netus in vel.',
-      'timeAgo': '1hr ago',
-    },
-    {
-      'name': 'Sam Lee',
-      'avatar':
-          'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face',
-      'comment':
-          'Lorem ipsum dolor sit amet consectetur. Lobortis mauris mi vel vel vulputate netus in vel.',
-      'timeAgo': '1hr ago',
-    },
-  ];
+
+  CommentsView({
+    super.key,
+    required this.postId,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -74,53 +33,81 @@ class _CommentsViewState extends State<CommentsView> {
         ),
         centerTitle: true,
       ),
-      body: Column(
-        children: [
-          // Original Post
-          Container(color: AppColors.appBc, child: _buildOriginalPost()),
+      body: Obx(() {
+        final post = controller.myPosts.firstWhereOrNull((p) => p.id == postId);
+        if (post == null) {
+          return const Center(child: Text('Post not found'));
+        }
+        final username = post.user.name;
+        final userAvatar = post.user.image ?? 'https://via.placeholder.com/100';
+        final timeAgo = getTimeAgo(DateTime.parse(post.createdAt));
+        final images = post.image != null ? [post.image!] : <String>[];
+        final likes = post.likeCount;
+        final comments = post.commentCount;
+        final content = post.content;
 
-          // Comments Section Header
-          Container(
-            color: AppColors.appBc,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-            child: Row(
-              children: [
-                Text(
-                  'Comments',
-                  style: h4.copyWith(
-                    fontSize: 20,
-                    color: AppColors.textColor,
-                  ),
-                ),
-              ],
-            ),
-          ),
+        return Column(
+          children: [
+            // Original Post
+            Container(color: AppColors.appBc, child: _buildOriginalPost(post, username, userAvatar, timeAgo, content, images, likes, comments)),
 
-          // Comments List
-          Expanded(
-            child: Container(
+            // Comments Section Header
+            Container(
               color: AppColors.appBc,
-              child: ListView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                itemCount: _comments.length,
-                itemBuilder: (context, index) {
-                  return _buildCommentItem(_comments[index]);
-                },
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+              child: Row(
+                children: [
+                  Text(
+                    'Comments',
+                    style: h4.copyWith(
+                      fontSize: 20,
+                      color: AppColors.textColor,
+                    ),
+                  ),
+                ],
               ),
             ),
-          ),
 
-          // Comment Input
-          Padding(
-            padding: const EdgeInsets.only(left: 16,right: 16,bottom: 6),
-            child: _buildCommentInput(),
-          ),
-        ],
-      ),
+            // Comments List
+            Expanded(
+              child: Container(
+                color: AppColors.appBc,
+                child: ListView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  itemCount: post.comments.length,
+                  itemBuilder: (context, index) {
+                    return _buildCommentItem(post.comments[index]);
+                  },
+                ),
+              ),
+            ),
+
+            // Comment Input
+            Padding(
+              padding: const EdgeInsets.only(left: 16,right: 16,bottom: 6),
+              child: _buildCommentInput(),
+            ),
+          ],
+        );
+      }),
     );
   }
 
-  Widget _buildOriginalPost() {
+  String getTimeAgo(DateTime dateTime) {
+    final now = DateTime.now();
+    final difference = now.difference(dateTime);
+    if (difference.inDays > 0) {
+      return '${difference.inDays}d';
+    } else if (difference.inHours > 0) {
+      return '${difference.inHours}h';
+    } else if (difference.inMinutes > 0) {
+      return '${difference.inMinutes}m';
+    } else {
+      return 'Just now';
+    }
+  }
+
+  Widget _buildOriginalPost(Post post, String username, String userAvatar, String timeAgo, String content, List<String> images, int likes, int comments) {
     return Container(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -131,7 +118,7 @@ class _CommentsViewState extends State<CommentsView> {
             children: [
               CircleAvatar(
                 radius: 20,
-                backgroundImage: NetworkImage(widget.userAvatar),
+                backgroundImage: NetworkImage(userAvatar),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -139,7 +126,7 @@ class _CommentsViewState extends State<CommentsView> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      widget.username,
+                      username,
                       style: h3.copyWith(
                         fontSize: 16,
                         color: AppColors.textColor,
@@ -147,7 +134,7 @@ class _CommentsViewState extends State<CommentsView> {
                       ),
                     ),
                     Text(
-                      widget.timeAgo,
+                      timeAgo,
                       style: h4.copyWith(fontSize: 14, color: AppColors.gray10),
                     ),
                   ],
@@ -160,14 +147,14 @@ class _CommentsViewState extends State<CommentsView> {
 
           // Caption
           Text(
-            'Caption',
+            content,
             style: h4.copyWith(fontSize: 16, color: AppColors.textColor),
           ),
 
           const SizedBox(height: 12),
 
           // Images
-          _buildImageGrid(widget.images),
+          _buildImageGrid(images),
 
           const SizedBox(height: 16),
 
@@ -175,13 +162,18 @@ class _CommentsViewState extends State<CommentsView> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _buildActionButton(
-                'assets/images/community/love_icon.svg',
-                widget.likes.toString(),
+              GestureDetector(
+                onTap: () {
+                  controller.toggleLike(post.id, post.isLikedByUser);
+                },
+                child: _buildActionButton(
+                  post.isLikedByUser ? 'assets/images/community/love_icon_filled.svg' : 'assets/images/community/love_icon.svg',
+                  likes.toString(),
+                ),
               ),
               _buildActionButton(
                 'assets/images/community/comment_icon.svg',
-                widget.comments.toString(),
+                comments.toString(),
               ),
               _buildActionButton('assets/images/community/typing_icon.svg', ''),
               _buildActionButton('assets/images/community/share_icon.svg', ''),
@@ -192,7 +184,7 @@ class _CommentsViewState extends State<CommentsView> {
     );
   }
 
-  Widget _buildCommentItem(Map<String, dynamic> comment) {
+  Widget _buildCommentItem(Comment comment) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 12),
       child: Row(
@@ -200,7 +192,7 @@ class _CommentsViewState extends State<CommentsView> {
         children: [
           CircleAvatar(
             radius: 18,
-            backgroundImage: NetworkImage(comment['avatar']),
+            backgroundImage: NetworkImage(comment.user.image ?? 'https://via.placeholder.com/100'),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -208,7 +200,7 @@ class _CommentsViewState extends State<CommentsView> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  comment['name'],
+                  comment.user.name,
                   style: h2.copyWith(
                     fontSize: 20,
                     color: AppColors.textColor,
@@ -216,14 +208,14 @@ class _CommentsViewState extends State<CommentsView> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  comment['comment'],
+                  comment.content,
                   style: h4.copyWith(fontSize: 16, color: AppColors.textColor11),
                 ),
                 const SizedBox(height: 8),
                 Row(
                   children: [
                     Text(
-                      comment['timeAgo'],
+                      getTimeAgo(DateTime.parse(comment.createdAt)),
                       style: h3.copyWith(fontSize: 12, color: AppColors.gray10),
                     ),
                     const SizedBox(width: 16),
@@ -237,12 +229,7 @@ class _CommentsViewState extends State<CommentsView> {
                     const SizedBox(width: 16),
                     GestureDetector(
                       onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => ReplyView(comment: comment),
-                          ),
-                        );
+                        Get.to(ReplyView(comment: comment));
                       },
                       child: Text(
                         'Reply',
@@ -313,7 +300,7 @@ class _CommentsViewState extends State<CommentsView> {
           const SizedBox(width: 12),
           // Send button
           GestureDetector(
-            onTap: _addComment,
+              onTap: _addComment,
               child: SvgPicture.asset('assets/images/home/send_icon.svg')),
         ],
       ),
@@ -321,18 +308,8 @@ class _CommentsViewState extends State<CommentsView> {
   }
 
   void _addComment() {
-    if (_commentController.text.trim().isNotEmpty) {
-      setState(() {
-        _comments.insert(0, {
-          'name': 'You',
-          'avatar':
-              'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face',
-          'comment': _commentController.text.trim(),
-          'timeAgo': 'now',
-        });
-      });
-      _commentController.clear();
-    }
+    controller.postComment(postId, _commentController.text);
+    _commentController.clear();
   }
 
   Widget _buildImageGrid(List<String> images) {
@@ -346,11 +323,11 @@ class _CommentsViewState extends State<CommentsView> {
             images[0],
             fit: BoxFit.cover,
             loadingBuilder: (context, child, loadingProgress) =>
-                loadingProgress == null
+            loadingProgress == null
                 ? child
                 : const Center(child: CircularProgressIndicator()),
             errorBuilder: (context, error, stackTrace) =>
-                const Center(child: Icon(Icons.error)),
+            const Center(child: Icon(Icons.error)),
           ),
         ),
       );
@@ -365,22 +342,22 @@ class _CommentsViewState extends State<CommentsView> {
                 .entries
                 .map(
                   (entry) => Expanded(
-                    child: Container(
-                      margin: EdgeInsets.only(right: entry.key == 0 ? 1 : 0),
-                      child: Image.network(
-                        entry.value,
-                        fit: BoxFit.cover,
-                        height: double.infinity,
-                        loadingBuilder: (context, child, loadingProgress) =>
-                            loadingProgress == null
-                            ? child
-                            : const Center(child: CircularProgressIndicator()),
-                        errorBuilder: (context, error, stackTrace) =>
-                            const Center(child: Icon(Icons.error)),
-                      ),
-                    ),
+                child: Container(
+                  margin: EdgeInsets.only(right: entry.key == 0 ? 1 : 0),
+                  child: Image.network(
+                    entry.value,
+                    fit: BoxFit.cover,
+                    height: double.infinity,
+                    loadingBuilder: (context, child, loadingProgress) =>
+                    loadingProgress == null
+                        ? child
+                        : const Center(child: CircularProgressIndicator()),
+                    errorBuilder: (context, error, stackTrace) =>
+                    const Center(child: Icon(Icons.error)),
                   ),
-                )
+                ),
+              ),
+            )
                 .toList(),
           ),
         ),
@@ -482,6 +459,5 @@ class _CommentsViewState extends State<CommentsView> {
   @override
   void dispose() {
     _commentController.dispose();
-    super.dispose();
   }
 }
