@@ -4,7 +4,6 @@ import 'package:loan_site/app/modules/auth/views/create_password_view.dart';
 import 'package:loan_site/app/modules/auth/views/forgot_password_screen.dart';
 import 'package:loan_site/app/modules/auth/views/login_view.dart';
 import 'package:loan_site/app/modules/auth/views/send_otp_view.dart';
-import 'package:loan_site/app/modules/auth/views/signUp_view.dart';
 import 'package:loan_site/app/modules/auth/views/verification_screen.dart';
 import 'package:loan_site/app/modules/dashboard/views/dashboard_lender_view.dart';
 import 'package:loan_site/app/modules/dashboard/views/dashboard_view.dart';
@@ -199,6 +198,10 @@ class AuthController extends GetxController {
       final responseData = jsonDecode(response.body);
       final message = responseData['message'] ?? 'A new OTP has been sent to your email.';
       kSnackBar(title: 'Info', message: message);
+    }else if (response.statusCode == 400) {
+      final responseData = jsonDecode(response.body);
+      final message = responseData['error'] ?? 'Something went wrong please try again';
+      kSnackBar(title: 'Warning', message: message,bgColor: AppColors.snackBarWarning);
     } else {
       //await BaseClient.handleResponse(response);
     }

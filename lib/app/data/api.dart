@@ -29,7 +29,7 @@ class Api {
 
 
 
-  /// posts
-  static String categoryPosts(categoryId) => "$baseUrl/posts/category/$categoryId"; //done
+  /// community
+  static const createPost = "$baseUrl/community/posts/"; //working
 
 }

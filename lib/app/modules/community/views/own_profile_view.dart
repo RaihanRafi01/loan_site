@@ -87,17 +87,7 @@ class OwnProfileView extends GetView {
                   ),
                   DropdownButton2<String>(
                     underline: Container(),
-                    customButton: /*CustomButton(
-                      fontSize: 14,
-                      width: 100,
-                      height: 36,
-                      label: 'All',
-                      onPressed: () {},
-                      bgClr: [AppColors.cardSky, AppColors.cardSky],
-                      txtClr: AppColors.appColor2,
-                      svgPath: 'assets/images/community/tic_blue.svg',
-                      svgPath2: 'assets/images/community/filter_icon.svg',
-                    )*/Container(
+                    customButton: Container(
                       decoration: BoxDecoration(
                         color: AppColors.cardSky,
                         borderRadius: BorderRadius.circular(32), // Adjust the radius as needed

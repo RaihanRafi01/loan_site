@@ -1,6 +1,8 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
+import 'package:image_picker/image_picker.dart';  // New import
 import 'package:loan_site/common/widgets/customButton.dart';
 import 'package:loan_site/common/widgets/customTextField.dart';
 import '../../../../common/appColors.dart';
@@ -12,7 +14,7 @@ class CreatePostView extends GetView<CommunityController> {
 
   @override
   Widget build(BuildContext context) {
-    Get.put(CommunityController());
+    Get.put(CommunityController());  // Note: This might be redundant if using GetView; consider removing if controller is lazy-loaded elsewhere.
     return Scaffold(
       backgroundColor: AppColors.appBc,
       appBar: AppBar(
@@ -61,77 +63,73 @@ class CreatePostView extends GetView<CommunityController> {
                   radius: 6,
                 ),
               ),
-              Row(
-                children: [
-                  SvgPicture.asset('assets/images/community/photo_icon.svg'),
-                  const SizedBox(width: 10),
-                  Text(
-                    'Photos/Videos',
-                    style: h3.copyWith(fontSize: 20, color: AppColors.textColor),
+              GestureDetector(
+                onTap: () {
+                  controller.pickMedia();  // Picks multiple photos/videos from device and updates state.
+                },
+                child: Row(
+                  children: [
+                    SvgPicture.asset('assets/images/community/photo_icon.svg'),
+                    const SizedBox(width: 10),
+                    Text(
+                      'Photos/Videos',
+                      style: h3.copyWith(fontSize: 20, color: AppColors.textColor),
+                    ),
+                  ],
+                ),
+              ),
+              Obx(() {  // Reactively show previews if media is picked.
+                if (controller.pickedMedia.isEmpty) {
+                  return const SizedBox.shrink();
+                }
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  child: GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 3,
+                      crossAxisSpacing: 8,
+                      mainAxisSpacing: 8,
+                      childAspectRatio: 1,
+                    ),
+                    itemCount: controller.pickedMedia.length,
+                    itemBuilder: (context, index) {
+                      final file = controller.pickedMedia[index];
+                      final isImage = file.path.toLowerCase().endsWith('.jpg') ||
+                          file.path.toLowerCase().endsWith('.jpeg') ||
+                          file.path.toLowerCase().endsWith('.png') ||
+                          file.path.toLowerCase().endsWith('.gif');
+                      return ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: isImage
+                            ? Image.file(
+                          file,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return const Icon(Icons.broken_image, size: 50);
+                          },
+                        )
+                            : const Icon(Icons.videocam, size: 50),  // Placeholder for videos.
+                      );
+                    },
                   ),
-                ],
-              ),
-              Padding(
+                );
+              }),
+              Obx(() => Padding(  // Make the button reactive to isLoading.
                 padding: const EdgeInsets.symmetric(vertical: 40),
-                child: CustomButton(label: 'Post', onPressed: () {}),
-              ),
+                child: CustomButton(
+                  isLoading: controller.isLoading.value,
+                  label: 'Post',
+                  onPressed: () {
+                    controller.postContent();
+                  },
+                ),
+              )),
             ],
           ),
         ),
       ),
-      /*bottomNavigationBar: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16,vertical: 30),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(30),
-          ),
-          child: Row(
-            children: [
-              // Camera button
-              SvgPicture.asset('assets/images/home/cam_icon.svg'),
-              const SizedBox(width: 8),
-              // Image/Gallery button
-              SvgPicture.asset('assets/images/home/image_icon.svg'),
-              const SizedBox(width: 12),
-              // Text input field with mic icon
-              Expanded(
-                child: Container(
-                  height: 40,
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  decoration: BoxDecoration(
-                    color: AppColors.chatInput,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          textAlignVertical: TextAlignVertical.center,
-                          decoration: InputDecoration(
-                            hintText: 'Type here...',
-                            border: InputBorder.none,
-                            hintStyle: h4.copyWith(
-                              color: Colors.grey,
-                              fontSize: 14,
-                            ),
-                            contentPadding: const EdgeInsets.symmetric(vertical: 12),
-                          ),
-                        ),
-                      ),
-                      SvgPicture.asset('assets/images/home/mic_icon.svg'),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              // Send button
-              SvgPicture.asset('assets/images/home/send_icon.svg'),
-            ],
-          ),
-        ),
-      ),*/
     );
   }
 }
