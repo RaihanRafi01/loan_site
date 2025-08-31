@@ -185,7 +185,7 @@ class OwnProfileView extends GetView<CommunityController> {
                 itemBuilder: (context, index) {
                   final post = controller.myPosts[index];
                   return _buildPostItem(
-                    username: post.user.name,
+                    username: post.user.name!,
                     userAvatar: post.user.image ?? 'https://via.placeholder.com/100',
                     timeAgo: getTimeAgo(DateTime.parse(post.createdAt)),
                     content: post.content, // Dynamic content

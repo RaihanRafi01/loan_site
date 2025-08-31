@@ -14,13 +14,13 @@ import '../../../data/base_client.dart';
 // Add models
 class User {
   final int id;
-  final String name;
+  final String? name;
   final String email;
   final String? image;
 
   User({
     required this.id,
-    required this.name,
+    this.name,
     required this.email,
     this.image,
   });
@@ -44,6 +44,8 @@ class Comment {
   final bool isLikedByUser;
   final String createdAt;
   final String updatedAt;
+  final int? parent;
+  RxList<Comment> replies;  // RxList to make it reactive
 
   Comment({
     required this.id,
@@ -54,7 +56,9 @@ class Comment {
     required this.isLikedByUser,
     required this.createdAt,
     required this.updatedAt,
-  });
+    this.parent,
+    RxList<Comment>? replies,  // Allow initializing it as an empty RxList
+  }) : replies = replies ?? RxList<Comment>();  // Default to empty RxList if no replies provided
 
   factory Comment.fromJson(Map<String, dynamic> json) {
     return Comment(
@@ -66,6 +70,8 @@ class Comment {
       isLikedByUser: json['is_liked_by_user'],
       createdAt: json['created_at'],
       updatedAt: json['updated_at'],
+      parent: json['parent'],
+      replies: (json['replies'] as List? ?? []).map((e) => Comment.fromJson(e)).toList().obs,  // Convert to RxList
     );
   }
 }
@@ -108,6 +114,12 @@ class Post {
   });
 
   factory Post.fromJson(Map<String, dynamic> json) {
+    List<dynamic> commentJsons = json['comments'] as List;
+    List<Comment> topLevelComments = commentJsons
+        .where((cJson) => cJson['parent'] == null)
+        .map((cJson) => Comment.fromJson(cJson))
+        .toList();
+
     return Post(
       id: json['id'],
       user: User.fromJson(json['user']),
@@ -122,12 +134,13 @@ class Post {
       isLikedByUser: json['is_liked_by_user'],
       isSharedByUser: json['is_shared_by_user'],
       isNotInterestedByUser: json['is_not_interested_by_user'],
-      comments: (json['comments'] as List).map((e) => Comment.fromJson(e)).toList(),
+      comments: topLevelComments,
       createdAt: json['created_at'],
       updatedAt: json['updated_at'],
     );
   }
 }
+
 
 class CommunityController extends GetxController {
   final statusController = TextEditingController();
@@ -137,11 +150,21 @@ class CommunityController extends GetxController {
   final myPosts = RxList<Post>([]);
   final currentUser = Rx<User?>(null);
   final currentReplies = RxList<Comment>([]);
+  final currentComment = Rx<Comment?>(null);
 
   @override
   void onInit() {
     super.onInit();
     fetchMyPosts();
+  }
+
+
+  void updateReplies(Comment comment) {
+    // Find the comment in the posts list and update its replies
+    final post = myPosts.firstWhere((p) => p.id == comment.post);
+    final updatedComment = post.comments.firstWhere((c) => c.id == comment.id);
+    updatedComment.replies = comment.replies;  // Update the replies in the comment
+    myPosts.refresh();  // Trigger reactivity to update the UI
   }
 
   void _showWarning(String message, {String title = 'Warning'}) {
@@ -154,8 +177,7 @@ class CommunityController extends GetxController {
 
   Future<void> pickMedia() async {
     final picker = ImagePicker();
-    final pickedFiles = await picker
-        .pickMultipleMedia(); // Allows selecting multiple images/videos.
+    final pickedFiles = await picker.pickMultipleMedia();
     if (pickedFiles.isNotEmpty) {
       pickedMedia.addAll(pickedFiles.map((f) => File(f.path)));
     }
@@ -181,7 +203,6 @@ class CommunityController extends GetxController {
         Get.snackbar('Success', 'Post created successfully!');
         statusController.clear();
         pickedMedia.clear();
-        // Refresh posts after creating a new one
         fetchMyPosts();
       } else {
         _showWarning('Failed to create post: ${response.reasonPhrase}');
@@ -197,7 +218,7 @@ class CommunityController extends GetxController {
   Future<void> fetchMyPosts() async {
     try {
       final response = await BaseClient.getRequest(
-        api: Api.myPosts, // Assuming Api.myPosts is defined in data/api.dart, e.g., static String myPosts = '/posts/my/';
+        api: Api.myPosts,
         headers: BaseClient.authHeaders(),
       );
 
@@ -218,7 +239,7 @@ class CommunityController extends GetxController {
 
   Future<void> toggleLike(int postId, bool currentlyLiked) async {
     try {
-      final apiUrl = Api.likePost(postId.toString()); // Assuming Api.likePost = '/posts/{id}/like/'
+      final apiUrl = Api.likePost(postId.toString());
       final response = await BaseClient.postRequest(
         api: apiUrl,
         body: jsonEncode({}),
@@ -226,7 +247,7 @@ class CommunityController extends GetxController {
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        fetchMyPosts(); // Refresh to update like count and status
+        fetchMyPosts();
       } else {
         _showWarning('Failed to toggle like: ${response.reasonPhrase}');
       }
@@ -243,7 +264,7 @@ class CommunityController extends GetxController {
     }
 
     try {
-      final apiUrl = Api.createComment(postId.toString()); // Assuming Api.createComment = '/posts/{id}/comments/'
+      final apiUrl = Api.createComment(postId.toString());
       final body = jsonEncode({"content": content});
       final response = await BaseClient.postRequest(
         api: apiUrl,
@@ -253,33 +274,13 @@ class CommunityController extends GetxController {
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         Get.snackbar('Success', 'Comment added successfully!');
-        fetchMyPosts(); // Refresh to update comments
+        fetchMyPosts();
       } else {
         _showWarning('Failed to add comment: ${response.reasonPhrase}');
       }
     } catch (e) {
       print('Post comment error: $e');
       _showWarning('Failed to add comment. Please try again.');
-    }
-  }
-
-  Future<void> fetchCommentReplies(int commentId) async {
-    try {
-      final apiUrl = Api.getAllcommentReplies(commentId.toString()); // Assuming Api.commentReplies = '/comments/{id}/replies/'
-      final response = await BaseClient.getRequest(
-        api: apiUrl,
-        headers: BaseClient.authHeaders(),
-      );
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        currentReplies.value = (data['results'] as List).map((e) => Comment.fromJson(e)).toList();
-      } else {
-        _showWarning('Failed to fetch replies: ${response.reasonPhrase}');
-      }
-    } catch (e) {
-      print('Fetch replies error: $e');
-      _showWarning('Failed to fetch replies. Please try again.');
     }
   }
 
@@ -300,7 +301,12 @@ class CommunityController extends GetxController {
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         Get.snackbar('Success', 'Reply added successfully!');
-        fetchCommentReplies(commentId); // Refresh replies
+        await fetchMyPosts();
+        if (currentComment.value != null) {
+          final updatedPost = myPosts.firstWhere((p) => p.id == currentComment.value!.post);
+          final updatedComment = updatedPost.comments.firstWhere((c) => c.id == currentComment.value!.id);
+          currentReplies.value = updatedComment.replies;
+        }
       } else {
         _showWarning('Failed to add reply: ${response.reasonPhrase}');
       }
@@ -309,6 +315,33 @@ class CommunityController extends GetxController {
       _showWarning('Failed to add reply. Please try again.');
     }
   }
+
+  /* Future<void> sharePost(int postId, List<int> userIds) async {
+    if (userIds.isEmpty) {
+      _showWarning('Please select users to share with.');
+      return;
+    }
+
+    try {
+      final apiUrl = Api.sharePost(postId.toString()); // Assuming Api.sharePost = '/posts/{id}/share/'
+      final body = jsonEncode({"users": userIds});
+      final response = await BaseClient.postRequest(
+        api: apiUrl,
+        body: body,
+        headers: BaseClient.authHeaders(),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        Get.snackbar('Success', 'Post shared successfully!');
+        fetchMyPosts();
+      } else {
+        _showWarning('Failed to share post: ${response.reasonPhrase}');
+      }
+    } catch (e) {
+      print('Share post error: $e');
+      _showWarning('Failed to share post. Please try again.');
+    }
+  }*/
 
   @override
   void onClose() {

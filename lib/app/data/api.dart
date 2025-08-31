@@ -37,6 +37,5 @@ class Api {
   static likePost(post_id) => "$baseUrl/community/posts/$post_id/like/"; // done
 
   static createComment(post_id) => "$baseUrl/community/posts/$post_id/comments/";  // done
-  static commentReplies(comment_id) => "$baseUrl/community/posts/$comment_id/comments/reply/"; // not created in backed
-  static getAllcommentReplies(comment_id) => "$baseUrl/community/posts/$comment_id/comments/reply/"; // not created in backed
+  static commentReplies(comment_id) => "$baseUrl/community/comments/$comment_id/reply/"; // not created in backed
 }

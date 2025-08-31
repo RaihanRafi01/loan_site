@@ -4,6 +4,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 import 'package:get/get.dart';
 import 'package:loan_site/app/modules/community/views/create_group_view.dart';
+import 'package:loan_site/app/modules/community/views/comments_view.dart';
 
 import '../../../../common/appColors.dart';
 import '../../../../common/customFont.dart';
@@ -38,7 +39,7 @@ class MessageIndividualView extends GetView {
                   Row(
                     children: [
                       GestureDetector(
-                        onTap: ()=> Get.back(),
+                          onTap: ()=> Get.back(),
                           child: SvgPicture.asset('assets/images/community/arrow_left.svg')),
                       SizedBox(width: 16),
                       CircleAvatar(
@@ -98,13 +99,14 @@ class MessageIndividualView extends GetView {
 
             // Scrollable body content
             Expanded(
-              child: SingleChildScrollView(
+              child: ListView(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Column(
-                  children: [
-                    // You can add your messages and content here
-                  ],
-                ),
+                children: [
+                  _buildChatBubble('Hi there', false),
+                  _buildChatBubble('Hello', true),
+                  _buildSharedPostBubble(7), // Mock shared post with postId 1 (replace with dynamic if needed)
+                  _buildChatBubble(message, false), // The passed last message
+                ],
               ),
             ),
 
@@ -163,6 +165,41 @@ class MessageIndividualView extends GetView {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildChatBubble(String msg, bool isMe) {
+    return Align(
+      alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
+      child: Container(
+        padding: EdgeInsets.all(12),
+        margin: EdgeInsets.symmetric(vertical: 4),
+        decoration: BoxDecoration(
+          color: isMe ? AppColors.appColor2 : Colors.grey[300],
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Text(msg),
+      ),
+    );
+  }
+
+  Widget _buildSharedPostBubble(int postId) {
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: GestureDetector(
+        onTap: () {
+          Get.to(() => CommentsView(postId: postId));
+        },
+        child: Container(
+          padding: EdgeInsets.all(12),
+          margin: EdgeInsets.symmetric(vertical: 4),
+          decoration: BoxDecoration(
+            color: Colors.blue[100],
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Text('Shared Post: Click to view'),
         ),
       ),
     );

@@ -619,7 +619,7 @@ class CommunityView extends GetView<CommunityController> {
           Get.to(() => CommentsView(postId: postId));
         }
         if(svgPath == 'assets/images/community/share_icon.svg'){
-          Get.to(SharePostView());
+          Get.to(SharePostView(postId: 0,));
         }
       },
       child: Container(

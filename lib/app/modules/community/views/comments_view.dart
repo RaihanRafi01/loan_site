@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:loan_site/app/modules/community/views/reply_view.dart';
+import 'package:loan_site/app/modules/community/views/share_post_view.dart';
 import '../../../../common/appColors.dart';
 import '../../../../common/customFont.dart';
 import '../controllers/community_controller.dart';
@@ -38,7 +39,7 @@ class CommentsView extends GetView<CommunityController> {
         if (post == null) {
           return const Center(child: Text('Post not found'));
         }
-        final username = post.user.name;
+        final username = post.user.name ?? 'Anonymous';
         final userAvatar = post.user.image ?? 'https://via.placeholder.com/100';
         final timeAgo = getTimeAgo(DateTime.parse(post.createdAt));
         final images = post.image != null ? [post.image!] : <String>[];
@@ -176,7 +177,12 @@ class CommentsView extends GetView<CommunityController> {
                 comments.toString(),
               ),
               _buildActionButton('assets/images/community/typing_icon.svg', ''),
-              _buildActionButton('assets/images/community/share_icon.svg', ''),
+              GestureDetector(
+                onTap: () {
+                  Get.to(() => SharePostView(postId: post.id));
+                },
+                child: _buildActionButton('assets/images/community/share_icon.svg', ''),
+              ),
             ],
           ),
         ],
@@ -200,7 +206,7 @@ class CommentsView extends GetView<CommunityController> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  comment.user.name,
+                  comment.user.name ?? 'Anonymous',
                   style: h2.copyWith(
                     fontSize: 20,
                     color: AppColors.textColor,

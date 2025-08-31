@@ -4,6 +4,8 @@ import 'package:get/get.dart';
 import 'package:loan_site/common/appColors.dart';
 import 'package:loan_site/common/customFont.dart';
 
+import 'message_view.dart';
+
 // Model to represent a user
 class User {
   final String imageUrl;
@@ -131,7 +133,9 @@ class GroupHeaderWidget extends StatelessWidget {
 }
 
 class SharePostView extends GetView<SharePostController> {
-  const SharePostView({super.key});
+  final int postId;
+
+  const SharePostView({super.key, required this.postId});
 
   @override
   Widget build(BuildContext context) {
@@ -150,11 +154,19 @@ class SharePostView extends GetView<SharePostController> {
                     onTap: () => Get.back(),
                     child: SvgPicture.asset('assets/images/community/arrow_left.svg'),
                   ),
-                  Text(
-                    'Send',
-                    style: h2.copyWith(
-                      fontSize: 24,
-                      color: AppColors.appColor2,
+                  GestureDetector(
+                    onTap: () {
+                      List<User> selected = controller.users.where((u) => u.isChecked.value).toList();
+                      if (selected.isEmpty) return;
+                      // Simulate sending the post to selected users' chats
+                      Get.snackbar('Post Shared', 'Shared with ${selected.map((u) => u.name).join(', ')}');
+                    },
+                    child: Text(
+                      'Send',
+                      style: h2.copyWith(
+                        fontSize: 24,
+                        color: AppColors.appColor2,
+                      ),
                     ),
                   ),
                 ],

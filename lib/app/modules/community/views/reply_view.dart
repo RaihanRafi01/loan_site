@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
+
 import '../../../../common/appColors.dart';
 import '../../../../common/customFont.dart';
 import '../controllers/community_controller.dart';
@@ -27,7 +28,6 @@ class ReplyView extends GetView<CommunityController> {
 
   @override
   Widget build(BuildContext context) {
-    controller.fetchCommentReplies(comment.id);
     return Scaffold(
       backgroundColor: AppColors.appBc,
       appBar: AppBar(
@@ -74,13 +74,15 @@ class ReplyView extends GetView<CommunityController> {
           Expanded(
             child: Container(
               color: AppColors.appBc,
-              child: Obx(() => ListView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                itemCount: controller.currentReplies.length,
-                itemBuilder: (context, index) {
-                  return _buildReplyItem(controller.currentReplies[index]);
-                },
-              )),
+              child: Obx(() {
+                return ListView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  itemCount: comment.replies.length,
+                  itemBuilder: (context, index) {
+                    return _buildReplyItem(comment.replies[index]);
+                  },
+                );
+              }),
             ),
           ),
 
@@ -110,7 +112,7 @@ class ReplyView extends GetView<CommunityController> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  comment.user.name,
+                  comment.user.name ?? 'Anonymous',
                   style: h2.copyWith(
                     fontSize: 20,
                     color: AppColors.textColor,
@@ -170,7 +172,7 @@ class ReplyView extends GetView<CommunityController> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  reply.user.name,
+                  reply.user.name ?? 'Anonymous',
                   style: h2.copyWith(
                     fontSize: 20,
                     color: AppColors.textColor,
@@ -265,8 +267,44 @@ class ReplyView extends GetView<CommunityController> {
     );
   }
 
-  void _addReply() {
-    controller.postReply(comment.id, _replyController.text);
+  void _addReply() async {
+    // Ensure that the reply text is not empty
+    if (_replyController.text.trim().isEmpty) {
+     /* _showWarning('Please enter a reply.');*/
+      return; // Do not proceed if the reply is empty
+    }
+
+    // Get the content of the reply
+    final replyContent = _replyController.text.trim();
+
+    // Posting the reply to the server
+    await controller.postReply(comment.id, replyContent);
+
+    // Assuming postReply successfully updates the comment and its replies in the backend
+    final newReply = Comment(
+      id: -1, // Use an id or placeholder; this can be updated from the response if available
+      post: comment.post,
+      user: controller.currentUser.value!, // Assuming the current user is available
+      content: replyContent,
+      likesCount: 0,
+      isLikedByUser: false,
+      createdAt: DateTime.now().toString(),
+      updatedAt: DateTime.now().toString(),
+      replies: RxList<Comment>(),  // Initialize replies as an empty RxList
+    );
+
+    // Manually updating the local `comment.replies` list with the new reply
+    comment.replies.add(newReply);
+
+    // Clear the input field after adding the reply
     _replyController.clear();
+
+    // Since GetX is reactive, this should automatically update the UI
+    controller.updateReplies(comment); // This triggers reactivity to update the UI
+
+    // Optionally, you can also fetch updated posts if needed
+    // await controller.fetchMyPosts();
   }
+
+
 }
