@@ -131,19 +131,24 @@ class ReplyView extends GetView<CommunityController> {
                       style: h3.copyWith(fontSize: 12, color: AppColors.gray10),
                     ),
                     const SizedBox(width: 16),
-                    Text(
-                      'React',
-                      style: h3.copyWith(
-                        fontSize: 12,
-                        color: AppColors.gray10,
+                    Obx(() => GestureDetector(
+                      onTap: () {
+                        controller.toggleLikeComment(comment.id, comment.isLikedByUser.value);
+                      },
+                      child: _buildActionButton(
+                        comment.isLikedByUser.value ? 'assets/images/community/love_icon_filled.svg' : 'assets/images/community/love_icon.svg',
+                        comment.likesCount.toString(),
                       ),
-                    ),
+                    )),
                     const SizedBox(width: 16),
-                    Text(
-                      'Reply',
-                      style: h3.copyWith(
-                        fontSize: 12,
-                        color: AppColors.gray10,
+                    GestureDetector(
+                      onTap: (){},
+                      child: Text(
+                        'Reply',
+                        style: h3.copyWith(
+                          fontSize: 12,
+                          color: AppColors.gray10,
+                        ),
                       ),
                     ),
                   ],
@@ -191,8 +196,18 @@ class ReplyView extends GetView<CommunityController> {
                       style: h3.copyWith(fontSize: 12, color: AppColors.gray10),
                     ),
                     const SizedBox(width: 16),
+                    Obx(() => GestureDetector(
+                      onTap: () {
+                        controller.toggleLikeComment(reply.id, reply.isLikedByUser.value);
+                      },
+                      child: _buildActionButton(
+                        reply.isLikedByUser.value ? 'assets/images/community/love_icon_filled.svg' : 'assets/images/community/love_icon.svg',
+                        reply.likesCount.toString(),
+                      ),
+                    )),
+                    const SizedBox(width: 16),
                     Text(
-                      'React',
+                      'Reply',
                       style: h3.copyWith(
                         fontSize: 12,
                         color: AppColors.gray10,
@@ -207,6 +222,7 @@ class ReplyView extends GetView<CommunityController> {
       ),
     );
   }
+
 
   Widget _buildReplyInput() {
     return Container(
@@ -270,7 +286,7 @@ class ReplyView extends GetView<CommunityController> {
   void _addReply() async {
     // Ensure that the reply text is not empty
     if (_replyController.text.trim().isEmpty) {
-     /* _showWarning('Please enter a reply.');*/
+      /* _showWarning('Please enter a reply.');*/
       return; // Do not proceed if the reply is empty
     }
 
@@ -304,6 +320,36 @@ class ReplyView extends GetView<CommunityController> {
 
     // Optionally, you can also fetch updated posts if needed
     // await controller.fetchMyPosts();
+  }
+
+  Widget _buildActionButton(String svgPath, String count) {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(48),
+        color: AppColors.cardSky,
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SvgPicture.asset(
+              svgPath,
+            ),
+            if (count.isNotEmpty) ...[
+              const SizedBox(width: 8),
+              Text(
+                count,
+                style: h4.copyWith(
+                  fontSize: 14,
+                  color: AppColors.textColor9,
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
   }
 
 

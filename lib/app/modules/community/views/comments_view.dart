@@ -225,13 +225,15 @@ class CommentsView extends GetView<CommunityController> {
                       style: h3.copyWith(fontSize: 12, color: AppColors.gray10),
                     ),
                     const SizedBox(width: 16),
-                    Text(
-                      'React',
-                      style: h3.copyWith(
-                        fontSize: 12,
-                        color: AppColors.gray10,
+                    Obx(() => GestureDetector(
+                      onTap: () {
+                        controller.toggleLikeComment(comment.id, comment.isLikedByUser.value);
+                      },
+                      child: _buildActionButton(
+                        comment.isLikedByUser.value ? 'assets/images/community/love_icon_filled.svg' : 'assets/images/community/love_icon.svg',
+                        comment.likesCount.toString(),
                       ),
-                    ),
+                    )),
                     const SizedBox(width: 16),
                     GestureDetector(
                       onTap: () {

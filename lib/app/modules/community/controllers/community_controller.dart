@@ -40,25 +40,27 @@ class Comment {
   final int post;
   final User user;
   final String content;
-  final int likesCount;
-  final bool isLikedByUser;
+  final RxInt likesCount;
+  final RxBool isLikedByUser;
   final String createdAt;
   final String updatedAt;
   final int? parent;
-  RxList<Comment> replies;  // RxList to make it reactive
+  RxList<Comment> replies;
 
   Comment({
     required this.id,
     required this.post,
     required this.user,
     required this.content,
-    required this.likesCount,
-    required this.isLikedByUser,
+    required int likesCount,
+    required bool isLikedByUser,
     required this.createdAt,
     required this.updatedAt,
     this.parent,
-    RxList<Comment>? replies,  // Allow initializing it as an empty RxList
-  }) : replies = replies ?? RxList<Comment>();  // Default to empty RxList if no replies provided
+    RxList<Comment>? replies,
+  }) : likesCount = likesCount.obs,
+        isLikedByUser = isLikedByUser.obs,
+        replies = replies ?? RxList<Comment>();
 
   factory Comment.fromJson(Map<String, dynamic> json) {
     return Comment(
@@ -71,7 +73,7 @@ class Comment {
       createdAt: json['created_at'],
       updatedAt: json['updated_at'],
       parent: json['parent'],
-      replies: (json['replies'] as List? ?? []).map((e) => Comment.fromJson(e)).toList().obs,  // Convert to RxList
+      replies: (json['replies'] as List? ?? []).map((e) => Comment.fromJson(e)).toList().obs,
     );
   }
 }
@@ -141,7 +143,6 @@ class Post {
   }
 }
 
-
 class CommunityController extends GetxController {
   final statusController = TextEditingController();
   final pickedMedia = RxList<File>([]);
@@ -157,7 +158,6 @@ class CommunityController extends GetxController {
     super.onInit();
     fetchMyPosts();
   }
-
 
   void updateReplies(Comment comment) {
     // Find the comment in the posts list and update its replies
@@ -191,7 +191,6 @@ class CommunityController extends GetxController {
 
     isLoading.value = true;
     try {
-
       final body = jsonEncode({"title": "My First Post", "content": statusController.text});
       final response = await BaseClient.postRequest(
         api: Api.createPost,
@@ -249,6 +248,36 @@ class CommunityController extends GetxController {
       if (response.statusCode == 200 || response.statusCode == 201) {
         fetchMyPosts();
       } else {
+        _showWarning('Failed to toggle like: ${response.reasonPhrase}');
+      }
+    } catch (e) {
+      print('Toggle like error: $e');
+      _showWarning('Failed to toggle like. Please try again.');
+    }
+  }
+
+  Future<void> toggleLikeComment(int commentId, bool currentlyLiked) async {
+    try {
+      final comment = _findCommentById(commentId);
+      if (comment != null) {
+        comment.isLikedByUser.value = !currentlyLiked;
+        comment.likesCount.value += currentlyLiked ? -1 : 1;
+      }
+
+      final apiUrl = Api.likeComment(commentId.toString());
+      final response = await BaseClient.postRequest(
+        api: apiUrl,
+        body: jsonEncode({}),
+        headers: BaseClient.authHeaders(),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        // API call successful, local state already updated
+      } else {
+        if (comment != null) {
+          comment.isLikedByUser.value = currentlyLiked;
+          comment.likesCount.value += currentlyLiked ? 1 : -1;
+        }
         _showWarning('Failed to toggle like: ${response.reasonPhrase}');
       }
     } catch (e) {
@@ -316,32 +345,17 @@ class CommunityController extends GetxController {
     }
   }
 
-  /* Future<void> sharePost(int postId, List<int> userIds) async {
-    if (userIds.isEmpty) {
-      _showWarning('Please select users to share with.');
-      return;
-    }
-
-    try {
-      final apiUrl = Api.sharePost(postId.toString()); // Assuming Api.sharePost = '/posts/{id}/share/'
-      final body = jsonEncode({"users": userIds});
-      final response = await BaseClient.postRequest(
-        api: apiUrl,
-        body: body,
-        headers: BaseClient.authHeaders(),
-      );
-
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        Get.snackbar('Success', 'Post shared successfully!');
-        fetchMyPosts();
-      } else {
-        _showWarning('Failed to share post: ${response.reasonPhrase}');
+  Comment? _findCommentById(int commentId) {
+    for (final post in myPosts) {
+      for (final comment in post.comments) {
+        if (comment.id == commentId) return comment;
+        for (final reply in comment.replies) {
+          if (reply.id == commentId) return reply;
+        }
       }
-    } catch (e) {
-      print('Share post error: $e');
-      _showWarning('Failed to share post. Please try again.');
     }
-  }*/
+    return null;
+  }
 
   @override
   void onClose() {
