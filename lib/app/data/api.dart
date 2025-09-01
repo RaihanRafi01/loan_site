@@ -25,7 +25,8 @@ class Api {
 
   static const createProject = "$baseUrl/project/create/";   // done
   static  setProjectMilestone(project_id) => "$baseUrl/project/set-milestone/$project_id/";   // done
-  static const getAllProject = "$baseUrl/project/list/all/";   // working
+  static const getAllProject = "$baseUrl/project/list/all/";   // done
+  static  projectDetails(project_id) => "$baseUrl/project/details/$project_id/";   // done
 
 
 
@@ -41,4 +42,9 @@ class Api {
 
   static createComment(post_id) => "$baseUrl/community/posts/$post_id/comments/";  // done
   static commentReplies(comment_id) => "$baseUrl/community/comments/$comment_id/reply/"; // done
+
+  /// chat
+
+  static const chatAssistant = '$baseUrl/project/ai-assistant/';
+  static const chatHistory = '$baseUrl/project/ai-assistant/';
 }

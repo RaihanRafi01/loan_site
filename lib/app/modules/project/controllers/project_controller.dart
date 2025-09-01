@@ -12,6 +12,102 @@ import '../../../data/api.dart';
 import '../../../data/base_client.dart';
 import '../../../data/models/project.dart';
 
+class ProjectDetail {
+  final String name;
+  final String type;
+  final String manager;
+  final String location;
+  final ProjectProgress progress;
+  final List<ProjectMilestone> milestones;
+
+  ProjectDetail({
+    required this.name,
+    required this.type,
+    required this.manager,
+    required this.location,
+    required this.progress,
+    required this.milestones,
+  });
+
+  factory ProjectDetail.fromJson(Map<String, dynamic> j) => ProjectDetail(
+    name: j['project_name'] ?? '',
+    type: j['project_type'] ?? '',
+    manager: j['project_manager'] ?? '',
+    location: j['project_location'] ?? '',
+    progress: ProjectProgress.fromJson(j['project_progress'] ?? {}),
+    milestones: (j['milestones'] as List? ?? [])
+        .map((e) => ProjectMilestone.fromJson(e))
+        .toList(),
+  );
+}
+
+class ProjectProgress {
+  final double percentage; // 0..100 (if 0, we'll fallback to phases ratio)
+  final DateTime? startDate;
+  final DateTime? endDate;
+  final int completedPhases;
+  final int totalPhases;
+  final int? duration; // total duration in days (optional from API)
+
+  ProjectProgress({
+    required this.percentage,
+    required this.startDate,
+    required this.endDate,
+    required this.completedPhases,
+    required this.totalPhases,
+    required this.duration,
+  });
+
+  factory ProjectProgress.fromJson(Map<String, dynamic> j) => ProjectProgress(
+    percentage: (j['percentage'] as num?)?.toDouble() ?? 0.0,
+    startDate: j['start_date'] != null ? DateTime.parse(j['start_date']) : null,
+    endDate: j['end_date'] != null ? DateTime.parse(j['end_date']) : null,
+    completedPhases: (j['completed_phases'] as num?)?.toInt() ?? 0,
+    totalPhases: (j['total_phases'] as num?)?.toInt() ?? 0,
+    duration: (j['duration'] as num?)?.toInt(),
+  );
+
+  /// 0.0 .. 1.0 for UI widthFactor
+  double get percent0to1 {
+    double p = percentage > 0 ? (percentage / 100.0) : _ratio;
+    if (p.isNaN) p = 0.0;
+    if (p < 0) p = 0.0;
+    if (p > 1) p = 1.0;
+    return p;
+  }
+
+  /// 0 .. 100 for display
+  int get percent100 => (percent0to1 * 100).round();
+
+  /// days remaining (never negative)
+  int get daysRemaining {
+    if (endDate == null) return 0;
+    final diff = endDate!.difference(DateTime.now()).inDays;
+    return diff < 0 ? 0 : diff;
+  }
+
+  String fmtDate(DateTime? d) =>
+      d == null ? '-' : DateFormat('MMM d, yyyy').format(d);
+
+  double get _ratio =>
+      totalPhases > 0 ? (completedPhases / totalPhases) : 0.0;
+}
+
+class ProjectMilestone {
+  final int id;
+  final String name;
+  final String status; // pending / completed / etc.
+
+  ProjectMilestone({required this.id, required this.name, required this.status});
+
+  factory ProjectMilestone.fromJson(Map<String, dynamic> j) => ProjectMilestone(
+    id: (j['id'] as num?)?.toInt() ?? 0,
+    name: j['name'] ?? '',
+    status: j['status'] ?? '',
+  );
+}
+
+
 class ProjectController extends GetxController {
   // Text controllers for project details
   final projectNameController = TextEditingController();
@@ -53,6 +149,52 @@ class ProjectController extends GetxController {
     addContractor();
     fetchProjects();
   }
+
+
+
+  // Active project detail state
+  final isProjectLoading = false.obs;
+  final projectError = Rxn<String>();
+  final projectDetail = Rxn<ProjectDetail>();
+  final activeProjectId = Rxn<int>();
+
+  // Call this from ProjectView to ensure we load once per id
+  void ensureProjectLoaded(int projectId) {
+    if (activeProjectId.value != projectId || projectDetail.value == null) {
+      activeProjectId.value = projectId;
+      fetchProjectDetails(projectId);
+    }
+  }
+
+  Future<void> fetchProjectDetails(int id) async {
+    try {
+      isProjectLoading.value = true;
+      projectError.value = null;
+
+      // If your details endpoint differs, adjust this line.
+      // Assuming REST style: GET /projects/{id}
+      final response = await BaseClient.getRequest(
+        api: Api.projectDetails(id),
+        headers: BaseClient.authHeaders(),
+      );
+
+      final data = await BaseClient.handleResponse(
+        response,
+        retryRequest: () => BaseClient.getRequest(
+          api: Api.projectDetails(id),
+          headers: BaseClient.authHeaders(),
+        ),
+      );
+
+      projectDetail.value = ProjectDetail.fromJson(data as Map<String, dynamic>);
+    } catch (e) {
+      debugPrint('Error fetching project details: $e');
+      projectError.value = 'Failed to fetch project details.';
+    } finally {
+      isProjectLoading.value = false;
+    }
+  }
+
 
   // Fetch all projects
   Future<void> fetchProjects() async {

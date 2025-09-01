@@ -49,15 +49,13 @@ class NotificationChatView extends GetView {
                 padding: const EdgeInsets.all(16),
                 children: [
                   // First AI message
-                  ChatHomeView().buildAIMessage(
+                  ChatHomeView().buildAIMessage(context,
                     "Hey Angelo, good to see you! You are currently in plumbing. Your Plumbing Work Milestone is approaching its deadline in 3 days",
-                    "",
                   ),
                   const SizedBox(height: 16),
                   // Second AI message
-                  ChatHomeView().buildAIMessage(
+                  ChatHomeView().buildAIMessage(context,
                     "Now’s a great time to review progress, coordinate with contractors, or make any final adjustments. Let me know if you need any help.",
-                    "",
                   ),
                 ],
               ),

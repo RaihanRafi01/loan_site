@@ -55,30 +55,27 @@ class ViewInstructionView extends GetView {
                 padding: const EdgeInsets.all(16),
                 children: [
                   // First AI message
-                  ChatHomeView().buildAIMessage(
+                  ChatHomeView().buildAIMessage(context,
                     "Hi there! I'm your AI assistant, here to help you manage and track your flooring or construction project — every step of the way.",
-                    "",
                   ),
                   const SizedBox(height: 16),
 
                   // Second AI message
-                  ChatHomeView().buildAIMessage(
+                  ChatHomeView().buildAIMessage(context,
                     "Do you need Contractor nearby?",
-                    "",
                   ),
                   const SizedBox(height: 16),
 
                   // Second AI message
-                  ChatHomeView().buildUserMessage(
+                  ChatHomeView().buildUserMessage(context,
                     "Yes, I need",
-                    "",
                   ),
                   const SizedBox(height: 16),
 
                   // Second AI message
-                  ChatHomeView().buildAIMessage(
+                  ChatHomeView().buildAIMessage(context,
                     "I share you a list of contractor company in your nearby location",
-                    "",
+
                   ),
                 ],
               ),

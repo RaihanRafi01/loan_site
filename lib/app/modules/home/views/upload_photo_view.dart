@@ -216,9 +216,8 @@ class UploadPhotoView extends GetView<UploadPhotoController> {
                 // AI Message
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-                  child: ChatHomeView().buildAIMessage(
+                  child: ChatHomeView().buildAIMessage(context,
                     'Hey Angelo, good to see you! You are currently in plumbing. What\'s the progress of your project?',
-                    '',
                   ),
                 ),
 
