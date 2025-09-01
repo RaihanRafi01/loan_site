@@ -33,6 +33,7 @@ class Api {
   static const createPost = "$baseUrl/community/posts/";  //done
 
   static const myPosts = "$baseUrl/community/posts/my/"; //done
+  static const allPosts = "$baseUrl/community/posts/"; //done
 
   static likePost(post_id) => "$baseUrl/community/posts/$post_id/like/"; // done
 

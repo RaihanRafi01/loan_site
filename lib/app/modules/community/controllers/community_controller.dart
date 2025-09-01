@@ -148,15 +148,176 @@ class CommunityController extends GetxController {
   final pickedMedia = RxList<File>([]);
   final isLoading = false.obs;
 
+  final allPosts = RxList<Post>([]);               // NEW: all posts
   final myPosts = RxList<Post>([]);
   final currentUser = Rx<User?>(null);
   final currentReplies = RxList<Comment>([]);
   final currentComment = Rx<Comment?>(null);
 
+  // for OwnProfile sort UI
+  final selectedMyPostFilter = 'filter_all'.obs;   // NEW
+
   @override
   void onInit() {
     super.onInit();
+    fetchAllPosts();
     fetchMyPosts();
+  }
+// in CommunityController
+
+  Future<void> toggleLikeGlobal(int postId, bool currentlyLiked) async {
+    // keep copies for revert
+    Post? _touch(List<Post> list) {
+      final p = list.firstWhereOrNull((e) => e.id == postId);
+      if (p != null) {
+        final oldLiked = p.isLikedByUser;
+        final oldLikes = p.likesCount;
+        // optimistic update
+        p.isLikedByUser = !currentlyLiked;
+        p.likesCount += currentlyLiked ? -1 : 1;
+        p.likeCount = p.likesCount; // keep alias in sync
+        return Post(
+          id: p.id,
+          user: p.user,
+          title: p.title,
+          content: p.content,
+          image: p.image,
+          tags: p.tags,
+          likeCount: oldLikes,
+          commentCount: p.commentCount,
+          likesCount: oldLikes,
+          sharesCount: p.sharesCount,
+          isLikedByUser: oldLiked,
+          isSharedByUser: p.isSharedByUser,
+          isNotInterestedByUser: p.isNotInterestedByUser,
+          comments: p.comments,
+          createdAt: p.createdAt,
+          updatedAt: p.updatedAt,
+        );
+      }
+      return null;
+    }
+
+    final backupMy = _touch(myPosts);
+    final backupAll = _touch(allPosts);
+    myPosts.refresh();
+    allPosts.refresh();
+
+    try {
+      final apiUrl = Api.likePost(postId.toString());
+      final response = await BaseClient.postRequest(
+        api: apiUrl,
+        body: jsonEncode({}),
+        headers: BaseClient.authHeaders(),
+      );
+
+      final ok = response.statusCode == 200 || response.statusCode == 201;
+      if (!ok) {
+        // revert if needed
+        if (backupMy != null) {
+          final p = myPosts.firstWhereOrNull((e) => e.id == postId);
+          if (p != null) {
+            p.isLikedByUser = backupMy.isLikedByUser;
+            p.likesCount = backupMy.likesCount;
+            p.likeCount = backupMy.likesCount;
+          }
+        }
+        if (backupAll != null) {
+          final p = allPosts.firstWhereOrNull((e) => e.id == postId);
+          if (p != null) {
+            p.isLikedByUser = backupAll.isLikedByUser;
+            p.likesCount = backupAll.likesCount;
+            p.likeCount = backupAll.likesCount;
+          }
+        }
+        myPosts.refresh();
+        allPosts.refresh();
+        _showWarning('Failed to toggle like: ${response.reasonPhrase}');
+      }
+    } catch (e) {
+      // revert on error
+      if (backupMy != null) {
+        final p = myPosts.firstWhereOrNull((e) => e.id == postId);
+        if (p != null) {
+          p.isLikedByUser = backupMy.isLikedByUser;
+          p.likesCount = backupMy.likesCount;
+          p.likeCount = backupMy.likesCount;
+        }
+      }
+      if (backupAll != null) {
+        final p = allPosts.firstWhereOrNull((e) => e.id == postId);
+        if (p != null) {
+          p.isLikedByUser = backupAll.isLikedByUser;
+          p.likesCount = backupAll.likesCount;
+          p.likeCount = backupAll.likesCount;
+        }
+      }
+      myPosts.refresh();
+      allPosts.refresh();
+      print('Toggle like error: $e');
+      _showWarning('Failed to toggle like. Please try again.');
+    }
+  }
+
+
+  Future<void> fetchAllPosts() async {
+    try {
+      final response = await BaseClient.getRequest(
+        api: Api.allPosts,                     // <-- make sure this endpoint exists
+        headers: BaseClient.authHeaders(),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+
+        // If your API returns { results: [...] }
+        final List list = (data is Map && data['results'] is List)
+            ? data['results']
+            : (data is List ? data : []);
+
+        allPosts.value = list.map((e) => Post.fromJson(e)).toList();
+
+        // If we don't know currentUser yet, set from myPosts when available
+        if (currentUser.value == null && myPosts.isNotEmpty) {
+          currentUser.value = myPosts.first.user;
+        }
+      } else {
+        _showWarning('Failed to fetch all posts: ${response.reasonPhrase}');
+      }
+    } catch (e) {
+      print('Fetch all posts error: $e');
+      _showWarning('Failed to fetch all posts. Please try again.');
+    }
+  }
+
+  // --- OwnProfile sorting ---
+  void applyMyPostSort(String filter) {
+    selectedMyPostFilter.value = filter;
+    if (myPosts.isEmpty) return;
+
+    // Safe parse helper
+    int _safeCompare(String a, String b) {
+      final da = DateTime.tryParse(a);
+      final db = DateTime.tryParse(b);
+      if (da == null || db == null) return 0;
+      return da.compareTo(db);
+    }
+
+    final list = [...myPosts];
+    switch (filter) {
+      case 'filter_new':
+        list.sort((a, b) => _safeCompare(b.createdAt, a.createdAt)); // newest first
+        break;
+      case 'filter_old':
+        list.sort((a, b) => _safeCompare(a.createdAt, b.createdAt)); // oldest first
+        break;
+      case 'filter_all':
+      default:
+      // if API already returns newest first, you can re-fetch or keep as-is
+      // do nothing
+        break;
+    }
+    myPosts.value = list;
   }
 
   void updateReplies(Comment comment) {
