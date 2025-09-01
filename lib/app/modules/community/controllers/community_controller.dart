@@ -85,11 +85,11 @@ class Post {
   final String content;
   final String? image;
   final String? tags;
-  final int likeCount;
-  final int commentCount;
-  final int likesCount;
+  int likeCount;
+  int commentCount;
+  int likesCount;
   final int sharesCount;
-  final bool isLikedByUser;
+  bool isLikedByUser;
   final bool isSharedByUser;
   final bool isNotInterestedByUser;
   final List<Comment> comments;
@@ -199,10 +199,16 @@ class CommunityController extends GetxController {
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
+        final newPostData = jsonDecode(response.body);
+        final newPost = Post.fromJson(newPostData);
+        myPosts.insert(0, newPost);
+        myPosts.refresh();
+        if (currentUser.value == null) {
+          currentUser.value = newPost.user;
+        }
         Get.snackbar('Success', 'Post created successfully!');
         statusController.clear();
         pickedMedia.clear();
-        fetchMyPosts();
       } else {
         _showWarning('Failed to create post: ${response.reasonPhrase}');
       }
@@ -237,6 +243,17 @@ class CommunityController extends GetxController {
   }
 
   Future<void> toggleLike(int postId, bool currentlyLiked) async {
+    final post = myPosts.firstWhereOrNull((p) => p.id == postId);
+    if (post == null) return;
+
+    // Optimistic update
+    final oldLiked = post.isLikedByUser;
+    final oldLikes = post.likesCount;
+    post.isLikedByUser = !currentlyLiked;
+    post.likesCount += currentlyLiked ? -1 : 1;
+    post.likeCount = post.likesCount; // If likeCount is alias
+    myPosts.refresh();
+
     try {
       final apiUrl = Api.likePost(postId.toString());
       final response = await BaseClient.postRequest(
@@ -245,12 +262,20 @@ class CommunityController extends GetxController {
         headers: BaseClient.authHeaders(),
       );
 
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        fetchMyPosts();
-      } else {
+      if (!(response.statusCode == 200 || response.statusCode == 201)) {
+        // Revert on failure
+        post.isLikedByUser = oldLiked;
+        post.likesCount = oldLikes;
+        post.likeCount = oldLikes;
+        myPosts.refresh();
         _showWarning('Failed to toggle like: ${response.reasonPhrase}');
       }
     } catch (e) {
+      // Revert on error
+      post.isLikedByUser = oldLiked;
+      post.likesCount = oldLikes;
+      post.likeCount = oldLikes;
+      myPosts.refresh();
       print('Toggle like error: $e');
       _showWarning('Failed to toggle like. Please try again.');
     }
@@ -292,6 +317,9 @@ class CommunityController extends GetxController {
       return;
     }
 
+    final post = myPosts.firstWhereOrNull((p) => p.id == postId);
+    if (post == null) return;
+
     try {
       final apiUrl = Api.createComment(postId.toString());
       final body = jsonEncode({"content": content});
@@ -302,8 +330,12 @@ class CommunityController extends GetxController {
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
+        final newCommentData = jsonDecode(response.body);
+        final newComment = Comment.fromJson(newCommentData);
+        post.comments.add(newComment);
+        post.commentCount += 1;
+        myPosts.refresh();
         Get.snackbar('Success', 'Comment added successfully!');
-        fetchMyPosts();
       } else {
         _showWarning('Failed to add comment: ${response.reasonPhrase}');
       }
@@ -319,6 +351,9 @@ class CommunityController extends GetxController {
       return;
     }
 
+    final parentComment = _findCommentById(commentId);
+    if (parentComment == null) return;
+
     try {
       final apiUrl = Api.commentReplies(commentId.toString());
       final body = jsonEncode({"content": content});
@@ -329,13 +364,13 @@ class CommunityController extends GetxController {
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        Get.snackbar('Success', 'Reply added successfully!');
-        await fetchMyPosts();
-        if (currentComment.value != null) {
-          final updatedPost = myPosts.firstWhere((p) => p.id == currentComment.value!.post);
-          final updatedComment = updatedPost.comments.firstWhere((c) => c.id == currentComment.value!.id);
-          currentReplies.value = updatedComment.replies;
+        final newReplyData = jsonDecode(response.body);
+        final newReply = Comment.fromJson(newReplyData);
+        parentComment.replies.add(newReply);
+        if (currentComment.value != null && currentComment.value!.id == commentId) {
+          currentReplies.add(newReply);
         }
+        Get.snackbar('Success', 'Reply added successfully!');
       } else {
         _showWarning('Failed to add reply: ${response.reasonPhrase}');
       }

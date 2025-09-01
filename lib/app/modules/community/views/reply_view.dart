@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 
 import '../../../../common/appColors.dart';
 import '../../../../common/customFont.dart';
+import '../../../data/api.dart';
 import '../controllers/community_controller.dart';
 
 class ReplyView extends GetView<CommunityController> {
@@ -11,6 +12,16 @@ class ReplyView extends GetView<CommunityController> {
   final TextEditingController _replyController = TextEditingController();
 
   ReplyView({super.key, required this.comment});
+
+  String getImageUrl(String? url) {
+    if (url == null) {
+      return 'https://via.placeholder.com/100';
+    }
+    if (url.startsWith('http')) {
+      return url;
+    }
+    return '${Api.baseUrl}$url';
+  }
 
   String getTimeAgo(DateTime dateTime) {
     final now = DateTime.now();
@@ -104,7 +115,7 @@ class ReplyView extends GetView<CommunityController> {
         children: [
           CircleAvatar(
             radius: 18,
-            backgroundImage: NetworkImage(comment.user.image ?? 'https://via.placeholder.com/100'),
+            backgroundImage: NetworkImage(getImageUrl(comment.user.image)),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -169,7 +180,7 @@ class ReplyView extends GetView<CommunityController> {
         children: [
           CircleAvatar(
             radius: 18,
-            backgroundImage: NetworkImage(reply.user.image ?? 'https://via.placeholder.com/100'),
+            backgroundImage: NetworkImage(getImageUrl(reply.user.image)),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -295,22 +306,6 @@ class ReplyView extends GetView<CommunityController> {
 
     // Posting the reply to the server
     await controller.postReply(comment.id, replyContent);
-
-    // Assuming postReply successfully updates the comment and its replies in the backend
-    final newReply = Comment(
-      id: -1, // Use an id or placeholder; this can be updated from the response if available
-      post: comment.post,
-      user: controller.currentUser.value!, // Assuming the current user is available
-      content: replyContent,
-      likesCount: 0,
-      isLikedByUser: false,
-      createdAt: DateTime.now().toString(),
-      updatedAt: DateTime.now().toString(),
-      replies: RxList<Comment>(),  // Initialize replies as an empty RxList
-    );
-
-    // Manually updating the local `comment.replies` list with the new reply
-    comment.replies.add(newReply);
 
     // Clear the input field after adding the reply
     _replyController.clear();
