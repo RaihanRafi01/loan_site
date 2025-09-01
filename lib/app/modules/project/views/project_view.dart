@@ -6,11 +6,12 @@ import 'package:loan_site/app/modules/project/controllers/project_controller.dar
 import '../../../../common/appColors.dart';
 import '../../../../common/customFont.dart';
 import '../../../../common/widgets/customButton.dart';
-import '../../home/views/upload_photo_view.dart';
 import '../../home/views/view_instruction_view.dart';
 
 class ProjectView extends GetView<ProjectController> {
-  const ProjectView({super.key});
+  final int projectId;
+
+  const ProjectView({super.key, required this.projectId});
 
   @override
   Widget build(BuildContext context) {

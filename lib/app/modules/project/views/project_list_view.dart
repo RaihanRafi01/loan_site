@@ -46,7 +46,7 @@ class ProjectListView extends GetView<ProjectController> {
                     child: _buildProjectCard(
                       title: project.name,
                       onTap: () {
-                        Get.to(ProjectView());
+                        Get.to(ProjectView(projectId: project.id,));
                       },
                     ),
                   );
