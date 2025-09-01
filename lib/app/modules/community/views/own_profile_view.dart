@@ -1,14 +1,12 @@
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-
 import 'package:get/get.dart';
-import 'package:loan_site/app/modules/community/views/community_view.dart';
 import 'package:loan_site/app/modules/community/views/create_post_view.dart';
 import 'package:loan_site/common/widgets/customButton.dart';
-
 import '../../../../common/appColors.dart';
 import '../../../../common/customFont.dart';
+import '../../../../common/widgets/community/communityWidgets.dart';
 import '../controllers/community_controller.dart'; // Import the controller
 
 class OwnProfileView extends GetView<CommunityController> {
@@ -204,20 +202,6 @@ class OwnProfileView extends GetView<CommunityController> {
     );
   }
 
-  String getTimeAgo(DateTime dateTime) {
-    final now = DateTime.now();
-    final difference = now.difference(dateTime);
-    if (difference.inDays > 0) {
-      return '${difference.inDays}d';
-    } else if (difference.inHours > 0) {
-      return '${difference.inHours}h';
-    } else if (difference.inMinutes > 0) {
-      return '${difference.inMinutes}m';
-    } else {
-      return 'Just now';
-    }
-  }
-
   Widget _buildPostItem({
     required String username,
     required String userAvatar,
@@ -320,24 +304,24 @@ class OwnProfileView extends GetView<CommunityController> {
               style: h2.copyWith(fontSize: 16, color: AppColors.textColor),
             ),
           ),
-          CommunityView().buildImageGrid(images),
+          buildImageGrid(images),
           const SizedBox(height: 16),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              CommunityView().buildActionButton(
+              buildActionButton(
                 post.isLikedByUser ? 'assets/images/community/love_icon_filled.svg' : 'assets/images/community/love_icon.svg',
                 likes.toString(),
                 onPressed: () {
                   controller.toggleLike(post.id, post.isLikedByUser);
                 },
               ),
-              CommunityView().buildActionButton(
+              buildActionButton(
                 'assets/images/community/comment_icon.svg',
                 comments.toString(),
                 postId: post.id,
               ),
-              CommunityView().buildActionButton(
+              buildActionButton(
                 'assets/images/community/share_icon.svg',
                   share.toString(),
               ),
