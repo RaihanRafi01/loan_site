@@ -205,7 +205,7 @@ class CommunityView extends GetView<CommunityController> {
             ),
 
           // images
-          buildImageGrid(images),
+          buildImageGrid(images.cast<Map<String, dynamic>>()),
           const SizedBox(height: 16),
 
           // actions

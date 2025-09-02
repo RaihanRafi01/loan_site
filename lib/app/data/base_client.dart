@@ -70,6 +70,8 @@ class BaseClient {
         );
         throw TimeoutException("Request timed out");
       });
+      debugPrint('💥💥💥💥💥💥💥💥💥💥 🚀 ➤➤➤ Code: ${response.statusCode}');
+      debugPrint('💥💥💥💥💥💥💥💥💥💥 🚀 ➤➤➤ Response: ${response.body}');
       return response;
     } on SocketException {
       kSnackBar(

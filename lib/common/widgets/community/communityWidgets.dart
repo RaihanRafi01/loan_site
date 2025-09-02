@@ -7,27 +7,34 @@ import '../../../app/modules/community/views/share_post_view.dart';
 import '../../appColors.dart';
 import '../../customFont.dart';
 
-Widget buildImageGrid(List<String> images) {
+Widget buildImageGrid(List<Map<String, dynamic>> images) {
   if (images.isEmpty) return const SizedBox.shrink();
 
-  if (images.length == 1) {
+  // Extract URLs from the images map
+  List<String> imageUrls = images.map((image) => image['image'] as String).toList();
+
+  if (imageUrls.isEmpty) return const SizedBox.shrink();
+
+  if (imageUrls.length == 1) {
     return SizedBox(
       width: double.infinity,
       height: 300,
       child: Image.network(
-        images[0],
+        imageUrls[0],
         fit: BoxFit.cover,
         loadingBuilder: (context, child, loadingProgress) =>
         loadingProgress == null ? child : const Center(child: CircularProgressIndicator()),
-        errorBuilder: (context, error, stackTrace) =>
-        const Center(child: Icon(Icons.error)),
+        errorBuilder: (context, error, stackTrace) {
+          debugPrint("Error loading image: $error");
+          return const Center(child: Icon(Icons.error));
+        },
       ),
     );
-  } else if (images.length == 2) {
+  } else if (imageUrls.length == 2) {
     return SizedBox(
       height: 200,
       child: Row(
-        children: images
+        children: imageUrls
             .asMap()
             .entries
             .map(
@@ -49,14 +56,14 @@ Widget buildImageGrid(List<String> images) {
             .toList(),
       ),
     );
-  } else if (images.length == 3) {
+  } else if (imageUrls.length == 3) {
     return SizedBox(
       height: 200,
       child: Row(
         children: [
           Expanded(
             child: Image.network(
-              images[0],
+              imageUrls[0],
               fit: BoxFit.cover,
               height: double.infinity,
               loadingBuilder: (context, child, loadingProgress) =>
@@ -73,7 +80,7 @@ Widget buildImageGrid(List<String> images) {
                   child: Container(
                     margin: const EdgeInsets.only(bottom: 0.5),
                     child: Image.network(
-                      images[1],
+                      imageUrls[1],
                       fit: BoxFit.cover,
                       width: double.infinity,
                       loadingBuilder: (context, child, loadingProgress) =>
@@ -87,7 +94,7 @@ Widget buildImageGrid(List<String> images) {
                   child: Container(
                     margin: const EdgeInsets.only(top: 0.5),
                     child: Image.network(
-                      images[2],
+                      imageUrls[2],
                       fit: BoxFit.cover,
                       width: double.infinity,
                       loadingBuilder: (context, child, loadingProgress) =>
@@ -116,7 +123,7 @@ Widget buildImageGrid(List<String> images) {
                   child: Container(
                     margin: const EdgeInsets.only(right: 0.5, bottom: 0.5),
                     child: Image.network(
-                      images[0],
+                      imageUrls[0],
                       fit: BoxFit.cover,
                       height: double.infinity,
                       loadingBuilder: (context, child, loadingProgress) =>
@@ -130,7 +137,7 @@ Widget buildImageGrid(List<String> images) {
                   child: Container(
                     margin: const EdgeInsets.only(left: 0.5, bottom: 0.5),
                     child: Image.network(
-                      images[1],
+                      imageUrls[1],
                       fit: BoxFit.cover,
                       height: double.infinity,
                       loadingBuilder: (context, child, loadingProgress) =>
@@ -150,7 +157,7 @@ Widget buildImageGrid(List<String> images) {
                   child: Container(
                     margin: const EdgeInsets.only(right: 0.5, top: 0.5),
                     child: Image.network(
-                      images[2],
+                      imageUrls[2],
                       fit: BoxFit.cover,
                       height: double.infinity,
                       loadingBuilder: (context, child, loadingProgress) =>
@@ -167,19 +174,19 @@ Widget buildImageGrid(List<String> images) {
                       fit: StackFit.expand,
                       children: [
                         Image.network(
-                          images[3],
+                          imageUrls[3],
                           fit: BoxFit.cover,
                           loadingBuilder: (context, child, loadingProgress) =>
                           loadingProgress == null ? child : const Center(child: CircularProgressIndicator()),
                           errorBuilder: (context, error, stackTrace) =>
                           const Center(child: Icon(Icons.error)),
                         ),
-                        if (images.length > 4)
+                        if (imageUrls.length > 4)
                           Container(
                             color: Colors.black54,
                             child: Center(
                               child: Text(
-                                '+${images.length - 4}',
+                                '+${imageUrls.length - 4}',
                                 style: const TextStyle(
                                   color: Colors.white,
                                   fontSize: 18,
@@ -200,6 +207,7 @@ Widget buildImageGrid(List<String> images) {
     );
   }
 }
+
 
 Widget buildActionButton(
     String svgPath,

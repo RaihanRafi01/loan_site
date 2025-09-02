@@ -304,7 +304,7 @@ class OwnProfileView extends GetView<CommunityController> {
               style: h2.copyWith(fontSize: 16, color: AppColors.textColor),
             ),
           ),
-          buildImageGrid(images),
+          buildImageGrid(images.cast<Map<String, dynamic>>()),
           const SizedBox(height: 16),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,

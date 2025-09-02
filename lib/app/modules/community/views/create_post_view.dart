@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
@@ -8,6 +9,7 @@ import 'package:loan_site/common/widgets/customTextField.dart';
 import '../../../../common/appColors.dart';
 import '../../../../common/customFont.dart';
 import '../controllers/community_controller.dart';
+import 'package:http/http.dart' as http;  // Added for MultipartRequest
 
 class CreatePostView extends GetView<CommunityController> {
   const CreatePostView({super.key});
@@ -133,3 +135,4 @@ class CreatePostView extends GetView<CommunityController> {
     );
   }
 }
+

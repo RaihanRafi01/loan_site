@@ -18,12 +18,7 @@ class User {
   final String email;
   final String? image;
 
-  User({
-    required this.id,
-    this.name,
-    required this.email,
-    this.image,
-  });
+  User({required this.id, this.name, required this.email, this.image});
 
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
@@ -59,8 +54,8 @@ class Comment {
     this.parent,
     RxList<Comment>? replies,
   }) : likesCount = likesCount.obs,
-        isLikedByUser = isLikedByUser.obs,
-        replies = replies ?? RxList<Comment>();
+       isLikedByUser = isLikedByUser.obs,
+       replies = replies ?? RxList<Comment>();
 
   factory Comment.fromJson(Map<String, dynamic> json) {
     return Comment(
@@ -73,7 +68,10 @@ class Comment {
       createdAt: json['created_at'],
       updatedAt: json['updated_at'],
       parent: json['parent'],
-      replies: (json['replies'] as List? ?? []).map((e) => Comment.fromJson(e)).toList().obs,
+      replies: (json['replies'] as List? ?? [])
+          .map((e) => Comment.fromJson(e))
+          .toList()
+          .obs,
     );
   }
 }
@@ -148,14 +146,14 @@ class CommunityController extends GetxController {
   final pickedMedia = RxList<File>([]);
   final isLoading = false.obs;
 
-  final allPosts = RxList<Post>([]);               // NEW: all posts
+  final allPosts = RxList<Post>([]); // NEW: all posts
   final myPosts = RxList<Post>([]);
   final currentUser = Rx<User?>(null);
   final currentReplies = RxList<Comment>([]);
   final currentComment = Rx<Comment?>(null);
 
   // for OwnProfile sort UI
-  final selectedMyPostFilter = 'filter_all'.obs;   // NEW
+  final selectedMyPostFilter = 'filter_all'.obs; // NEW
 
   @override
   void onInit() {
@@ -163,7 +161,8 @@ class CommunityController extends GetxController {
     fetchAllPosts();
     fetchMyPosts();
   }
-// in CommunityController
+
+  // in CommunityController
 
   Future<void> toggleLikeGlobal(int postId, bool currentlyLiked) async {
     // keep copies for revert
@@ -259,11 +258,10 @@ class CommunityController extends GetxController {
     }
   }
 
-
   Future<void> fetchAllPosts() async {
     try {
       final response = await BaseClient.getRequest(
-        api: Api.allPosts,                     // <-- make sure this endpoint exists
+        api: Api.allPosts, // <-- make sure this endpoint exists
         headers: BaseClient.authHeaders(),
       );
 
@@ -306,15 +304,19 @@ class CommunityController extends GetxController {
     final list = [...myPosts];
     switch (filter) {
       case 'filter_new':
-        list.sort((a, b) => _safeCompare(b.createdAt, a.createdAt)); // newest first
+        list.sort(
+          (a, b) => _safeCompare(b.createdAt, a.createdAt),
+        ); // newest first
         break;
       case 'filter_old':
-        list.sort((a, b) => _safeCompare(a.createdAt, b.createdAt)); // oldest first
+        list.sort(
+          (a, b) => _safeCompare(a.createdAt, b.createdAt),
+        ); // oldest first
         break;
       case 'filter_all':
       default:
-      // if API already returns newest first, you can re-fetch or keep as-is
-      // do nothing
+        // if API already returns newest first, you can re-fetch or keep as-is
+        // do nothing
         break;
     }
     myPosts.value = list;
@@ -324,8 +326,9 @@ class CommunityController extends GetxController {
     // Find the comment in the posts list and update its replies
     final post = myPosts.firstWhere((p) => p.id == comment.post);
     final updatedComment = post.comments.firstWhere((c) => c.id == comment.id);
-    updatedComment.replies = comment.replies;  // Update the replies in the comment
-    myPosts.refresh();  // Trigger reactivity to update the UI
+    updatedComment.replies =
+        comment.replies; // Update the replies in the comment
+    myPosts.refresh(); // Trigger reactivity to update the UI
   }
 
   void _showWarning(String message, {String title = 'Warning'}) {
@@ -352,12 +355,23 @@ class CommunityController extends GetxController {
 
     isLoading.value = true;
     try {
-      final body = jsonEncode({"title": "My First Post", "content": statusController.text});
-      final response = await BaseClient.postRequest(
-        api: Api.createPost,
-        body: body,
-        headers: BaseClient.authHeaders(),
-      );
+      // Use MultipartRequest to handle file uploads alongside fields
+      var uri = Uri.parse(Api.createPost);  // Assuming Api.createPost is a string URL
+      var request = http.MultipartRequest('POST', uri);
+      request.headers.addAll(await BaseClient.authHeaders());
+
+      // Add text fields
+      request.fields['title'] = 'My First Post';
+      request.fields['content'] = statusController.text;
+
+      // Add media files (assuming API accepts multiple under 'images' key; adjust key if needed)
+      for (var file in pickedMedia) {
+        var multipartFile = await http.MultipartFile.fromPath('images', file.path);  // Use 'images' for multiple; change to 'image' if single
+        request.files.add(multipartFile);
+      }
+
+      var streamedResponse = await request.send();
+      var response = await http.Response.fromStream(streamedResponse);
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final newPostData = jsonDecode(response.body);
@@ -390,7 +404,9 @@ class CommunityController extends GetxController {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        myPosts.value = (data['results'] as List).map((e) => Post.fromJson(e)).toList();
+        myPosts.value = (data['results'] as List)
+            .map((e) => Post.fromJson(e))
+            .toList();
         if (myPosts.isNotEmpty) {
           currentUser.value = myPosts[0].user;
         }
@@ -528,7 +544,8 @@ class CommunityController extends GetxController {
         final newReplyData = jsonDecode(response.body);
         final newReply = Comment.fromJson(newReplyData);
         parentComment.replies.add(newReply);
-        if (currentComment.value != null && currentComment.value!.id == commentId) {
+        if (currentComment.value != null &&
+            currentComment.value!.id == commentId) {
           currentReplies.add(newReply);
         }
         Get.snackbar('Success', 'Reply added successfully!');
