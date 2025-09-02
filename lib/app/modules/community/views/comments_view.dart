@@ -5,6 +5,7 @@ import 'package:loan_site/app/modules/community/views/reply_view.dart';
 import 'package:loan_site/app/modules/community/views/share_post_view.dart';
 import '../../../../common/appColors.dart';
 import '../../../../common/customFont.dart';
+import '../../../../common/widgets/community/communityWidgets.dart';
 import '../controllers/community_controller.dart';
 
 class CommentsView extends GetView<CommunityController> {
@@ -42,10 +43,14 @@ class CommentsView extends GetView<CommunityController> {
         final username = post.user.name ?? 'Anonymous';
         final userAvatar = post.user.image ?? 'https://via.placeholder.com/100';
         final timeAgo = getTimeAgo(DateTime.parse(post.createdAt));
-        final images = post.image != null ? [post.image!] : <String>[];
         final likes = post.likeCount;
         final comments = post.commentCount;
         final content = post.content;
+
+        final images = post.images
+            .where((imageData) => imageData.image != null && imageData.image.isNotEmpty)
+            .map((imageData) => {'image': imageData.image}) // Convert each image URL to a Map
+            .toList();
 
         return Column(
           children: [
@@ -108,7 +113,7 @@ class CommentsView extends GetView<CommunityController> {
     }
   }
 
-  Widget _buildOriginalPost(Post post, String username, String userAvatar, String timeAgo, String content, List<String> images, int likes, int comments) {
+  Widget _buildOriginalPost(Post post, String username, String userAvatar, String timeAgo, String content, List<Map<String, dynamic>> images, int likes, int comments) {
     return Container(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -155,7 +160,7 @@ class CommentsView extends GetView<CommunityController> {
           const SizedBox(height: 12),
 
           // Images
-          _buildImageGrid(images),
+          buildImageGrid(images),
 
           const SizedBox(height: 16),
 
@@ -318,120 +323,6 @@ class CommentsView extends GetView<CommunityController> {
   void _addComment() {
     controller.postComment(postId, _commentController.text);
     _commentController.clear();
-  }
-
-  Widget _buildImageGrid(List<String> images) {
-    if (images.length == 1) {
-      return ClipRRect(
-        borderRadius: BorderRadius.circular(8),
-        child: SizedBox(
-          width: double.infinity,
-          height: 200,
-          child: Image.network(
-            images[0],
-            fit: BoxFit.cover,
-            loadingBuilder: (context, child, loadingProgress) =>
-            loadingProgress == null
-                ? child
-                : const Center(child: CircularProgressIndicator()),
-            errorBuilder: (context, error, stackTrace) =>
-            const Center(child: Icon(Icons.error)),
-          ),
-        ),
-      );
-    } else if (images.length == 2) {
-      return ClipRRect(
-        borderRadius: BorderRadius.circular(8),
-        child: SizedBox(
-          height: 150,
-          child: Row(
-            children: images
-                .asMap()
-                .entries
-                .map(
-                  (entry) => Expanded(
-                child: Container(
-                  margin: EdgeInsets.only(right: entry.key == 0 ? 1 : 0),
-                  child: Image.network(
-                    entry.value,
-                    fit: BoxFit.cover,
-                    height: double.infinity,
-                    loadingBuilder: (context, child, loadingProgress) =>
-                    loadingProgress == null
-                        ? child
-                        : const Center(child: CircularProgressIndicator()),
-                    errorBuilder: (context, error, stackTrace) =>
-                    const Center(child: Icon(Icons.error)),
-                  ),
-                ),
-              ),
-            )
-                .toList(),
-          ),
-        ),
-      );
-    } else if (images.length >= 3) {
-      return ClipRRect(
-        borderRadius: BorderRadius.circular(8),
-        child: SizedBox(
-          height: 150,
-          child: Row(
-            children: [
-              Expanded(
-                child: Image.network(
-                  images[0],
-                  fit: BoxFit.cover,
-                  height: double.infinity,
-                ),
-              ),
-              const SizedBox(width: 1),
-              Expanded(
-                child: Column(
-                  children: [
-                    Expanded(
-                      child: Container(
-                        margin: const EdgeInsets.only(bottom: 0.5),
-                        child: Image.network(
-                          images[1],
-                          fit: BoxFit.cover,
-                          width: double.infinity,
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      child: Container(
-                        margin: const EdgeInsets.only(top: 0.5),
-                        child: Stack(
-                          fit: StackFit.expand,
-                          children: [
-                            Image.network(images[2], fit: BoxFit.cover),
-                            if (images.length > 3)
-                              Container(
-                                color: Colors.black54,
-                                child: Center(
-                                  child: Text(
-                                    '+${images.length - 3}',
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-    return Container();
   }
 
   Widget _buildActionButton(String svgPath, String count) {

@@ -10,11 +10,19 @@ import '../../customFont.dart';
 Widget buildImageGrid(List<Map<String, dynamic>> images) {
   if (images.isEmpty) return const SizedBox.shrink();
 
-  // Extract URLs from the images map
-  List<String> imageUrls = images.map((image) => image['image'] as String).toList();
+  // Print the images list to debug
+  print('Images data: $images');
+
+  // Extract the URLs safely from the images list
+  List<String> imageUrls = images
+      .where((image) => image is Map<String, dynamic> && image['image'] is String)
+      .map((image) => image['image'] as String)
+      .toList();
 
   if (imageUrls.isEmpty) return const SizedBox.shrink();
 
+
+  // Handle image grid layouts for 1, 2, 3, or more images
   if (imageUrls.length == 1) {
     return SizedBox(
       width: double.infinity,
@@ -111,7 +119,7 @@ Widget buildImageGrid(List<Map<String, dynamic>> images) {
       ),
     );
   } else {
-    // 4+
+    // For 4+ images
     return SizedBox(
       height: 200,
       child: Column(
@@ -207,6 +215,9 @@ Widget buildImageGrid(List<Map<String, dynamic>> images) {
     );
   }
 }
+
+
+
 
 
 Widget buildActionButton(

@@ -91,9 +91,17 @@ class CommunityView extends GetView<CommunityController> {
                     final userAvatar = post.user.image ?? 'https://via.placeholder.com/100';
                     final timeAgo = getTimeAgo(DateTime.tryParse(post.createdAt));
                     final content = post.content;
-                    final images = (post.image != null && post.image!.isNotEmpty)
-                        ? <String>[post.image!]
-                        : const <String>[];
+
+                    // Ensure images is a valid list of strings (with no invalid data)
+                    final images = post.images
+                        .where((imageData) => imageData.image != null && imageData.image.isNotEmpty)
+                        .map((imageData) => {'image': imageData.image}) // Convert each image URL to a Map
+                        .toList();
+
+
+
+
+
 
                     return _buildDynamicPostItem(
                       post: post,
@@ -121,7 +129,7 @@ class CommunityView extends GetView<CommunityController> {
     required String userAvatar,
     required String timeAgo,
     required String content,
-    required List<String> images,
+    required List<Map<String, dynamic>> images,
     required int likes,
     required int comments,
   }) {
@@ -205,7 +213,8 @@ class CommunityView extends GetView<CommunityController> {
             ),
 
           // images
-          buildImageGrid(images.cast<Map<String, dynamic>>()),
+          buildImageGrid(images), // Pass the list as is
+
           const SizedBox(height: 16),
 
           // actions

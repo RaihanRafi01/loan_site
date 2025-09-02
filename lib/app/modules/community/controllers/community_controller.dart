@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
@@ -11,7 +10,6 @@ import '../../../../common/widgets/custom_snackbar.dart';
 import '../../../data/api.dart';
 import '../../../data/base_client.dart';
 
-// Add models
 class User {
   final int id;
   final String? name;
@@ -54,8 +52,8 @@ class Comment {
     this.parent,
     RxList<Comment>? replies,
   }) : likesCount = likesCount.obs,
-       isLikedByUser = isLikedByUser.obs,
-       replies = replies ?? RxList<Comment>();
+        isLikedByUser = isLikedByUser.obs,
+        replies = replies ?? RxList<Comment>();
 
   factory Comment.fromJson(Map<String, dynamic> json) {
     return Comment(
@@ -81,7 +79,7 @@ class Post {
   final User user;
   final String title;
   final String content;
-  final String? image;
+  final List<ImageData> images;
   final String? tags;
   int likeCount;
   int commentCount;
@@ -99,7 +97,7 @@ class Post {
     required this.user,
     required this.title,
     required this.content,
-    this.image,
+    required this.images,
     this.tags,
     required this.likeCount,
     required this.commentCount,
@@ -120,12 +118,17 @@ class Post {
         .map((cJson) => Comment.fromJson(cJson))
         .toList();
 
+    // Convert the images list into a List<ImageData> objects
+    List<ImageData> images = (json['images'] as List)
+        .map((imageData) => ImageData.fromJson(imageData))
+        .toList();
+
     return Post(
       id: json['id'],
       user: User.fromJson(json['user']),
       title: json['title'],
       content: json['content'],
-      image: json['image'],
+      images: images,  // Use List<ImageData> instead of List<String>
       tags: json['tags'],
       likeCount: json['like_count'],
       commentCount: json['comment_count'],
@@ -139,6 +142,28 @@ class Post {
       updatedAt: json['updated_at'],
     );
   }
+
+
+}
+
+class ImageData {
+  final int id;
+  final int post;
+  final String image;
+
+  ImageData({
+    required this.id,
+    required this.post,
+    required this.image,
+  });
+
+  factory ImageData.fromJson(Map<String, dynamic> json) {
+    return ImageData(
+      id: json['id'],
+      post: json['post'],
+      image: json['image'],
+    );
+  }
 }
 
 class CommunityController extends GetxController {
@@ -146,14 +171,13 @@ class CommunityController extends GetxController {
   final pickedMedia = RxList<File>([]);
   final isLoading = false.obs;
 
-  final allPosts = RxList<Post>([]); // NEW: all posts
+  final allPosts = RxList<Post>([]);
   final myPosts = RxList<Post>([]);
   final currentUser = Rx<User?>(null);
   final currentReplies = RxList<Comment>([]);
   final currentComment = Rx<Comment?>(null);
 
-  // for OwnProfile sort UI
-  final selectedMyPostFilter = 'filter_all'.obs; // NEW
+  final selectedMyPostFilter = 'filter_all'.obs;
 
   @override
   void onInit() {
@@ -162,25 +186,22 @@ class CommunityController extends GetxController {
     fetchMyPosts();
   }
 
-  // in CommunityController
-
   Future<void> toggleLikeGlobal(int postId, bool currentlyLiked) async {
-    // keep copies for revert
+    // Optimistic update for like toggle
     Post? _touch(List<Post> list) {
       final p = list.firstWhereOrNull((e) => e.id == postId);
       if (p != null) {
         final oldLiked = p.isLikedByUser;
         final oldLikes = p.likesCount;
-        // optimistic update
         p.isLikedByUser = !currentlyLiked;
         p.likesCount += currentlyLiked ? -1 : 1;
-        p.likeCount = p.likesCount; // keep alias in sync
+        p.likeCount = p.likesCount;
         return Post(
           id: p.id,
           user: p.user,
           title: p.title,
           content: p.content,
-          image: p.image,
+          images: p.images,
           tags: p.tags,
           likeCount: oldLikes,
           commentCount: p.commentCount,
@@ -212,7 +233,6 @@ class CommunityController extends GetxController {
 
       final ok = response.statusCode == 200 || response.statusCode == 201;
       if (!ok) {
-        // revert if needed
         if (backupMy != null) {
           final p = myPosts.firstWhereOrNull((e) => e.id == postId);
           if (p != null) {
@@ -234,7 +254,6 @@ class CommunityController extends GetxController {
         _showWarning('Failed to toggle like: ${response.reasonPhrase}');
       }
     } catch (e) {
-      // revert on error
       if (backupMy != null) {
         final p = myPosts.firstWhereOrNull((e) => e.id == postId);
         if (p != null) {
@@ -259,25 +278,43 @@ class CommunityController extends GetxController {
   }
 
   Future<void> fetchAllPosts() async {
+
     try {
       final response = await BaseClient.getRequest(
-        api: Api.allPosts, // <-- make sure this endpoint exists
+        api: Api.allPosts,
         headers: BaseClient.authHeaders(),
       );
 
       if (response.statusCode == 200) {
+        print('Response body: ${response.body}'); // For debugging
+
+        // Decode the response body as JSON
         final data = jsonDecode(response.body);
 
-        // If your API returns { results: [...] }
-        final List list = (data is Map && data['results'] is List)
-            ? data['results']
-            : (data is List ? data : []);
+        // Ensure 'data' is a Map<String, dynamic>
+        if (data is Map<String, dynamic>) {
+          final List<dynamic> list = data['results'] ?? [];
 
-        allPosts.value = list.map((e) => Post.fromJson(e)).toList();
+          // Debugging: Print each item to inspect its structure
+          for (var item in list) {
+            print('Item: $item');
+          }
+          // Safely map through the list and handle potential issues with malformed data
+          allPosts.value = list.map((e) {
+            if (e is Map<String, dynamic>) {
+              return Post.fromJson(e);
+            }
+            // Handle invalid items in the 'results' list (not a Map<String, dynamic>)
+            print('Invalid item found: $e');
+            return null;
+          }).whereType<Post>().toList(); // Filter out nulls (invalid items)
 
-        // If we don't know currentUser yet, set from myPosts when available
-        if (currentUser.value == null && myPosts.isNotEmpty) {
-          currentUser.value = myPosts.first.user;
+          // If currentUser is null, update it from myPosts
+          if (currentUser.value == null && myPosts.isNotEmpty) {
+            currentUser.value = myPosts.first.user;
+          }
+        } else {
+          _showWarning('Unexpected response format. The data is not a Map.');
         }
       } else {
         _showWarning('Failed to fetch all posts: ${response.reasonPhrase}');
@@ -287,6 +324,7 @@ class CommunityController extends GetxController {
       _showWarning('Failed to fetch all posts. Please try again.');
     }
   }
+
 
   // --- OwnProfile sorting ---
   void applyMyPostSort(String filter) {

@@ -182,12 +182,18 @@ class OwnProfileView extends GetView<CommunityController> {
                 itemCount: controller.myPosts.length,
                 itemBuilder: (context, index) {
                   final post = controller.myPosts[index];
+
+                  final images = post.images
+                      .where((imageData) => imageData.image != null && imageData.image.isNotEmpty)
+                      .map((imageData) => {'image': imageData.image}) // Convert each image URL to a Map
+                      .toList();
+
                   return _buildPostItem(
                     username: post.user.name!,
                     userAvatar: post.user.image ?? 'https://via.placeholder.com/100',
                     timeAgo: getTimeAgo(DateTime.parse(post.createdAt)),
                     content: post.content, // Dynamic content
-                    images: post.image != null ? [post.image!] : [],
+                    images: images,
                     likes: post.likeCount,
                     comments: post.commentCount,
                     post: post, // Pass the post for like functionality
@@ -207,7 +213,7 @@ class OwnProfileView extends GetView<CommunityController> {
     required String userAvatar,
     required String timeAgo,
     required String content,
-    required List<String> images,
+    required List<Map<String, dynamic>> images,
     required int likes,
     required int comments,
     required Post post,
@@ -304,7 +310,7 @@ class OwnProfileView extends GetView<CommunityController> {
               style: h2.copyWith(fontSize: 16, color: AppColors.textColor),
             ),
           ),
-          buildImageGrid(images.cast<Map<String, dynamic>>()),
+          buildImageGrid(images),
           const SizedBox(height: 16),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
