@@ -411,14 +411,19 @@ class CommunityController extends GetxController {
       var streamedResponse = await request.send();
       var response = await http.Response.fromStream(streamedResponse);
 
+      debugPrint("API Hit: $uri");
+
+
+      debugPrint('💥💥💥💥💥💥💥💥💥💥 🚀 ➤➤➤ Code: ${response.statusCode}');
+      debugPrint('💥💥💥💥💥💥💥💥💥💥 🚀 ➤➤➤ Response: ${response.body}');
+
       if (response.statusCode == 200 || response.statusCode == 201) {
-        final newPostData = jsonDecode(response.body);
-        final newPost = Post.fromJson(newPostData);
-        myPosts.insert(0, newPost);
-        myPosts.refresh();
-        if (currentUser.value == null) {
-          currentUser.value = newPost.user;
-        }
+        //final newPostData = jsonDecode(response.body);
+        //final newPost = Post.fromJson(newPostData);
+        //myPosts.insert(0, newPost);
+        //myPosts.refresh();
+        fetchAllPosts();
+        fetchMyPosts();
         Get.snackbar('Success', 'Post created successfully!');
         statusController.clear();
         pickedMedia.clear();
