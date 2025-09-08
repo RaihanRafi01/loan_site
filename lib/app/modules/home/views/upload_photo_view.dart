@@ -383,7 +383,7 @@ class UploadPhotoView extends GetView<UploadPhotoController> {
                     label: 'Submit',
                     onPressed: () => Get.to(ChatHomeView()),
                   ),
-                )
+                ),
               ],
             ),
 

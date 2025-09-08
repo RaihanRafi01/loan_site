@@ -14,6 +14,7 @@ class ProjectListView extends GetView<ProjectController> {
   @override
   Widget build(BuildContext context) {
     Get.put(ProjectController());
+    controller.fetchProjects();
     return Scaffold(
       backgroundColor: AppColors.appBc,
       appBar: AppBar(

@@ -5,9 +5,11 @@ import 'package:loan_site/app/modules/home/views/chat_home_view.dart';
 import 'package:loan_site/app/modules/home/views/upload_photo_view.dart';
 import 'package:loan_site/app/modules/home/views/view_instruction_view.dart';
 import 'package:loan_site/app/modules/notification/views/notification_view.dart';
+import 'package:loan_site/app/modules/project/views/project_list_view.dart';
 import 'package:loan_site/common/widgets/customButton.dart';
 import '../../../../common/appColors.dart';
 import '../../../../common/customFont.dart';
+import '../../dashboard/controllers/dashboard_controller.dart';
 import '../controllers/home_controller.dart';
 import '../../project/controllers/project_controller.dart'; // For ProjectDetail
 
@@ -16,21 +18,28 @@ class HomeView extends GetView<HomeController> {
 
   @override
   Widget build(BuildContext context) {
+    Get.put(HomeController());
+    final DashboardController dashboardController =
+        Get.find<DashboardController>();
     return Scaffold(
       backgroundColor: AppColors.appBc,
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Get.to(ChatHomeView());
-        },
-        backgroundColor: AppColors.progressClr,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(80),
-        ),
-        child: SvgPicture.asset(
-          'assets/images/home/chat_floating_button.svg',
-          height: 150,
-          width: 100,
-        ),
+      floatingActionButton: Obx(
+        () => controller.currentProject.value != null
+            ? FloatingActionButton(
+                onPressed: () {
+                  Get.to(ChatHomeView());
+                },
+                backgroundColor: AppColors.progressClr,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(80),
+                ),
+                child: SvgPicture.asset(
+                  'assets/images/home/chat_floating_button.svg',
+                  height: 150,
+                  width: 100,
+                ),
+              )
+            : const SizedBox.shrink(),
       ),
       floatingActionButtonLocation: _CustomFloatingButtonLocation(),
       body: SafeArea(
@@ -44,16 +53,32 @@ class HomeView extends GetView<HomeController> {
                 children: [
                   Row(
                     children: [
-                      Image.asset(
-                        'assets/images/home/user_image.png',
-                        scale: 4,
-                      ),
+                      // Dynamic profile image
+                      dashboardController.profileImageUrl.value.isNotEmpty
+                          ? CircleAvatar(
+                              radius: 40, // Adjust size as needed
+                              backgroundImage: NetworkImage(
+                                dashboardController.profileImageUrl.value,
+                              ),
+                              onBackgroundImageError: (exception, stackTrace) {
+                                // Handle image loading error (optional)
+                                print(
+                                  'Error loading profile image: $exception',
+                                );
+                              },
+                            )
+                          : Image.asset(
+                              'assets/images/home/user_image.png',
+                              scale: 4,
+                            ),
                       SizedBox(width: 16),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Angelo',
+                            dashboardController.name.value.isNotEmpty
+                                ? dashboardController.name.value
+                                : 'User', // Fallback if name is empty
                             style: h2.copyWith(
                               color: AppColors.textColor,
                               fontSize: 24,
@@ -71,364 +96,377 @@ class HomeView extends GetView<HomeController> {
                     ],
                   ),
                   GestureDetector(
-                    onTap: () => Get.to(NotificationView()),
-                    child: SvgPicture.asset('assets/images/home/notification_icon.svg'),
+                    onTap: () => Get.to(() => NotificationView()),
+                    child: SvgPicture.asset(
+                      'assets/images/home/notification_icon.svg',
+                    ),
                   ),
                 ],
               ),
               const SizedBox(height: 30),
-
-              // Project Header
-              Obx(() => Text(
-                controller.currentProject.value?.name ?? 'No Project Selected',
-                style: h3.copyWith(
-                  fontSize: 24,
-                  color: AppColors.textColor,
-                ),
-              )),
-              const SizedBox(height: 4),
-              Obx(() => Text(
-                controller.currentProject.value?.type ?? 'Select a project to view details',
-                style: h4.copyWith(
-                  fontSize: 16,
-                  color: AppColors.blurtext5,
-                ),
-              )),
-              const SizedBox(height: 20),
-              // Progress Card
+              // Project Section
               Obx(() {
                 final project = controller.currentProject.value;
                 if (project == null) {
-                  return _buildNoProjectCard();
+                  return CustomButton(
+                    label: 'Select project to continue',
+                    onPressed: () {
+                      Get.to(ProjectListView());
+                    },
+                    radius: 6,
+                    svgPath2: 'assets/images/home/double_arrow_icon.svg',
+                    fontSize: 16,
+                  );
                 }
-                final progress = project.progress;
-                return Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [AppColors.cardGradient1, AppColors.cardGradient2],
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Project Header
+                    Text(
+                      project.name,
+                      style: h3.copyWith(
+                        fontSize: 24,
+                        color: AppColors.textColor,
+                      ),
                     ),
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    const SizedBox(height: 4),
+                    Text(
+                      project.type,
+                      style: h4.copyWith(
+                        fontSize: 16,
+                        color: AppColors.blurtext5,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    // Progress Card
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [
+                            AppColors.cardGradient1,
+                            AppColors.cardGradient2,
+                          ],
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                        ),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text(
-                                'Project Progress',
-                                style: h1.copyWith(
-                                  color: AppColors.textWhite1,
-                                  fontSize: 24,
-                                ),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Project Progress',
+                                    style: h1.copyWith(
+                                      color: AppColors.textWhite1,
+                                      fontSize: 24,
+                                    ),
+                                  ),
+                                  Text(
+                                    '(${project.progress.completedPhases} of ${project.progress.totalPhases} Milestones completed)',
+                                    style: h3.copyWith(
+                                      color: AppColors.textWhite1,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ],
                               ),
-                              Text(
-                                '(${progress.completedPhases} of ${progress.totalPhases} Milestones completed)',
-                                style: h3.copyWith(
-                                  color: AppColors.textWhite1,
-                                  fontSize: 12,
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 6,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Text(
+                                  '${project.progress.percent100}% Complete',
+                                  style: h3.copyWith(
+                                    color: AppColors.textColor5,
+                                    fontSize: 10,
+                                  ),
                                 ),
                               ),
                             ],
                           ),
+                          const SizedBox(height: 16),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            height: 10,
+                            width: double.infinity,
                             decoration: BoxDecoration(
                               color: Colors.white,
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(40),
                             ),
-                            child: Text(
-                              '${progress.percent100}% Complete',
-                              style: h3.copyWith(
-                                color: AppColors.textColor5,
-                                fontSize: 10,
+                            child: FractionallySizedBox(
+                              widthFactor: project.progress.percent0to1,
+                              alignment: Alignment.centerLeft,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: AppColors.progressClr,
+                                  borderRadius: BorderRadius.circular(40),
+                                ),
                               ),
                             ),
                           ),
+                          const SizedBox(height: 16),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'Started: ${project.progress.fmtDate(project.progress.startDate)}',
+                                style: h4.copyWith(
+                                  color: Colors.white,
+                                  fontSize: 14,
+                                ),
+                              ),
+                              Text(
+                                'Estimated: ${project.progress.fmtDate(project.progress.endDate)}',
+                                style: h4.copyWith(
+                                  color: Colors.white,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ],
+                          ),
                         ],
                       ),
-                      const SizedBox(height: 16),
-                      Container(
-                        height: 10,
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(40),
-                        ),
-                        child: FractionallySizedBox(
-                          widthFactor: progress.percent0to1,
-                          alignment: Alignment.centerLeft,
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: AppColors.progressClr,
-                              borderRadius: BorderRadius.circular(40),
-                            ),
-                          ),
-                        ),
+                    ),
+                    const SizedBox(height: 24),
+                    // Project Milestones
+                    const Text(
+                      'Project Milestones',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black,
                       ),
-                      const SizedBox(height: 16),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    ),
+                    const SizedBox(height: 16),
+                    project.milestones.isEmpty
+                        ? Text(
+                            'No milestones available',
+                            style: h4.copyWith(
+                              fontSize: 16,
+                              color: AppColors.blurtext5,
+                            ),
+                          )
+                        : Column(
+                            children: [
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: project.milestones.isNotEmpty
+                                        ? buildMilestoneCard(
+                                            project.milestones[0].name,
+                                            project.milestones[0].status !=
+                                                    'completed'
+                                                ? 'assets/images/home/tic_icon.svg'
+                                                : 'assets/images/home/waiting_icon.svg',
+                                            project.milestones[0].status !=
+                                                    'completed'
+                                                ? AppColors.greenCard
+                                                : AppColors.yellowCard,
+                                            project.milestones[0].status !=
+                                                    'completed'
+                                                ? AppColors.textGreen
+                                                : AppColors.textYellow,
+                                            project.milestones[0].status !=
+                                                'completed',
+                                            subtitle:
+                                                project.milestones[0].status !=
+                                                    'completed'
+                                                ? null
+                                                : 'On going',
+                                          )
+                                        : Container(),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: project.milestones.length > 1
+                                        ? buildMilestoneCard(
+                                            project.milestones[1].name,
+                                            project.milestones[1].status ==
+                                                    'completed'
+                                                ? 'assets/images/home/tic_icon.svg'
+                                                : 'assets/images/home/waiting_icon.svg',
+                                            project.milestones[1].status ==
+                                                    'completed'
+                                                ? AppColors.greenCard
+                                                : AppColors.yellowCard,
+                                            project.milestones[1].status ==
+                                                    'completed'
+                                                ? AppColors.textGreen
+                                                : AppColors.textYellow,
+                                            project.milestones[1].status ==
+                                                'completed',
+                                            subtitle:
+                                                project.milestones[1].status ==
+                                                    'completed'
+                                                ? null
+                                                : 'On going',
+                                          )
+                                        : Container(),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 12),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: project.milestones.length > 2
+                                        ? buildMilestoneCard(
+                                            project.milestones[2].name,
+                                            project.milestones[2].status ==
+                                                    'completed'
+                                                ? 'assets/images/home/tic_icon.svg'
+                                                : 'assets/images/home/waiting_icon.svg',
+                                            project.milestones[2].status ==
+                                                    'completed'
+                                                ? AppColors.greenCard
+                                                : AppColors.yellowCard,
+                                            project.milestones[2].status ==
+                                                    'completed'
+                                                ? AppColors.textGreen
+                                                : AppColors.textYellow,
+                                            project.milestones[2].status ==
+                                                'completed',
+                                            subtitle:
+                                                project.milestones[2].status ==
+                                                    'completed'
+                                                ? null
+                                                : 'On going',
+                                          )
+                                        : Container(),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: CustomButton(
+                                      label: 'Start Next Phase',
+                                      onPressed: () {},
+                                      radius: 6,
+                                      svgPath2:
+                                          'assets/images/home/double_arrow_icon.svg',
+                                      height: 45,
+                                      fontSize: 15,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                    const SizedBox(height: 24),
+                    // Next Steps
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: AppColors.cardSky,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Started: ${progress.fmtDate(progress.startDate)}',
-                            style: h4.copyWith(
-                              color: Colors.white,
-                              fontSize: 14,
+                            'Next Steps',
+                            style: h3.copyWith(
+                              fontSize: 20,
+                              color: Colors.black,
                             ),
                           ),
                           Text(
-                            'Estimated: ${progress.fmtDate(progress.endDate)}',
+                            'Complete ${project.milestones.firstWhereOrNull((m) => m.status != 'completed')?.name ?? 'General'} and upload progress photos',
                             style: h4.copyWith(
-                              color: Colors.white,
-                              fontSize: 14,
+                              color: AppColors.textColor2,
+                              fontSize: 16,
                             ),
                           ),
                         ],
                       ),
-                    ],
-                  ),
-                );
-              }),
-              const SizedBox(height: 24),
-              // Project Milestones
-              const Text(
-                'Project Milestones',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black,
-                ),
-              ),
-              const SizedBox(height: 16),
-              Obx(() {
-                final project = controller.currentProject.value;
-                if (project == null || project.milestones.isEmpty) {
-                  return Text(
-                    'No milestones available',
-                    style: h4.copyWith(
-                      fontSize: 16,
-                      color: AppColors.blurtext5,
                     ),
-                  );
-                }
-                final milestones = project.milestones;
-                // Show up to 3 milestones to fit the existing layout
-                final displayMilestones = milestones.take(3).toList();
-                return Column(
-                  children: [
+                    const SizedBox(height: 10),
+                    // Action Buttons
                     Row(
                       children: [
                         Expanded(
-                          child: displayMilestones.isNotEmpty
-                              ? buildMilestoneCard(
-                            displayMilestones[0].name,
-                            displayMilestones[0].status == 'completed'
-                                ? 'assets/images/home/tic_icon.svg'
-                                : 'assets/images/home/waiting_icon.svg',
-                            displayMilestones[0].status == 'completed'
-                                ? AppColors.greenCard
-                                : AppColors.yellowCard,
-                            displayMilestones[0].status == 'completed'
-                                ? AppColors.textGreen
-                                : AppColors.textYellow,
-                            displayMilestones[0].status == 'completed',
-                            subtitle: displayMilestones[0].status == 'completed'
-                                ? null
-                                : 'On going',
-                          )
-                              : Container(),
+                          child: GestureDetector(
+                            onTap: () => Get.to(UploadPhotoView()),
+                            child: SvgPicture.asset(
+                              'assets/images/home/upload_photo.svg',
+                              width: MediaQuery.of(context).size.width,
+                              height: 100,
+                            ),
+                          ),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
-                          child: displayMilestones.length > 1
-                              ? buildMilestoneCard(
-                            displayMilestones[1].name,
-                            displayMilestones[1].status == 'completed'
-                                ? 'assets/images/home/tic_icon.svg'
-                                : 'assets/images/home/waiting_icon.svg',
-                            displayMilestones[1].status == 'completed'
-                                ? AppColors.greenCard
-                                : AppColors.yellowCard,
-                            displayMilestones[1].status == 'completed'
-                                ? AppColors.textGreen
-                                : AppColors.textYellow,
-                            displayMilestones[1].status == 'completed',
-                            subtitle: displayMilestones[1].status == 'completed'
-                                ? null
-                                : 'On going',
-                          )
-                              : Container(),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: displayMilestones.length > 2
-                              ? buildMilestoneCard(
-                            displayMilestones[2].name,
-                            displayMilestones[2].status == 'completed'
-                                ? 'assets/images/home/tic_icon.svg'
-                                : 'assets/images/home/waiting_icon.svg',
-                            displayMilestones[2].status == 'completed'
-                                ? AppColors.greenCard
-                                : AppColors.yellowCard,
-                            displayMilestones[2].status == 'completed'
-                                ? AppColors.textGreen
-                                : AppColors.textYellow,
-                            displayMilestones[2].status == 'completed',
-                            subtitle: displayMilestones[2].status == 'completed'
-                                ? null
-                                : 'On going',
-                          )
-                              : Container(),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: CustomButton(
-                            label: 'Start Next Phase',
-                            onPressed: () {},
-                            radius: 6,
-                            svgPath2: 'assets/images/home/double_arrow_icon.svg',
-                            height: 45,
-                            fontSize: 15,
+                          child: GestureDetector(
+                            onTap: () => Get.to(ViewInstructionView()),
+                            child: SvgPicture.asset(
+                              'assets/images/home/view_instruction.svg',
+                              width: MediaQuery.of(context).size.width,
+                              height: 100,
+                            ),
                           ),
                         ),
                       ],
                     ),
-                  ],
-                );
-              }),
-              const SizedBox(height: 24),
-              // Next Steps
-              Obx(() {
-                final project = controller.currentProject.value;
-                if (project == null) {
-                  return Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: AppColors.cardSky,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      'No next steps available. Select a project.',
-                      style: h4.copyWith(
-                        fontSize: 16,
-                        color: AppColors.textColor2,
+                    const SizedBox(height: 16),
+                    // Recent Updates
+                    Text(
+                      'Recent Updates',
+                      style: h3.copyWith(
+                        fontSize: 20,
+                        color: AppColors.textColor,
                       ),
                     ),
-                  );
-                }
-                final currentMilestone = project.milestones.firstWhereOrNull(
-                      (m) => m.status != 'completed',
-                )?.name ?? 'General';
-                return Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: AppColors.cardSky,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Next Steps',
-                        style: h3.copyWith(
-                          fontSize: 20,
-                          color: Colors.black,
-                        ),
-                      ),
-                      Text(
-                        'Complete $currentMilestone and upload progress photos',
-                        style: h4.copyWith(
-                          color: AppColors.textColor2,
-                          fontSize: 16,
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              }),
-              const SizedBox(height: 10),
-              // Action Buttons
-              Row(
-                children: [
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () => Get.to(UploadPhotoView()),
-                      child: SvgPicture.asset(
-                        'assets/images/home/upload_photo.svg',
-                        width: MediaQuery.of(context).size.width,
-                        height: 100,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () => Get.to(ViewInstructionView()),
-                      child: SvgPicture.asset(
-                        'assets/images/home/view_instruction.svg',
-                        width: MediaQuery.of(context).size.width,
-                        height: 100,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              // Recent Updates
-              Text(
-                'Recent Updates',
-                style: h3.copyWith(
-                  fontSize: 20,
-                  color: AppColors.textColor,
-                ),
-              ),
-              const SizedBox(height: 16),
-              Obx(() {
-                final project = controller.currentProject.value;
-                if (project == null) {
-                  return Text(
-                    'No recent updates available',
-                    style: h4.copyWith(
-                      fontSize: 16,
-                      color: AppColors.blurtext5,
-                    ),
-                  );
-                }
-                final currentMilestone = project.milestones.firstWhereOrNull(
-                      (m) => m.status != 'completed',
-                )?.name ?? 'General';
-                return Column(
-                  children: [
-                    buildUpdateCard(
-                      'Milestone Reminder',
-                      '$currentMilestone deadline is approaching in ${project.progress.daysRemaining} days',
-                      'assets/images/home/info_icon.svg',
-                      AppColors.yellowCard,
-                      AppColors.textYellow,
-                    ),
-                    const SizedBox(height: 12),
-                    if (project.milestones.any((m) => m.status == 'completed'))
-                      buildUpdateCard(
-                        'Milestone Reminder',
-                        '${project.milestones.lastWhere((m) => m.status == 'completed').name} completed successfully',
-                        'assets/images/home/tic_icon.svg',
-                        AppColors.greenCard,
-                        AppColors.textGreen,
-                      ),
+                    const SizedBox(height: 16),
+                    Obx(() {
+                      final project = controller.currentProject.value;
+                      if (project == null) {
+                        return Text(
+                          'No recent updates available',
+                          style: h4.copyWith(
+                            fontSize: 16,
+                            color: AppColors.blurtext5,
+                          ),
+                        );
+                      }
+                      final currentMilestone =
+                          project.milestones
+                              .firstWhereOrNull((m) => m.status != 'completed')
+                              ?.name ??
+                          'General';
+                      return Column(
+                        children: [
+                          buildUpdateCard(
+                            'Milestone Reminder',
+                            '$currentMilestone deadline is approaching in ${project.progress.daysRemaining} days',
+                            'assets/images/home/info_icon.svg',
+                            AppColors.yellowCard,
+                            AppColors.textYellow,
+                          ),
+                          const SizedBox(height: 12),
+                          if (project.milestones.any(
+                            (m) => m.status == 'completed',
+                          ))
+                            buildUpdateCard(
+                              'Milestone Reminder',
+                              '${project.milestones.lastWhere((m) => m.status == 'completed').name} completed successfully',
+                              'assets/images/home/tic_icon.svg',
+                              AppColors.greenCard,
+                              AppColors.textGreen,
+                            ),
+                        ],
+                      );
+                    }),
                   ],
                 );
               }),
@@ -439,36 +477,14 @@ class HomeView extends GetView<HomeController> {
     );
   }
 
-  Widget _buildNoProjectCard() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [AppColors.cardGradient1, AppColors.cardGradient2],
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-        ),
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: Text(
-        'No project selected. Please select a project to view progress.',
-        style: h4.copyWith(
-          color: AppColors.textWhite1,
-          fontSize: 16,
-        ),
-      ),
-    );
-  }
-
   Widget buildMilestoneCard(
-      String title,
-      String svgPath,
-      Color color,
-      Color txtColor,
-      bool isCompleted, {
-        String? subtitle,
-      }) {
+    String title,
+    String svgPath,
+    Color color,
+    Color txtColor,
+    bool isCompleted, {
+    String? subtitle,
+  }) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -485,19 +501,13 @@ class HomeView extends GetView<HomeController> {
               Expanded(
                 child: Text(
                   title,
-                  style: h4.copyWith(
-                    fontSize: 16,
-                    color: txtColor,
-                  ),
+                  style: h4.copyWith(fontSize: 16, color: txtColor),
                 ),
               ),
               if (subtitle != null) ...[
                 Text(
                   subtitle,
-                  style: h4.copyWith(
-                    fontSize: 12,
-                    color: txtColor,
-                  ),
+                  style: h4.copyWith(fontSize: 12, color: txtColor),
                 ),
               ],
             ],
@@ -508,21 +518,18 @@ class HomeView extends GetView<HomeController> {
   }
 
   Widget buildUpdateCard(
-      String title,
-      String description,
-      String svgPath,
-      Color color,
-      Color txtColor,
-      ) {
+    String title,
+    String description,
+    String svgPath,
+    Color color,
+    Color txtColor,
+  ) {
     return Container(
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
         color: color,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: txtColor.withOpacity(0.1),
-          width: 1,
-        ),
+        border: Border.all(color: txtColor.withOpacity(0.1), width: 1),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -533,20 +540,11 @@ class HomeView extends GetView<HomeController> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  title,
-                  style: h4.copyWith(
-                    fontSize: 16,
-                    color: txtColor,
-                  ),
-                ),
+                Text(title, style: h4.copyWith(fontSize: 16, color: txtColor)),
                 const SizedBox(height: 4),
                 Text(
                   description,
-                  style: h4.copyWith(
-                    fontSize: 14,
-                    color: AppColors.gray1,
-                  ),
+                  style: h4.copyWith(fontSize: 14, color: AppColors.gray1),
                 ),
               ],
             ),
@@ -561,7 +559,8 @@ class HomeView extends GetView<HomeController> {
 class _CustomFloatingButtonLocation extends FloatingActionButtonLocation {
   @override
   Offset getOffset(ScaffoldPrelayoutGeometry scaffoldGeometry) {
-    final Offset defaultOffset = FloatingActionButtonLocation.endFloat.getOffset(scaffoldGeometry);
+    final Offset defaultOffset = FloatingActionButtonLocation.endFloat
+        .getOffset(scaffoldGeometry);
     return Offset(defaultOffset.dx, defaultOffset.dy - 40);
   }
 }

@@ -103,9 +103,9 @@ class ChatHomeView extends GetView<ChatController> {
         decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(30)),
         child: Row(
           children: [
-            SvgPicture.asset('assets/images/home/cam_icon.svg'),
+            /*SvgPicture.asset('assets/images/home/cam_icon.svg'),
             const SizedBox(width: 8),
-            SvgPicture.asset('assets/images/home/image_icon.svg'),
+            SvgPicture.asset('assets/images/home/image_icon.svg'),*/
             const SizedBox(width: 12),
             Expanded(
               child: Container(

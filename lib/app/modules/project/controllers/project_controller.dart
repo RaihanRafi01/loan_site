@@ -148,7 +148,7 @@ class ProjectController extends GetxController {
     super.onInit();
     // Add one contractor input field by default
     addContractor();
-    fetchProjects();
+    //fetchProjects();
   }
 
 
@@ -392,6 +392,40 @@ class ProjectController extends GetxController {
       contractorControllers.refresh();
     }
   }
+
+  void reset() {
+    // Clear text controllers
+    projectNameController.clear();
+    projectTypeController.clear();
+    projectBudgetController.clear();
+    projectManagerNameController.clear();
+    projectLocationController.clear();
+    projectStartDateController.clear();
+    projectEndDateController.clear();
+    projectDescriptionController.clear();
+    permitNumberController.clear();
+    permitTypeController.clear();
+    permitIssueDateController.clear();
+    permitExpireDateController.clear();
+
+    // Clear contractor controllers
+    for (var controllerMap in contractorControllers) {
+      controllerMap.forEach((key, controller) => controller.dispose());
+    }
+    contractorControllers.clear();
+
+    // Reset observables
+    currentStep.value = 1;
+    selectedLenderId.value = 0;
+    aiSuggestedMilestones.clear();
+    projectId.value = 0;
+    projects.clear();
+    projectDetail.value = null;
+    activeProjectId.value = null;
+    isProjectLoading.value = false;
+    projectError.value = null;
+  }
+
 }
 
 class ProjectPrefs {

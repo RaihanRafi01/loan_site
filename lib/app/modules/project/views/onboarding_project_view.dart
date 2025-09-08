@@ -7,12 +7,17 @@ import 'package:loan_site/common/widgets/customButton.dart';
 import 'package:loan_site/common/appColors.dart';
 import 'package:loan_site/common/customFont.dart';
 
+import '../../dashboard/controllers/dashboard_controller.dart';
+
 class OnboardingProjectView extends GetView {
   final bool newUser;
   const OnboardingProjectView({super.key, this.newUser = false});
 
   @override
   Widget build(BuildContext context) {
+    final DashboardController dashboardController =
+    Get.find<DashboardController>();
+    dashboardController.fetchProfile();
     return Scaffold(
       backgroundColor: AppColors.appBc,
       body: SafeArea(

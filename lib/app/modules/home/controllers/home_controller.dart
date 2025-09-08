@@ -17,7 +17,7 @@ class HomeController extends GetxController {
     try {
       final project = await ProjectPrefs.getCurrentProject();
       currentProject.value = project;
-      debugPrint('HomeController: Loaded project: ${project?.name}');
+      debugPrint('===========================HomeController: Loaded project: ${project?.name}');
     } catch (e) {
       debugPrint('HomeController: Error loading project context: $e');
     }

@@ -9,6 +9,9 @@ import '../../../../common/appColors.dart';
 import '../../../data/api.dart';
 import '../../../data/base_client.dart';
 import '../../auth/views/login_view.dart';
+import '../../dashboard/controllers/dashboard_controller.dart';
+import '../../home/controllers/home_controller.dart';
+import '../../project/controllers/project_controller.dart';
 
 class SettingsController extends GetxController {
   final emailController = TextEditingController();
@@ -29,17 +32,35 @@ class SettingsController extends GetxController {
   final profileImageUrl = RxString('');
   final name = RxString('');
   final email = RxString('');
+  final phone = RxString('');
+
+  // Reference to DashboardController
+  late final DashboardController dashboardController;
 
   @override
   void onInit() {
     super.onInit();
     profilePasswordController.text = '********';
-    fetchProfile();
+    // Get the DashboardController instance
+    dashboardController = Get.find<DashboardController>();
+    // Sync local reactive variables with DashboardController's data
+    syncWithDashboard();
+  }
+
+  // Sync local variables with DashboardController's profile data
+  void syncWithDashboard() {
+    name.value = dashboardController.name.value;
+    email.value = dashboardController.email.value;
+    phone.value = dashboardController.phone.value;
+    profileImageUrl.value = dashboardController.profileImageUrl.value;
+    // Sync TextEditingController with Rx values
+    nameController.text = name.value;
+    emailController.text = email.value;
+    phoneController.text = phone.value;
   }
 
   // Pick image from gallery with permission handling
   Future<void> pickImage() async {
-    // Request permission based on Android version
     PermissionStatus status;
     if (Platform.isAndroid) {
       status = await Permission.photos.request();
@@ -76,35 +97,6 @@ class SettingsController extends GetxController {
     }
   }
 
-  // Fetch user profile data from API
-  Future<void> fetchProfile() async {
-    try {
-      final response = await BaseClient.getRequest(
-        api: Api.getProfile,
-        headers: BaseClient.authHeaders(),
-      );
-      final result = await BaseClient.handleResponse(
-        response,
-        retryRequest: () => BaseClient.getRequest(
-          api: Api.getProfile,
-          headers: BaseClient.authHeaders(),
-        ),
-      );
-      name.value = result['name'] ?? '';
-      email.value = result['email'] ?? '';
-      phoneController.text = result['phone'] ?? '';
-      // Prepend base URL to image if it's a relative path
-      final imageUrl = result['image'] ?? '';
-      profileImageUrl.value = imageUrl.startsWith('http') ? imageUrl : imageUrl.isNotEmpty ? '${Api.baseUrlPicture}$imageUrl' : '';
-      // Sync TextEditingController with Rx values
-      nameController.text = name.value;
-      emailController.text = email.value;
-    } catch (e) {
-      kSnackBar(title: 'Warning', message: e.toString(), bgColor: AppColors.snackBarWarning);
-    }
-  }
-
-
   // Update user profile (name, phone, and image)
   Future<void> updateProfile() async {
     if (nameController.text.isEmpty || phoneController.text.isEmpty) {
@@ -122,13 +114,12 @@ class SettingsController extends GetxController {
         'phone': phoneController.text,
       };
 
-      // If there's a selected image, include it in the update request
       var imageFile = selectedImage.value != null ? selectedImage.value : null;
 
       final response = await BaseClient.multipartRequest(
         api: Api.profileUpdate,
         fields: fields,
-        image: imageFile, // Send null if no image is selected
+        image: imageFile,
         headers: BaseClient.authHeaders(),
       );
       final result = await BaseClient.handleResponse(
@@ -136,12 +127,15 @@ class SettingsController extends GetxController {
         retryRequest: () => BaseClient.multipartRequest(
           api: Api.profileUpdate,
           fields: fields,
-          image: imageFile, // Retry with the same image condition
+          image: imageFile,
           headers: BaseClient.authHeaders(),
         ),
       );
       kSnackBar(title: 'Success', message: 'Details updated successfully');
-      fetchProfile();
+      // Refresh profile data in DashboardController
+      await dashboardController.fetchProfile();
+      // Sync local variables with updated DashboardController data
+      syncWithDashboard();
     } catch (e) {
       kSnackBar(title: 'Warning', message: e.toString(), bgColor: AppColors.snackBarWarning);
     } finally {
@@ -209,25 +203,26 @@ class SettingsController extends GetxController {
 
   Future<void> logout() async {
     try {
-      isLoading.value = true; // Show loading state
+      isLoading.value = true;
 
-      // Retrieve refresh token from secure storage
       final refreshToken = await BaseClient.getRefreshToken();
+      await ProjectPrefs.clearCurrentProject();
 
+      final projectController = Get.find<ProjectController>();
+      projectController.reset();
+      Get.delete<ProjectController>();
+      Get.delete<HomeController>();
 
-      // Prepare the request body with refresh token
       final body = jsonEncode({
         'refresh_token': refreshToken,
       });
 
-      // Make the logout API call
       final response = await BaseClient.postRequest(
         api: Api.logout,
         body: body,
         headers: BaseClient.authHeaders(),
       );
 
-      // Handle the response
       final result = await BaseClient.handleResponse(
         response,
         retryRequest: () => BaseClient.postRequest(
@@ -237,33 +232,25 @@ class SettingsController extends GetxController {
         ),
       );
 
-      if (response.statusCode == 200){
+      if (response.statusCode == 200) {
         await BaseClient.clearTokens();
-      }
-      else if (response.statusCode == 400){
+      } else if (response.statusCode == 400) {
         final responseData = jsonDecode(response.body);
         final message = responseData['error'] ?? 'Something went wrong please try again later';
         kSnackBar(
           title: 'Warning',
           message: message,
-          bgColor: AppColors.snackBarWarning
+          bgColor: AppColors.snackBarWarning,
         );
       }
 
-
-      // Clear tokens from secure storage on successful logout
-
-
-      // Show success snackbar
       kSnackBar(
         title: 'Success',
         message: 'Logged out successfully',
       );
 
-      // Navigate to LoginView and clear the navigation stack
       Get.offAll(const LoginScreen());
     } catch (e) {
-      // Handle errors with specific feedback
       String errorMessage = 'Failed to log out. Please try again.';
       if (e is Map && e.containsKey('error')) {
         errorMessage = e['error'] ?? errorMessage;
@@ -277,9 +264,10 @@ class SettingsController extends GetxController {
         bgColor: AppColors.snackBarWarning,
       );
     } finally {
-      isLoading.value = false; // Hide loading state
+      isLoading.value = false;
     }
   }
+
   @override
   void onClose() {
     emailController.dispose();

@@ -20,7 +20,7 @@ class DashboardLenderView extends GetView<DashboardController> {
   @override
   Widget build(BuildContext context) {
     // Initialize the controller
-    final DashboardController controller = Get.put(DashboardController());
+    //final DashboardController controller = Get.put(DashboardController());
 
     // List of pages to navigate
     final List<Widget> pages = [

@@ -7,6 +7,7 @@ import 'package:loan_site/app/modules/auth/views/send_otp_view.dart';
 import 'package:loan_site/app/modules/auth/views/verification_screen.dart';
 import 'package:loan_site/app/modules/dashboard/views/dashboard_lender_view.dart';
 import 'package:loan_site/app/modules/dashboard/views/dashboard_view.dart';
+import 'package:loan_site/app/modules/project/views/onboarding_project_view.dart';
 import 'dart:convert';
 import '../../../../common/appColors.dart';
 import '../../../../common/widgets/custom_snackbar.dart';
@@ -123,7 +124,7 @@ class AuthController extends GetxController {
     String? password,
     String? name,
     String? otp,
-    String? lender_code,
+    String? lender_id,
   }) {
     final body = <String, String>{};
     if (email != null) body['email'] = _sanitizeInput(email);
@@ -131,7 +132,7 @@ class AuthController extends GetxController {
     if (password != null) body['password'] = password;
     if (name != null) body['name'] = _sanitizeInput(name);
     if (otp != null) body['otp'] = otp;
-    if (lender_code != null) body['lender_code'] = lender_code;
+    if (lender_id != null) body['lender_id'] = lender_id;
     return body;
   }
 
@@ -167,7 +168,7 @@ class AuthController extends GetxController {
           email: email,
           phone: phoneController.text,
           password: password,
-          lender_code: lender_code
+          lender_id: lender_code
         ),
         'user_role': role,
       });
@@ -247,7 +248,7 @@ class AuthController extends GetxController {
       kSnackBar(title: 'Success', message: 'Signed in successfully!');
       clearForm();
       if(responseData['role'] == 'borrower'){
-        Get.offAll(() => DashboardView());
+        Get.offAll(() => OnboardingProjectView());
       }else if (responseData['role'] == 'private_lender') {
       Get.offAll(() => DashboardLenderView());
       }
