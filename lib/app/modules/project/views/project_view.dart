@@ -249,7 +249,7 @@ class ProjectView extends GetView<ProjectController> {
                 bottom: 16,
                 child: CustomButton(
                   svgPath: 'assets/images/project/switch_icon.svg',
-                  label: 'Open AI Assistant',
+                  label: 'Switch to this project',
                   onPressed: () async {
                     final d = controller.projectDetail.value;
                     if (d == null) return;

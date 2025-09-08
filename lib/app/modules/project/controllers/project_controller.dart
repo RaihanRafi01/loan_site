@@ -4,6 +4,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:loan_site/app/modules/project/views/set_milestone_view.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../../common/appColors.dart';
 import '../../../../common/customFont.dart';
@@ -390,5 +391,29 @@ class ProjectController extends GetxController {
       // Update the UI reactively
       contractorControllers.refresh();
     }
+  }
+}
+
+class ProjectPrefs {
+  static const _kProjectName = 'project_name';
+  static const _kCurrentMilestone = 'current_milestone';
+
+  static Future<void> saveContext({
+    required String projectName,
+    required String currentMilestone,
+  }) async {
+    final sp = await SharedPreferences.getInstance();
+    await sp.setString(_kProjectName, projectName);
+    await sp.setString(_kCurrentMilestone, currentMilestone);
+  }
+
+  static Future<String?> getProjectName() async {
+    final sp = await SharedPreferences.getInstance();
+    return sp.getString(_kProjectName);
+  }
+
+  static Future<String?> getCurrentMilestone() async {
+    final sp = await SharedPreferences.getInstance();
+    return sp.getString(_kCurrentMilestone);
   }
 }

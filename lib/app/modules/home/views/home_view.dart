@@ -77,7 +77,7 @@ class HomeView extends GetView<HomeController> {
               const SizedBox(height: 30),
               // Project Header
               Text(
-                'Sunset Grove Residences',
+                controller.projectName.value,
                 style: h3.copyWith(
                   fontSize: 24,
                   color: AppColors.textColor,

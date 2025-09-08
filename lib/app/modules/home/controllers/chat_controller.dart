@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../common/appColors.dart';
 import '../../../data/api.dart';
 import '../../../data/base_client.dart';
+import '../../project/controllers/project_controller.dart';
 
 class ChatMessage {
   final String text;
@@ -192,27 +193,5 @@ class ChatController extends GetxController {
 
 
 
-class ProjectPrefs {
-  static const _kProjectName = 'project_name';
-  static const _kCurrentMilestone = 'current_milestone';
 
-  static Future<void> saveContext({
-    required String projectName,
-    required String currentMilestone,
-  }) async {
-    final sp = await SharedPreferences.getInstance();
-    await sp.setString(_kProjectName, projectName);
-    await sp.setString(_kCurrentMilestone, currentMilestone);
-  }
-
-  static Future<String?> getProjectName() async {
-    final sp = await SharedPreferences.getInstance();
-    return sp.getString(_kProjectName);
-  }
-
-  static Future<String?> getCurrentMilestone() async {
-    final sp = await SharedPreferences.getInstance();
-    return sp.getString(_kCurrentMilestone);
-  }
-}
 
