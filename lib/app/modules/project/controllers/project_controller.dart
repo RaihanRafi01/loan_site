@@ -395,25 +395,48 @@ class ProjectController extends GetxController {
 }
 
 class ProjectPrefs {
-  static const _kProjectName = 'project_name';
-  static const _kCurrentMilestone = 'current_milestone';
+  static const _kCurrentProject = 'current_project';
 
-  static Future<void> saveContext({
-    required String projectName,
-    required String currentMilestone,
-  }) async {
+  static Future<void> saveContext({required ProjectDetail projectDetail}) async {
     final sp = await SharedPreferences.getInstance();
-    await sp.setString(_kProjectName, projectName);
-    await sp.setString(_kCurrentMilestone, currentMilestone);
+    // Convert ProjectDetail to JSON
+    final projectJson = jsonEncode({
+      'project_name': projectDetail.name,
+      'project_type': projectDetail.type,
+      'project_manager': projectDetail.manager,
+      'project_location': projectDetail.location,
+      'project_progress': {
+        'percentage': projectDetail.progress.percentage,
+        'start_date': projectDetail.progress.startDate?.toIso8601String(),
+        'end_date': projectDetail.progress.endDate?.toIso8601String(),
+        'completed_phases': projectDetail.progress.completedPhases,
+        'total_phases': projectDetail.progress.totalPhases,
+        'duration': projectDetail.progress.duration,
+      },
+      'milestones': projectDetail.milestones
+          .map((m) => {'id': m.id, 'name': m.name, 'status': m.status})
+          .toList(),
+    });
+    await sp.setString(_kCurrentProject, projectJson);
   }
 
-  static Future<String?> getProjectName() async {
+  static Future<ProjectDetail?> getCurrentProject() async {
     final sp = await SharedPreferences.getInstance();
-    return sp.getString(_kProjectName);
+    final projectJson = sp.getString(_kCurrentProject);
+    if (projectJson == null) return null;
+
+    try {
+      final Map<String, dynamic> json = jsonDecode(projectJson);
+      return ProjectDetail.fromJson(json);
+    } catch (e) {
+      debugPrint('Error parsing project from SharedPreferences: $e');
+      return null;
+    }
   }
 
-  static Future<String?> getCurrentMilestone() async {
+  // Optional: Method to clear the current project
+  static Future<void> clearCurrentProject() async {
     final sp = await SharedPreferences.getInstance();
-    return sp.getString(_kCurrentMilestone);
+    await sp.remove(_kCurrentProject);
   }
 }

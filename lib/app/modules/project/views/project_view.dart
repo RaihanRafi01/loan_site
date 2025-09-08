@@ -6,7 +6,9 @@ import 'package:loan_site/app/modules/project/controllers/project_controller.dar
 import '../../../../common/appColors.dart';
 import '../../../../common/customFont.dart';
 import '../../../../common/widgets/customButton.dart';
+import '../../../../common/widgets/custom_snackbar.dart';
 import '../../home/controllers/chat_controller.dart';
+import '../../home/controllers/home_controller.dart';
 import '../../home/views/view_instruction_view.dart';
 
 class ProjectView extends GetView<ProjectController> {
@@ -247,14 +249,23 @@ class ProjectView extends GetView<ProjectController> {
                 left: 16,
                 right: 16,
                 bottom: 16,
-                child: CustomButton(
+                child: // In ProjectController or the view using it
+                CustomButton(
                   svgPath: 'assets/images/project/switch_icon.svg',
                   label: 'Switch to this project',
                   onPressed: () async {
                     final d = controller.projectDetail.value;
                     if (d == null) return;
-                    final currentPhase = d.milestones.firstWhereOrNull((m) => m.status != 'completed')?.name ?? 'General';
-                    await ProjectPrefs.saveContext(projectName: d.name, currentMilestone: currentPhase);
+                    await ProjectPrefs.saveContext(projectDetail: d);
+                    // Update HomeController
+                    if (Get.isRegistered<HomeController>()) {
+                      await Get.find<HomeController>().loadContextFromPrefs();
+                    }
+                    // Update ChatController (if applicable)
+                    if (Get.isRegistered<ChatController>()) {
+                      Get.find<ChatController>().refreshContext();
+                    }
+                    Get.snackbar('Success', 'Switched to project: ${d.name}');
                   },
                 ),
               ),

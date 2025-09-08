@@ -23,10 +23,7 @@ class ChatHomeView extends GetView<ChatController> {
         child: Column(
           children: [
             // Header with project/milestone from SharedPreferences via controller
-            Obx(() => _header(
-              projectName: controller.projectName.value,
-              currentMilestone: controller.currentMilestone.value,
-            )),
+            _header(),
 
             // Messages
             Expanded(
@@ -74,12 +71,7 @@ class ChatHomeView extends GetView<ChatController> {
 
   // --- Widgets ---
 
-  Widget _header({required String projectName, required String currentMilestone}) {
-    final subtitle = [
-      if (projectName.isNotEmpty) 'Project: $projectName',
-      if (currentMilestone.isNotEmpty) 'Milestone: $currentMilestone',
-    ].join('  •  ');
-
+  Widget _header() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       width: double.maxFinite,
@@ -93,7 +85,7 @@ class ChatHomeView extends GetView<ChatController> {
             children: [
               Text('AI Assistant', style: h3.copyWith(color: AppColors.textColor, fontSize: 20)),
               Text(
-                subtitle.isEmpty ? 'Construction Guide' : subtitle,
+                'Construction Guide',
                 style: h4.copyWith(color: AppColors.gray2, fontSize: 16),
               ),
             ],

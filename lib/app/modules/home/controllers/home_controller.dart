@@ -1,22 +1,30 @@
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
+import 'package:loan_site/common/widgets/custom_snackbar.dart';
+import '../../../../common/appColors.dart';
 import '../../project/controllers/project_controller.dart';
 
 class HomeController extends GetxController {
-
-  final projectName = ''.obs;
-  final currentMilestone = 'General'.obs;
+  final currentProject = Rxn<ProjectDetail>();
 
   @override
   void onInit() {
     super.onInit();
-    _loadContextFromPrefs();
+    loadContextFromPrefs();
   }
 
-  Future<void> _loadContextFromPrefs() async {
-    final pn = await ProjectPrefs.getProjectName();
-    final cm = await ProjectPrefs.getCurrentMilestone();
-    projectName.value = pn ?? '';
-    currentMilestone.value = (cm?.isNotEmpty == true) ? cm! : 'General';
+  Future<void> loadContextFromPrefs() async {
+    try {
+      final project = await ProjectPrefs.getCurrentProject();
+      currentProject.value = project;
+      debugPrint('HomeController: Loaded project: ${project?.name}');
+    } catch (e) {
+      debugPrint('HomeController: Error loading project context: $e');
+    }
+  }
+
+  // Method to manually refresh context
+  Future<void> refreshContext() async {
+    await loadContextFromPrefs();
   }
 }

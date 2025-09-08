@@ -28,29 +28,49 @@ class ChatMessage {
   );
 }
 
-
 class ChatController extends GetxController {
   final textController = TextEditingController();
   final messages = <ChatMessage>[].obs;
   final isSending = false.obs;
-
-  final projectName = ''.obs;
-  final currentMilestone = 'General'.obs;
+  final isHistoryLoading = false.obs;
+  final currentProject = Rxn<ProjectDetail>();
   final isContextLoaded = false.obs;
 
-  final isHistoryLoading = false.obs;
   bool _historyLoadedOnce = false;
 
   @override
   void onInit() {
     super.onInit();
-    _loadContextFromPrefs();
-    //_loadContextFromPrefs().then((_) => loadChatHistory());
-    loadChatHistory();
+    _loadContextFromPrefs().then((_) {
+      isContextLoaded.value = true;
+      loadChatHistory();
+    });
+    // Listen for project changes to reload history
+    ever(currentProject, (_) {
+      if (isContextLoaded.value) {
+        _historyLoadedOnce = false; // Allow reloading history
+        loadChatHistory();
+      }
+    });
+  }
+
+  Future<void> _loadContextFromPrefs() async {
+    try {
+      final project = await ProjectPrefs.getCurrentProject();
+      currentProject.value = project;
+    } catch (e) {
+      debugPrint('Error loading project context: $e');
+      Get.snackbar(
+        'Error',
+        'Failed to load project context: $e',
+        backgroundColor: AppColors.snackBarWarning,
+        colorText: AppColors.textColor,
+      );
+    }
   }
 
   Future<void> loadChatHistory() async {
-    if (_historyLoadedOnce) return; // avoid reloading on rebuilds
+    if (_historyLoadedOnce) return; // Avoid reloading on rebuilds
     try {
       isHistoryLoading.value = true;
 
@@ -89,7 +109,7 @@ class ChatController extends GetxController {
 
         final a = (item['answer'] as String?)?.trim();
         if (a != null && a.isNotEmpty) {
-          // tiny offset so AI bubble appears just after the question in time ordering
+          // Tiny offset so AI bubble appears just after the question in time ordering
           history.add(ChatMessage(text: a, isUser: false, time: created.add(const Duration(milliseconds: 1))));
         }
       }
@@ -98,7 +118,9 @@ class ChatController extends GetxController {
       if (history.isNotEmpty) {
         messages.value = history;
       } else if (messages.isEmpty) {
-        final pname = projectName.value.isEmpty ? 'your project' : '"${projectName.value}"';
+        final pname = currentProject.value?.name.isNotEmpty == true
+            ? '"${currentProject.value!.name}"'
+            : 'your project';
         messages.add(ChatMessage(
           text: 'Hi! I’m your AI assistant for $pname. How can I help?',
           isUser: false,
@@ -108,20 +130,15 @@ class ChatController extends GetxController {
 
       _historyLoadedOnce = true;
     } catch (e) {
-      Get.snackbar('Error', 'Failed to load chat history: $e',
-          backgroundColor: AppColors.snackBarWarning, colorText: AppColors.textColor);
+      Get.snackbar(
+        'Error',
+        'Failed to load chat history: $e',
+        backgroundColor: AppColors.snackBarWarning,
+        colorText: AppColors.textColor,
+      );
     } finally {
       isHistoryLoading.value = false;
     }
-  }
-
-  Future<void> _loadContextFromPrefs() async {
-    final pn = await ProjectPrefs.getProjectName();
-    final cm = await ProjectPrefs.getCurrentMilestone();
-    projectName.value = pn ?? '';
-    currentMilestone.value = (cm?.isNotEmpty == true) ? cm! : 'General';
-    isContextLoaded.value = true;
-
   }
 
   Future<void> sendMessage({String? text}) async {
@@ -142,10 +159,20 @@ class ChatController extends GetxController {
     try {
       isSending.value = true;
 
+      // Build payload with full project context
       final payload = {
         "message": msg,
-        "project_name": projectName.value,        // from prefs
-        "current_milestone": currentMilestone.value, // from prefs
+        "project_name": currentProject.value?.name ?? '',
+        "current_milestone":
+        currentProject.value?.milestones.firstWhereOrNull((m) => m.status != 'completed')?.name ?? 'General',
+        "project_type": currentProject.value?.type ?? '',
+        "project_progress": currentProject.value != null
+            ? {
+          "percentage": currentProject.value!.progress.percentage,
+          "completed_phases": currentProject.value!.progress.completedPhases,
+          "total_phases": currentProject.value!.progress.totalPhases,
+        }
+            : null,
       };
 
       final resp = await BaseClient.postRequest(
@@ -182,16 +209,26 @@ class ChatController extends GetxController {
         isUser: false,
         time: DateTime.now(),
       ));
-      Get.snackbar('Error', 'Chat request failed: $e',
-          backgroundColor: AppColors.snackBarWarning, colorText: AppColors.textColor);
+      Get.snackbar(
+        'Error',
+        'Chat request failed: $e',
+        backgroundColor: AppColors.snackBarWarning,
+        colorText: AppColors.textColor,
+      );
     } finally {
       isSending.value = false;
     }
   }
+
+  // Method to reload context and history when project changes
+  void refreshContext() {
+    _historyLoadedOnce = false; // Allow reloading history
+    _loadContextFromPrefs().then((_) => loadChatHistory());
+  }
+
+  @override
+  void onClose() {
+    textController.dispose();
+    super.onClose();
+  }
 }
-
-
-
-
-
-
