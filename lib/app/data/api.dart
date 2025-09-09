@@ -28,6 +28,8 @@ class Api {
   static const getAllProject = "$baseUrl/project/list/all/";   // done
   static  projectDetails(project_id) => "$baseUrl/project/details/$project_id/";   // done
 
+  static  startMilestone(project_id) => "$baseUrl/project/milestone/get-post/$project_id/";
+
 
 
   /// community

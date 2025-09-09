@@ -21,6 +21,8 @@ class CustomDropdown extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Get the screen width to constrain the dropdown menu
+    final screenWidth = MediaQuery.of(context).size.width;
 
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 10),
@@ -31,22 +33,29 @@ class CustomDropdown extends StatelessWidget {
               icon: SvgPicture.asset('assets/images/contractor/arrow_down.svg'),
               value: value,
               onChanged: onChanged,
-              dropdownColor: Colors.white, // Matches HistoryView's light mode dropdown
-              alignment: AlignmentDirectional.centerStart, // Opens from right
-              borderRadius: BorderRadius.circular(12), // Rounded dropdown menu
+              dropdownColor: Colors.white,
+              // Constrain the dropdown menu width
+              menuMaxHeight: 300, // Optional: Limit menu height to avoid vertical overflow
+              isExpanded: true, // Makes the dropdown take full available width
+              alignment: AlignmentDirectional.center, // Center the menu to avoid right overflow
+              borderRadius: BorderRadius.circular(12),
               items: items.map((String item) {
                 return DropdownMenuItem<String>(
                   value: item,
                   child: Container(
-                    width: 150, // Reduced width for dropdown menu
+                    constraints: BoxConstraints(
+                      maxWidth: screenWidth * 0.8, // Limit item width to 80% of screen
+                    ),
                     padding: const EdgeInsets.symmetric(horizontal: 10),
                     child: Text(
                       item,
                       style: h4.copyWith(
                         color: AppColors.textColor,
                         fontSize: 16,
-                        fontWeight: FontWeight.w400, // Reduced font weight
+                        fontWeight: FontWeight.w400,
                       ),
+                      overflow: TextOverflow.ellipsis, // Truncate long text
+                      maxLines: 1,
                     ),
                   ),
                 );
@@ -54,7 +63,7 @@ class CustomDropdown extends StatelessWidget {
               decoration: InputDecoration(
                 hintText: labelText,
                 hintStyle: h4.copyWith(color: AppColors.blurtext2, fontSize: 16),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 15, vertical: 15), // Reduced padding
                 filled: true,
                 fillColor: AppColors.textInputField,
                 border: OutlineInputBorder(

@@ -14,6 +14,7 @@ import '../../../data/base_client.dart';
 import '../../../data/models/project.dart';
 
 class ProjectDetail {
+  final int id;
   final String name;
   final String type;
   final String manager;
@@ -22,6 +23,7 @@ class ProjectDetail {
   final List<ProjectMilestone> milestones;
 
   ProjectDetail({
+    required this.id,
     required this.name,
     required this.type,
     required this.manager,
@@ -31,6 +33,7 @@ class ProjectDetail {
   });
 
   factory ProjectDetail.fromJson(Map<String, dynamic> j) => ProjectDetail(
+    id: j['project_id'] ?? '',
     name: j['project_name'] ?? '',
     type: j['project_type'] ?? '',
     manager: j['project_manager'] ?? '',
@@ -435,6 +438,7 @@ class ProjectPrefs {
     final sp = await SharedPreferences.getInstance();
     // Convert ProjectDetail to JSON
     final projectJson = jsonEncode({
+      "project_id": projectDetail.id,
       'project_name': projectDetail.name,
       'project_type': projectDetail.type,
       'project_manager': projectDetail.manager,

@@ -6,6 +6,7 @@ import 'package:loan_site/app/modules/home/views/upload_photo_view.dart';
 import 'package:loan_site/app/modules/home/views/view_instruction_view.dart';
 import 'package:loan_site/app/modules/notification/views/notification_view.dart';
 import 'package:loan_site/app/modules/project/views/project_list_view.dart';
+import 'package:loan_site/app/modules/project/views/startMilestone_view.dart';
 import 'package:loan_site/common/widgets/customButton.dart';
 import '../../../../common/appColors.dart';
 import '../../../../common/customFont.dart';
@@ -340,7 +341,9 @@ class HomeView extends GetView<HomeController> {
                                       : hasMilestones || project != null
                                       ? CustomButton(
                                           label: 'Start Next Phase',
-                                          onPressed: () {},
+                                          onPressed: () {
+                                            Get.to(StartMilestoneView());
+                                          },
                                           radius: 6,
                                           svgPath2:
                                               'assets/images/home/double_arrow_icon.svg',
@@ -360,7 +363,9 @@ class HomeView extends GetView<HomeController> {
                                 Expanded(
                                   child: CustomButton(
                                     label: 'Start Next Phase',
-                                    onPressed: () {},
+                                    onPressed: () {
+                                      Get.to(StartMilestoneView());
+                                    },
                                     radius: 6,
                                     svgPath2:
                                         'assets/images/home/double_arrow_icon.svg',
