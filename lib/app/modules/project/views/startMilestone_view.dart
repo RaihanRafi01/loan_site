@@ -33,12 +33,24 @@ class StartMilestoneView extends GetView<HomeController> {
       );
     }
 
-    // Filter non-completed milestones for the dropdown
+    // Filter non-completed milestones for the dropdown and ensure uniqueness
     final availableMilestones = project.milestones
         ?.where((m) => m.status != 'completed')
-        ?.map((m) => m.name)
-        ?.toList() ??
+        .map((m) => m.name)
+        .toSet() // Remove duplicates
+        .toList() ??
         [];
+
+    // Reset selectedMilestone if it's not in the available milestones
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (availableMilestones.isNotEmpty &&
+          (controller.selectedMilestone.value.isEmpty ||
+              !availableMilestones.contains(controller.selectedMilestone.value))) {
+        controller.selectedMilestone.value = availableMilestones.first;
+      } else if (availableMilestones.isEmpty) {
+        controller.selectedMilestone.value = '';
+      }
+    });
 
     return Scaffold(
       backgroundColor: AppColors.appBc,
@@ -57,7 +69,7 @@ class StartMilestoneView extends GetView<HomeController> {
         centerTitle: true,
       ),
       body: SafeArea(
-        child: Padding(
+        child: SingleChildScrollView( // Add scroll view to prevent overflow
           padding: const EdgeInsets.all(24),
           child: Obx(() => Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -70,7 +82,8 @@ class StartMilestoneView extends GetView<HomeController> {
                 labelText: availableMilestones.isEmpty
                     ? 'No milestones available'
                     : 'Select your milestone phase',
-                value: controller.selectedMilestone.value.isEmpty
+                value: availableMilestones.isEmpty ||
+                    !availableMilestones.contains(controller.selectedMilestone.value)
                     ? null
                     : controller.selectedMilestone.value,
                 items: availableMilestones,
@@ -103,7 +116,7 @@ class StartMilestoneView extends GetView<HomeController> {
                 keyboardType: TextInputType.number,
               ),
               Padding(
-                padding: const EdgeInsets.symmetric(vertical: 50),
+                padding: const EdgeInsets.symmetric(vertical: 16), // Reduced padding
                 child: CustomButton(
                   label: 'Done',
                   onPressed: () async {

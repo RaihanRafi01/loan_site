@@ -32,26 +32,33 @@ class ProjectDetail {
     required this.milestones,
   });
 
-  factory ProjectDetail.fromJson(Map<String, dynamic> j) => ProjectDetail(
-    id: j['project_id'] ?? '',
-    name: j['project_name'] ?? '',
-    type: j['project_type'] ?? '',
-    manager: j['project_manager'] ?? '',
-    location: j['project_location'] ?? '',
-    progress: ProjectProgress.fromJson(j['project_progress'] ?? {}),
-    milestones: (j['milestones'] as List? ?? [])
-        .map((e) => ProjectMilestone.fromJson(e))
-        .toList(),
-  );
+  factory ProjectDetail.fromJson(Map<String, dynamic> j) {
+    try {
+      return ProjectDetail(
+        id: (j['project_id'] as num?)?.toInt() ?? 0, // Handle int
+        name: j['project_name'] as String? ?? '',
+        type: j['project_type'] as String? ?? '',
+        manager: j['project_manager'] as String? ?? '',
+        location: j['project_location'] as String? ?? '',
+        progress: ProjectProgress.fromJson(j['project_progress'] as Map<String, dynamic>? ?? {}),
+        milestones: (j['milestones'] as List<dynamic>? ?? [])
+            .map((e) => ProjectMilestone.fromJson(e as Map<String, dynamic>))
+            .toList(),
+      );
+    } catch (e, stackTrace) {
+      debugPrint('Error parsing ProjectDetail: $e\nStackTrace: $stackTrace');
+      rethrow;
+    }
+  }
 }
 
 class ProjectProgress {
-  final double percentage; // 0..100 (if 0, we'll fallback to phases ratio)
+  final double percentage;
   final DateTime? startDate;
   final DateTime? endDate;
   final int completedPhases;
   final int totalPhases;
-  final int? duration; // total duration in days (optional from API)
+  final int? duration;
 
   ProjectProgress({
     required this.percentage,
@@ -62,16 +69,22 @@ class ProjectProgress {
     required this.duration,
   });
 
-  factory ProjectProgress.fromJson(Map<String, dynamic> j) => ProjectProgress(
-    percentage: (j['percentage'] as num?)?.toDouble() ?? 0.0,
-    startDate: j['start_date'] != null ? DateTime.parse(j['start_date']) : null,
-    endDate: j['end_date'] != null ? DateTime.parse(j['end_date']) : null,
-    completedPhases: (j['completed_phases'] as num?)?.toInt() ?? 0,
-    totalPhases: (j['total_phases'] as num?)?.toInt() ?? 0,
-    duration: (j['duration'] as num?)?.toInt(),
-  );
+  factory ProjectProgress.fromJson(Map<String, dynamic> j) {
+    try {
+      return ProjectProgress(
+        percentage: (j['percentage'] as num?)?.toDouble() ?? 0.0,
+        startDate: j['start_date'] != null ? DateTime.tryParse(j['start_date'] as String) : null,
+        endDate: j['end_date'] != null ? DateTime.tryParse(j['end_date'] as String) : null,
+        completedPhases: (j['completed_phases'] as num?)?.toInt() ?? 0,
+        totalPhases: (j['total_phases'] as num?)?.toInt() ?? 0,
+        duration: (j['duration'] as num?)?.toInt(),
+      );
+    } catch (e, stackTrace) {
+      debugPrint('Error parsing ProjectProgress: $e\nStackTrace: $stackTrace');
+      rethrow;
+    }
+  }
 
-  /// 0.0 .. 1.0 for UI widthFactor
   double get percent0to1 {
     double p = percentage > 0 ? (percentage / 100.0) : _ratio;
     if (p.isNaN) p = 0.0;
@@ -80,10 +93,8 @@ class ProjectProgress {
     return p;
   }
 
-  /// 0 .. 100 for display
   int get percent100 => (percent0to1 * 100).round();
 
-  /// days remaining (never negative)
   int get daysRemaining {
     if (endDate == null) return 0;
     final diff = endDate!.difference(DateTime.now()).inDays;
@@ -100,17 +111,23 @@ class ProjectProgress {
 class ProjectMilestone {
   final int id;
   final String name;
-  final String status; // pending / completed / etc.
+  final String status;
 
   ProjectMilestone({required this.id, required this.name, required this.status});
 
-  factory ProjectMilestone.fromJson(Map<String, dynamic> j) => ProjectMilestone(
-    id: (j['id'] as num?)?.toInt() ?? 0,
-    name: j['name'] ?? '',
-    status: j['status'] ?? '',
-  );
+  factory ProjectMilestone.fromJson(Map<String, dynamic> j) {
+    try {
+      return ProjectMilestone(
+        id: (j['id'] as num?)?.toInt() ?? 0,
+        name: j['name'] as String? ?? '',
+        status: j['status'] as String? ?? '',
+      );
+    } catch (e, stackTrace) {
+      debugPrint('Error parsing ProjectMilestone: $e\nStackTrace: $stackTrace');
+      rethrow;
+    }
+  }
 }
-
 
 class ProjectController extends GetxController {
   // Text controllers for project details
@@ -146,27 +163,22 @@ class ProjectController extends GetxController {
 
   var projects = <Project>[].obs;
 
-  @override
-  void onInit() {
-    super.onInit();
-    // Add one contractor input field by default
-    addContractor();
-    //fetchProjects();
-  }
-
-
-
   // Active project detail state
   final isProjectLoading = false.obs;
   final projectError = Rxn<String>();
   final projectDetail = Rxn<ProjectDetail>();
   final activeProjectId = Rxn<int>();
 
-  // Call this from ProjectView to ensure we load once per id
-  void ensureProjectLoaded(int projectId) {
+  @override
+  void onInit() {
+    super.onInit();
+    addContractor();
+  }
+
+  void ensureProjectLoaded(int projectId) async {
     if (activeProjectId.value != projectId || projectDetail.value == null) {
       activeProjectId.value = projectId;
-      fetchProjectDetails(projectId);
+      await fetchProjectDetails(projectId);
     }
   }
 
@@ -174,9 +186,8 @@ class ProjectController extends GetxController {
     try {
       isProjectLoading.value = true;
       projectError.value = null;
+      debugPrint('ProjectController: Fetching project details for ID: $id');
 
-      // If your details endpoint differs, adjust this line.
-      // Assuming REST style: GET /projects/{id}
       final response = await BaseClient.getRequest(
         api: Api.projectDetails(id),
         headers: BaseClient.authHeaders(),
@@ -190,10 +201,19 @@ class ProjectController extends GetxController {
         ),
       );
 
-      projectDetail.value = ProjectDetail.fromJson(data as Map<String, dynamic>);
-    } catch (e) {
-      debugPrint('Error fetching project details: $e');
-      projectError.value = 'Failed to fetch project details.';
+      debugPrint('ProjectController: Raw API response: $data');
+
+      if (data is! Map<String, dynamic>) {
+        throw Exception('Invalid response format: Expected a JSON object');
+      }
+
+      projectDetail.value = ProjectDetail.fromJson(data);
+      debugPrint('ProjectController: Project details loaded: ${projectDetail.value?.name}');
+    } catch (e, stackTrace) {
+      debugPrint('ProjectController: Error fetching project details: $e\nStackTrace: $stackTrace');
+      projectError.value = 'Failed to fetch project details: $e';
+      projectDetail.value = null;
+      // Do not rethrow to avoid breaking the caller
     } finally {
       isProjectLoading.value = false;
     }

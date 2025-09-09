@@ -262,18 +262,23 @@ class HomeView extends GetView<HomeController> {
                           ),
                         );
                       }
-                      // Filter completed milestones and take the most recent 4
+
+                      // Get completed and ongoing milestones
                       final completedMilestones = project.milestones
                           .asMap()
                           .entries
                           .where((entry) => entry.value.status == 'completed')
-                          .take(4)
+                          .take(4) // Limit to 4 completed milestones
                           .map((entry) => entry.value)
                           .toList();
-                      // Check if there are any milestones (completed or ongoing)
+
+                      final ongoingMilestone = project.milestones
+                          .firstWhereOrNull((m) => m.status == 'on_going');
+
+                      // Check if there are any milestones
                       final hasMilestones = project.milestones.isNotEmpty;
 
-                      if (completedMilestones.isEmpty && !hasMilestones) {
+                      if (!hasMilestones) {
                         return Text(
                           'No milestones available',
                           style: h4.copyWith(
@@ -283,99 +288,89 @@ class HomeView extends GetView<HomeController> {
                         );
                       }
 
-                      return Column(
-                        children: [
-                          // Display up to 4 completed milestones in a grid-like layout
-                          if (completedMilestones.isNotEmpty) ...[
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: completedMilestones.isNotEmpty
-                                      ? buildMilestoneCard(
-                                          completedMilestones[0].name,
-                                          'assets/images/home/tic_icon.svg',
-                                          AppColors.greenCard,
-                                          AppColors.textGreen,
-                                          true,
-                                        )
-                                      : Container(),
+                      // Combine completed and ongoing milestones for display
+                      final displayMilestones = [
+                        ...completedMilestones,
+                        if (ongoingMilestone != null) ongoingMilestone,
+                      ];
+
+                      // Build milestone rows dynamically
+                      List<Widget> milestoneRows = [];
+                      for (int i = 0; i < displayMilestones.length; i += 2) {
+                        milestoneRows.add(
+                          Row(
+                            children: [
+                              Expanded(
+                                child: buildMilestoneCard(
+                                  displayMilestones[i].name,
+                                  displayMilestones[i].status == 'completed'
+                                      ? 'assets/images/home/tic_icon.svg'
+                                      : 'assets/images/home/waiting_icon.svg',
+                                  displayMilestones[i].status == 'completed'
+                                      ? AppColors.greenCard
+                                      : AppColors.yellowCard,
+                                  displayMilestones[i].status == 'completed'
+                                      ? AppColors.textGreen
+                                      : AppColors.textYellow,
+                                  displayMilestones[i].status == 'completed',
                                 ),
+                              ),
+                              if (i + 1 < displayMilestones.length) ...[
                                 const SizedBox(width: 12),
                                 Expanded(
-                                  child: completedMilestones.length > 1
-                                      ? buildMilestoneCard(
-                                          completedMilestones[1].name,
-                                          'assets/images/home/tic_icon.svg',
-                                          AppColors.greenCard,
-                                          AppColors.textGreen,
-                                          true,
-                                        )
-                                      : Container(),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 12),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: completedMilestones.length > 2
-                                      ? buildMilestoneCard(
-                                          completedMilestones[2].name,
-                                          'assets/images/home/tic_icon.svg',
-                                          AppColors.greenCard,
-                                          AppColors.textGreen,
-                                          true,
-                                        )
-                                      : Container(),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: completedMilestones.length > 3
-                                      ? buildMilestoneCard(
-                                          completedMilestones[3].name,
-                                          'assets/images/home/tic_icon.svg',
-                                          AppColors.greenCard,
-                                          AppColors.textGreen,
-                                          true,
-                                        )
-                                      : hasMilestones || project != null
-                                      ? CustomButton(
-                                          label: 'Start Next Phase',
-                                          onPressed: () {
-                                            Get.to(StartMilestoneView());
-                                          },
-                                          radius: 6,
-                                          svgPath2:
-                                              'assets/images/home/double_arrow_icon.svg',
-                                          height: 45,
-                                          fontSize: 15,
-                                        )
-                                      : Container(),
-                                ),
-                              ],
-                            ),
-                          ] else ...[
-                            // Show button even if no completed milestones
-                            Row(
-                              children: [
-                                Expanded(child: Container()),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: CustomButton(
-                                    label: 'Start Next Phase',
-                                    onPressed: () {
-                                      Get.to(StartMilestoneView());
-                                    },
-                                    radius: 6,
-                                    svgPath2:
-                                        'assets/images/home/double_arrow_icon.svg',
-                                    height: 45,
-                                    fontSize: 15,
+                                  child: buildMilestoneCard(
+                                    displayMilestones[i + 1].name,
+                                    displayMilestones[i + 1].status == 'completed'
+                                        ? 'assets/images/home/tic_icon.svg'
+                                        : 'assets/images/home/ongoing_icon.svg',
+                                    displayMilestones[i + 1].status == 'completed'
+                                        ? AppColors.greenCard
+                                        : AppColors.yellowCard,
+                                    displayMilestones[i + 1].status == 'completed'
+                                        ? AppColors.textGreen
+                                        : AppColors.textYellow,
+                                    displayMilestones[i + 1].status == 'completed',
                                   ),
                                 ),
+                              ] else ...[
+                                const SizedBox(width: 12),
+                                const Expanded(child: SizedBox.shrink()),
                               ],
-                            ),
-                          ],
+                            ],
+                          ),
+                        );
+                        milestoneRows.add(const SizedBox(height: 12));
+                      }
+
+                      return Column(
+                        children: [
+                          // Milestone cards
+                          ...milestoneRows,
+                          // Button for completing or starting the next phase
+                          Row(
+                            children: [
+                              const Expanded(child: SizedBox.shrink()),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: CustomButton(
+                                  label: ongoingMilestone != null ? 'Complete Phase' : 'Start Next Phase',
+                                  onPressed: () {
+                                    if (ongoingMilestone != null) {
+                                      // Assuming a method exists in the controller to handle completion
+                                      // controller.completeCurrentMilestone();
+                                      Get.to(StartMilestoneView());
+                                    } else {
+                                      Get.to(StartMilestoneView());
+                                    }
+                                  },
+                                  radius: 6,
+                                  svgPath2: 'assets/images/home/double_arrow_icon.svg',
+                                  height: 45,
+                                  fontSize: 15,
+                                ),
+                              ),
+                            ],
+                          ),
                         ],
                       );
                     }),

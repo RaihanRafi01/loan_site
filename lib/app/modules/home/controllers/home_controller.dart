@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:loan_site/common/widgets/custom_snackbar.dart';
@@ -8,6 +7,7 @@ import '../../../data/api.dart';
 import '../../../data/base_client.dart';
 import '../../dashboard/views/dashboard_view.dart';
 import '../../project/controllers/project_controller.dart';
+import 'chat_controller.dart';
 
 class HomeController extends GetxController {
   final currentProject = Rxn<ProjectDetail>();
@@ -35,7 +35,6 @@ class HomeController extends GetxController {
       debugPrint('HomeController: Error loading project context: $e');
     }
   }
-
 
   Future<void> startMilestones() async {
     try {
@@ -81,7 +80,7 @@ class HomeController extends GetxController {
         return;
       }
 
-      // Ensure positive values (optional, based on requirements)
+      // Ensure positive values
       if (duration <= 0 || budget <= 0) {
         kSnackBar(
           title: 'Warning',
@@ -96,6 +95,8 @@ class HomeController extends GetxController {
         'duration': duration,
         'budget': budget,
       };
+
+      debugPrint('Starting milestone with data: $milestoneData');
 
       final response = await BaseClient.postRequest(
         api: Api.startMilestone(currentProject.value?.id),
@@ -112,12 +113,58 @@ class HomeController extends GetxController {
         ),
       );
 
-      // Navigate to DashboardView on success
-      Get.offAll(() => const DashboardView());
-    } catch (e) {
-      debugPrint("Error saving milestones: $e");
+      debugPrint('Milestone started successfully. Fetching updated project details...');
+
+      // Ensure project details are loaded
+      Get.find<ProjectController>().fetchProjectDetails(currentProject.value!.id);
+
+      final projectDetail = Get.find<ProjectController>().projectDetail.value;
+      if (projectDetail == null) {
+        debugPrint('Error: Project details not loaded after ensureProjectLoaded');
+        kSnackBar(
+          title: 'Warning',
+          message: 'Failed to load updated project details. Proceeding with current project data.',
+          bgColor: AppColors.snackBarWarning,
+        );
+        // Fallback: Save current project and navigate
+        await ProjectPrefs.saveContext(projectDetail: currentProject.value!);
+        await loadContextFromPrefs();
+        if (Get.isRegistered<ChatController>()) {
+          Get.find<ChatController>().refresh();
+        }
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          Get.offAll(() => const DashboardView());
+          debugPrint('Navigation to DashboardView executed (fallback).');
+        });
+        return;
+      }
+
+      debugPrint('Project details loaded: ${projectDetail.name}');
+
+      // Save updated project context
+      await ProjectPrefs.saveContext(projectDetail: projectDetail);
+      debugPrint('Project context saved.');
+
+      // Update HomeController
+      await loadContextFromPrefs();
+      debugPrint('HomeController context refreshed.');
+
+      // Update ChatController (if applicable)
+      if (Get.isRegistered<ChatController>()) {
+        Get.find<ChatController>().refresh();
+        debugPrint('ChatController context refreshed.');
+      }
+
+      // Navigate to DashboardView
+      debugPrint('Navigating to DashboardView...');
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Get.offAll(() => const DashboardView());
+        debugPrint('Navigation to DashboardView executed.');
+      });
+    } catch (e, stackTrace) {
+      debugPrint('Error in startMilestones: $e\nStackTrace: $stackTrace');
       kSnackBar(
-        title: 'Warning',
+        title: 'Error',
         message: 'Failed to start milestone. Please try again.',
         bgColor: AppColors.snackBarWarning,
       );
