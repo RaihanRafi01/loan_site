@@ -167,6 +167,7 @@ class ProjectController extends GetxController {
   final isProjectLoading = false.obs;
   final projectError = Rxn<String>();
   final projectDetail = Rxn<ProjectDetail>();
+  ////////
   final activeProjectId = Rxn<int>();
 
   @override
@@ -476,6 +477,8 @@ class ProjectPrefs {
           .toList(),
     });
     await sp.setString(_kCurrentProject, projectJson);
+    print(' 💥💥💥 ---------------------------->>>> Project saved !');
+    print(' 💥💥💥 ---------------------------->>>> $projectJson');
   }
 
   static Future<ProjectDetail?> getCurrentProject() async {

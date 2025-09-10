@@ -31,8 +31,9 @@ class HomeController extends GetxController {
       final project = await ProjectPrefs.getCurrentProject();
       currentProject.value = project;
       debugPrint('===========================HomeController: Loaded project: ${project?.name}');
+      debugPrint('===========================HomeController: Loaded project: ${currentProject.value?.milestones[2].status}');
     } catch (e) {
-      debugPrint('HomeController: Error loading project context: $e');
+      debugPrint('💥💥💥 HomeController: Error loading project context: $e');
     }
   }
 
@@ -115,52 +116,28 @@ class HomeController extends GetxController {
 
       debugPrint('Milestone started successfully. Fetching updated project details...');
 
-      // Ensure project details are loaded
-      Get.find<ProjectController>().fetchProjectDetails(currentProject.value!.id);
+      // Step 1: Fetch project details
+      await Get.find<ProjectController>().fetchProjectDetails(currentProject.value!.id);
 
+      // Step 2: Check if project details are loaded
       final projectDetail = Get.find<ProjectController>().projectDetail.value;
       if (projectDetail == null) {
-        debugPrint('Error: Project details not loaded after ensureProjectLoaded');
         kSnackBar(
-          title: 'Warning',
-          message: 'Failed to load updated project details. Proceeding with current project data.',
+          title: 'Error',
+          message: 'Failed to load project details.',
           bgColor: AppColors.snackBarWarning,
         );
-        // Fallback: Save current project and navigate
-        await ProjectPrefs.saveContext(projectDetail: currentProject.value!);
-        await loadContextFromPrefs();
-        if (Get.isRegistered<ChatController>()) {
-          Get.find<ChatController>().refresh();
-        }
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          Get.offAll(() => const DashboardView());
-          debugPrint('Navigation to DashboardView executed (fallback).');
-        });
         return;
       }
 
-      debugPrint('Project details loaded: ${projectDetail.name}');
-
-      // Save updated project context
+      // Step 3: Save context to preferences
       await ProjectPrefs.saveContext(projectDetail: projectDetail);
-      debugPrint('Project context saved.');
 
-      // Update HomeController
-      await loadContextFromPrefs();
-      debugPrint('HomeController context refreshed.');
+      // Step 4: Load context from preferences
+      loadContextFromPrefs();
 
-      // Update ChatController (if applicable)
-      if (Get.isRegistered<ChatController>()) {
-        Get.find<ChatController>().refresh();
-        debugPrint('ChatController context refreshed.');
-      }
-
-      // Navigate to DashboardView
-      debugPrint('Navigating to DashboardView...');
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        Get.offAll(() => const DashboardView());
-        debugPrint('Navigation to DashboardView executed.');
-      });
+      // Step 5: Navigate to DashboardView
+      Get.to(() => const DashboardView());
     } catch (e, stackTrace) {
       debugPrint('Error in startMilestones: $e\nStackTrace: $stackTrace');
       kSnackBar(
