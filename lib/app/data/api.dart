@@ -30,6 +30,8 @@ class Api {
 
   static  startMilestone(project_id) => "$baseUrl/project/milestone/get-post/$project_id/";
 
+  static uploadMilestonePhoto(project_id,milestone_id) => "$baseUrl/project/milestone-complete-chatbot/$project_id/$milestone_id/";
+
 
 
   /// community

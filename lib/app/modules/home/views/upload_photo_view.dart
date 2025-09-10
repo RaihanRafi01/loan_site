@@ -57,15 +57,25 @@ class UploadPhotoView extends GetView<UploadPhotoController> {
                   ),
                 ),
 
-                // AI Message
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 20,
-                  ),
-                  child: ChatHomeView().buildAIMessage(
-                    context,
-                    'Upload Photo to complete the phase',
+                // AI Messages (List of bot messages)
+                Expanded(
+                  child: Obx(
+                        () => ListView.builder(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 20,
+                      ),
+                      itemCount: controller.botMessages.length,
+                      itemBuilder: (context, index) {
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 10),
+                          child: ChatHomeView().buildAIMessage(
+                            context,
+                            controller.botMessages[index],
+                          ),
+                        );
+                      },
+                    ),
                   ),
                 ),
 
@@ -132,117 +142,106 @@ class UploadPhotoView extends GetView<UploadPhotoController> {
                 ),
 
                 // Photo Preview Grid
-                Expanded(
-                  child: Align(
-                    alignment: Alignment.topRight,
-                    child: Obx(
+                Obx(
                       () => controller.selectedImages.isNotEmpty
-                          ? Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                              ),
-                              child: Container(
-                                height: 170,
-                                padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  color: AppColors.chatCard,
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: GridView.builder(
-                                  scrollDirection: Axis.horizontal,
-                                  gridDelegate:
-                                      const SliverGridDelegateWithFixedCrossAxisCount(
-                                        crossAxisCount: 2,
-                                        mainAxisSpacing: 8,
-                                        crossAxisSpacing: 8,
-                                        childAspectRatio: 1,
-                                      ),
-                                  itemCount:
-                                      controller.selectedImages.length > 6
-                                      ? 6
-                                      : controller.selectedImages.length,
-                                  itemBuilder: (context, index) {
-                                    if (index == 5 &&
-                                        controller.selectedImages.length > 6) {
-                                      return GestureDetector(
-                                        onTap: () =>
-                                            controller.showImageViewer(index),
-                                        child: Stack(
-                                          children: [
-                                            Container(
-                                              decoration: BoxDecoration(
-                                                borderRadius:
-                                                    BorderRadius.circular(8),
-                                                image: DecorationImage(
-                                                  image: FileImage(
-                                                    controller
-                                                        .selectedImages[index],
-                                                  ),
-                                                  fit: BoxFit.cover,
-                                                ),
-                                              ),
-                                            ),
-                                            Container(
-                                              decoration: BoxDecoration(
-                                                borderRadius:
-                                                    BorderRadius.circular(8),
-                                                color: Colors.black.withOpacity(
-                                                  0.6,
-                                                ),
-                                              ),
-                                              child: Center(
-                                                child: Text(
-                                                  '${controller.selectedImages.length - 5}+',
-                                                  style: const TextStyle(
-                                                    color: Colors.white,
-                                                    fontSize: 20,
-                                                    fontWeight: FontWeight.bold,
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
-                                          ],
+                      ? Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                    ),
+                    child: Container(
+                      height: 170,
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: AppColors.chatCard,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: GridView.builder(
+                        scrollDirection: Axis.horizontal,
+                        gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          mainAxisSpacing: 8,
+                          crossAxisSpacing: 8,
+                          childAspectRatio: 1,
+                        ),
+                        itemCount: controller.selectedImages.length > 6
+                            ? 6
+                            : controller.selectedImages.length,
+                        itemBuilder: (context, index) {
+                          if (index == 5 &&
+                              controller.selectedImages.length > 6) {
+                            return GestureDetector(
+                              onTap: () =>
+                                  controller.showImageViewer(index),
+                              child: Stack(
+                                children: [
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      borderRadius:
+                                      BorderRadius.circular(8),
+                                      image: DecorationImage(
+                                        image: FileImage(
+                                          controller.selectedImages[index],
                                         ),
-                                      );
-                                    }
-
-                                    return GestureDetector(
-                                      onTap: () =>
-                                          controller.showImageViewer(index),
-                                      child: Stack(
-                                        children: [
-                                          Container(
-                                            decoration: BoxDecoration(
-                                              borderRadius:
-                                                  BorderRadius.circular(8),
-                                              image: DecorationImage(
-                                                image: FileImage(
-                                                  controller
-                                                      .selectedImages[index],
-                                                ),
-                                                fit: BoxFit.cover,
-                                              ),
-                                            ),
-                                          ),
-                                        ],
+                                        fit: BoxFit.cover,
                                       ),
-                                    );
-                                  },
+                                    ),
+                                  ),
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      borderRadius:
+                                      BorderRadius.circular(8),
+                                      color: Colors.black.withOpacity(0.6),
+                                    ),
+                                    child: Center(
+                                      child: Text(
+                                        '${controller.selectedImages.length - 5}+',
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }
+
+                          return GestureDetector(
+                            onTap: () => controller.showImageViewer(index),
+                            child: Stack(
+                              children: [
+                                Container(
+                                  decoration: BoxDecoration(
+                                    borderRadius:
+                                    BorderRadius.circular(8),
+                                    image: DecorationImage(
+                                      image: FileImage(
+                                        controller.selectedImages[index],
+                                      ),
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
                                 ),
-                              ),
-                            )
-                          : Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                              ),
-                              child: Container(
-                                height: 150,
-                                decoration: BoxDecoration(
-                                  color: AppColors.chatCard,
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                              ),
+                              ],
                             ),
+                          );
+                        },
+                      ),
+                    ),
+                  )
+                      : Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                    ),
+                    child: Container(
+                      height: 150,
+                      decoration: BoxDecoration(
+                        color: AppColors.chatCard,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
                     ),
                   ),
                 ),
@@ -255,143 +254,140 @@ class UploadPhotoView extends GetView<UploadPhotoController> {
                     horizontal: 16,
                     vertical: 20,
                   ),
-                  child: CustomButton(
-                    label: 'Submit',
-                    onPressed: () {
-
-                    },
-                  ),
+                  child: Obx(() => CustomButton(
+                    isLoading: controller.isLoading.value,
+                    label: controller.isLoading.value ? 'Uploading...' : 'Submit',
+                    onPressed: (){
+                      controller.uploadMilestonePhoto();
+                    } ,
+                  )),
                 ),
               ],
             ),
 
             // Image Overlay Viewer
-            // Replace the Image Overlay Viewer section in your code with this:
             Obx(
-              () =>
-                  controller.showImageOverlay.value &&
-                      controller.selectedImages.isNotEmpty
+                  () => controller.showImageOverlay.value &&
+                  controller.selectedImages.isNotEmpty
                   ? Container(
-                      color: Colors.black.withOpacity(0.9),
-                      child: Stack(
+                color: Colors.black.withOpacity(0.9),
+                child: Stack(
+                  children: [
+                    // Main image viewer
+                    Center(
+                      child: Container(
+                        margin: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 80,
+                        ),
+                        child: PageView.builder(
+                          controller: controller.pageController,
+                          onPageChanged: (index) =>
+                          controller.currentImageIndex.value = index,
+                          itemCount: controller.selectedImages.length,
+                          itemBuilder: (context, index) {
+                            return InteractiveViewer(
+                              maxScale: 4.0,
+                              minScale: 0.5,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(12),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.3),
+                                      blurRadius: 10,
+                                      spreadRadius: 2,
+                                    ),
+                                  ],
+                                ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: Image.file(
+                                    controller.selectedImages[index],
+                                    fit: BoxFit.contain,
+                                    width: double.infinity,
+                                    height: double.infinity,
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+
+                    // Top right - Delete and Close buttons
+                    Positioned(
+                      top: 50,
+                      right: 20,
+                      child: Row(
                         children: [
-                          // Main image viewer
-                          Center(
+                          // Delete button
+                          GestureDetector(
+                            onTap: () {
+                              controller.removeImage(
+                                controller.currentImageIndex.value,
+                              );
+                            },
+                            child: SvgPicture.asset(
+                              'assets/images/home/delete_icon.svg',
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          // Close button
+                          GestureDetector(
+                            onTap: () => controller.closeImageViewer(),
                             child: Container(
-                              margin: const EdgeInsets.symmetric(
-                                horizontal: 20,
-                                vertical: 80,
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.2),
+                                borderRadius: BorderRadius.circular(25),
                               ),
-                              child: PageView.builder(
-                                controller: controller.pageController,
-                                onPageChanged: (index) =>
-                                    controller.currentImageIndex.value = index,
-                                itemCount: controller.selectedImages.length,
-                                itemBuilder: (context, index) {
-                                  return InteractiveViewer(
-                                    maxScale: 4.0,
-                                    minScale: 0.5,
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(12),
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: Colors.black.withOpacity(
-                                              0.3,
-                                            ),
-                                            blurRadius: 10,
-                                            spreadRadius: 2,
-                                          ),
-                                        ],
-                                      ),
-                                      child: ClipRRect(
-                                        borderRadius: BorderRadius.circular(12),
-                                        child: Image.file(
-                                          controller.selectedImages[index],
-                                          fit: BoxFit.contain,
-                                          width: double.infinity,
-                                          height: double.infinity,
-                                        ),
-                                      ),
-                                    ),
-                                  );
-                                },
+                              child: const Icon(
+                                Icons.close,
+                                color: Colors.white,
+                                size: 18,
                               ),
                             ),
                           ),
-
-                          // Top right - Delete and Close buttons
-                          Positioned(
-                            top: 50,
-                            right: 20,
-                            child: Row(
-                              children: [
-                                // Delete button
-                                GestureDetector(
-                                  onTap: () {
-                                    controller.removeImage(
-                                      controller.currentImageIndex.value,
-                                    );
-                                  },
-                                  child: SvgPicture.asset(
-                                    'assets/images/home/delete_icon.svg',
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                // Close button
-                                GestureDetector(
-                                  onTap: () => controller.closeImageViewer(),
-                                  child: Container(
-                                    padding: const EdgeInsets.all(8),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white.withOpacity(0.2),
-                                      borderRadius: BorderRadius.circular(25),
-                                    ),
-                                    child: const Icon(
-                                      Icons.close,
-                                      color: Colors.white,
-                                      size: 18,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-
-                          // Left navigation arrow (centered vertically)
-                          if (controller.selectedImages.length > 1)
-                            Positioned(
-                              left: 20,
-                              top: 0,
-                              bottom: 0,
-                              child: Center(
-                                child: GestureDetector(
-                                  onTap: () => controller.previousImage(),
-                                  child: SvgPicture.asset(
-                                    'assets/images/home/left_icon.svg',
-                                  ),
-                                ),
-                              ),
-                            ),
-
-                          // Right navigation arrow (centered vertically)
-                          if (controller.selectedImages.length > 1)
-                            Positioned(
-                              right: 20,
-                              top: 0,
-                              bottom: 0,
-                              child: Center(
-                                child: GestureDetector(
-                                  onTap: () => controller.nextImage(),
-                                  child: SvgPicture.asset(
-                                    'assets/images/home/right_icon.svg',
-                                  ),
-                                ),
-                              ),
-                            ),
                         ],
                       ),
-                    )
+                    ),
+
+                    // Left navigation arrow (centered vertically)
+                    if (controller.selectedImages.length > 1)
+                      Positioned(
+                        left: 20,
+                        top: 0,
+                        bottom: 0,
+                        child: Center(
+                          child: GestureDetector(
+                            onTap: () => controller.previousImage(),
+                            child: SvgPicture.asset(
+                              'assets/images/home/left_icon.svg',
+                            ),
+                          ),
+                        ),
+                      ),
+
+                    // Right navigation arrow (centered vertically)
+                    if (controller.selectedImages.length > 1)
+                      Positioned(
+                        right: 20,
+                        top: 0,
+                        bottom: 0,
+                        child: Center(
+                          child: GestureDetector(
+                            onTap: () => controller.nextImage(),
+                            child: SvgPicture.asset(
+                              'assets/images/home/right_icon.svg',
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              )
                   : const SizedBox.shrink(),
             ),
           ],

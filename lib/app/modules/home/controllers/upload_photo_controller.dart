@@ -1,11 +1,15 @@
+import 'dart:convert';
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
-
+import 'package:http/http.dart' as http;
+import 'package:loan_site/app/modules/home/controllers/home_controller.dart';
 import '../../../../common/appColors.dart';
 import '../../../../common/customFont.dart';
+import '../../../../common/widgets/custom_snackbar.dart';
+import '../../../data/api.dart';
+import '../../../data/base_client.dart';
 
 class UploadPhotoController extends GetxController {
   final ImagePicker _picker = ImagePicker();
@@ -13,6 +17,18 @@ class UploadPhotoController extends GetxController {
   RxInt currentImageIndex = 0.obs;
   RxBool showImageOverlay = false.obs;
   PageController pageController = PageController();
+  final isLoading = false.obs;
+  final botMessages = <String>[].obs; // Store list of bot messages
+
+  // Get the HomeController instance properly using GetX
+  final HomeController homeController = Get.find<HomeController>();
+
+  @override
+  void onInit() {
+    super.onInit();
+    // Initialize with the default message
+    botMessages.add('Upload Photo to complete the phase');
+  }
 
   Future<void> pickImages() async {
     final List<XFile> images = await _picker.pickMultiImage();
@@ -62,6 +78,100 @@ class UploadPhotoController extends GetxController {
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
       );
+    }
+  }
+
+  void _showWarning(String message, {String title = 'Warning'}) {
+    kSnackBar(
+      title: title,
+      message: message,
+      bgColor: AppColors.snackBarWarning,
+    );
+  }
+
+  Future<void> uploadMilestonePhoto() async {
+    // Ensure project data is loaded
+    await homeController.loadContextFromPrefs();
+
+    final currentProject = homeController.currentProject.value;
+
+    if (selectedImages.isEmpty) {
+      _showWarning('Please select at least one image to upload');
+      botMessages.add('Please select at least one image to upload');
+      return;
+    }
+
+    if (currentProject == null) {
+      _showWarning('No project selected. Please select a project first.');
+      botMessages.add('No project selected. Please select a project first.');
+      isLoading.value = false;
+      return;
+    }
+
+    isLoading.value = true;
+    final projectId = currentProject.id;
+
+    // Find the first milestone with 'on_going' status
+    final milestone = currentProject.milestones
+        .firstWhereOrNull((m) => m.status == 'on_going');
+
+    debugPrint('Project ID: $projectId');
+    debugPrint('Milestone: ${milestone?.id} - ${milestone?.name}');
+
+    if (milestone == null) {
+      _showWarning('No ongoing milestone found for this project');
+      botMessages.add('No ongoing milestone found for this project');
+      isLoading.value = false;
+      return;
+    }
+
+    try {
+      var uri = Uri.parse(Api.uploadMilestonePhoto(projectId, milestone.id));
+      var request = http.MultipartRequest('POST', uri);
+      request.headers.addAll(await BaseClient.authHeaders());
+
+      // Add multiple image files
+      for (var file in selectedImages) {
+        var multipartFile = await http.MultipartFile.fromPath('images', file.path);
+        request.files.add(multipartFile);
+      }
+
+      var streamedResponse = await request.send();
+      var response = await http.Response.fromStream(streamedResponse);
+
+      debugPrint("API Hit: $uri");
+      debugPrint('Response Code: ${response.statusCode}');
+      debugPrint('Response Body: ${response.body}');
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        // Parse the response
+        final responseData = jsonDecode(response.body);
+        final aiResult = responseData['ai_result'];
+        final bool status = aiResult['status'];
+        final String reason = aiResult['reason'] ?? '';
+        final String milestoneName = aiResult['milestone'] ?? 'Unknown milestone';
+
+        if (status) {
+          // Success case
+          _showWarning('Photos uploaded successfully for $milestoneName', title: 'Success');
+          botMessages.add('The uploaded photos successfully confirm the completion of "$milestoneName".');
+          selectedImages.clear();
+          await homeController.refreshContext(); // Refresh project data
+        } else {
+          // Failure case
+          //_showWarning('Photos rejected: $reason', title: 'Upload Failed');
+          botMessages.add('$reason Please try with different angle'); // Add the reason as a new bot message
+        }
+      } else {
+        _showWarning('Failed to upload photos: ${response.reasonPhrase}');
+        botMessages.add('Failed to upload photos. Please try again.');
+      }
+    } catch (e) {
+      debugPrint('Upload error: $e');
+      _showWarning('Failed to upload photos. Please try again.');
+      botMessages.add('An error occurred while uploading photos. Please try again.');
+    } finally {
+      isLoading.value = false;
     }
   }
 
