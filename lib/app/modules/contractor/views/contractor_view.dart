@@ -120,69 +120,6 @@ class ContractorView extends GetView {
                 ],
               ),
             ),
-
-            // Input area
-            /*Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(30),
-                ),
-                child: Row(
-                  children: [
-                    // Camera button
-                    SvgPicture.asset('assets/images/home/cam_icon.svg'),
-                    const SizedBox(width: 8),
-
-                    // Image/Gallery button
-                    SvgPicture.asset('assets/images/home/image_icon.svg'),
-                    const SizedBox(width: 12),
-
-                    // Text input field with mic icon
-                    Expanded(
-                      child: Container(
-                        height: 40,
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        decoration: BoxDecoration(
-                          color: AppColors.chatInput,
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: TextField(
-                                textAlignVertical: TextAlignVertical.center,
-                                decoration: InputDecoration(
-                                  hintText: 'Type here...',
-                                  border: InputBorder.none,
-                                  hintStyle: h4.copyWith(
-                                    color: Colors.grey,
-                                    fontSize: 14,
-                                  ),
-                                  contentPadding: EdgeInsets.symmetric(
-                                    vertical: 12,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            SvgPicture.asset('assets/images/home/mic_icon.svg'),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-
-                    // Send button
-                    SvgPicture.asset('assets/images/home/send_icon.svg'),
-                  ],
-                ),
-              ),
-            ),*/
           ],
         ),
       ),
