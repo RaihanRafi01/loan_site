@@ -1,4 +1,3 @@
-/*
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
@@ -11,6 +10,7 @@ import 'chat_home_view.dart';
 
 class ViewInstructionView extends GetView {
   const ViewInstructionView({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -56,15 +56,16 @@ class ViewInstructionView extends GetView {
                 padding: const EdgeInsets.all(16),
                 children: [
                   // First AI message
-                  ChatHomeView().buildAIMessage(context,
+                  ChatHomeView().buildAIMessage(
+                    context,
                     "Hi there! I'm your AI assistant, here to help you manage and track your flooring or construction project — every step of the way.",
                   ),
                   const SizedBox(height: 16),
 
                   // Second AI message
-                  ChatHomeView().buildAIMessage(context,
+                  ChatHomeView().buildAIMessage(
+                    context,
                     "I share you a list of contractor company in your nearby location",
-
                   ),
                 ],
               ),
@@ -82,7 +83,7 @@ class ViewInstructionView extends GetView {
                         SvgPicture.asset('assets/images/contractor/arrow.svg'),
                         SizedBox(width: 10),
                         Text(
-                          'Popular contactor in your city',
+                          'Steps to Follow After Plumbing:',
                           style: h3.copyWith(
                             fontSize: 20,
                             color: AppColors.textColor,
@@ -91,102 +92,109 @@ class ViewInstructionView extends GetView {
                       ],
                     ),
                   ),
-
-                  // First AI message
-                  ContractorView().buildContractor(
-                    'assets/images/contractor/contractor_image.png',
-                    'BlueWave Plumbing',
-                    'ST 12345',
-                    '4.9(127)',
-                    'Available this weelk',
+                  Container(
+                    margin: EdgeInsets.symmetric(vertical: 4.0),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(4.0),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Color(0x0D000000),
+                          offset: Offset(0, 4),
+                          blurRadius: 4,
+                          spreadRadius: 0,
+                        ),
+                      ],
+                    ),
+                    child: ListTile(
+                      leading: CircleAvatar(child: Text('1'), backgroundColor: Colors.blue[100]),
+                      title: Text('Floor Installation'),
+                      trailing: Icon(Icons.chevron_right),
+                    ),
                   ),
-                  const SizedBox(height: 5),
-
-                  // Second AI message
-                  ContractorView().buildContractor(
-                    'assets/images/contractor/contractor_image.png',
-                    'PipeMasters Plumbing',
-                    'ST 12345',
-                    '4.9(127)',
-                    'Available this weelk',
+                  Container(
+                    margin: EdgeInsets.symmetric(vertical: 4.0),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(4.0),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Color(0x0D000000),
+                          offset: Offset(0, 4),
+                          blurRadius: 4,
+                          spreadRadius: 0,
+                        ),
+                      ],
+                    ),
+                    child: ListTile(
+                      leading: CircleAvatar(child: Text('2'), backgroundColor: Colors.blue[100]),
+                      title: Text('Flooring Materials'),
+                      trailing: Icon(Icons.chevron_right),
+                    ),
                   ),
-                  const SizedBox(height: 5),
-
-                  // Second AI message
-                  ContractorView().buildContractor(
-                    'assets/images/contractor/contractor_image.png',
-                    'ClearFlow Plumbing Solutions',
-                    'ST 12345',
-                    '4.9(127)',
-                    'Available this weelk',
+                  Container(
+                    margin: EdgeInsets.symmetric(vertical: 4.0),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(4.0),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Color(0x0D000000),
+                          offset: Offset(0, 4),
+                          blurRadius: 4,
+                          spreadRadius: 0,
+                        ),
+                      ],
+                    ),
+                    child: ListTile(
+                      leading: CircleAvatar(child: Text('3'), backgroundColor: Colors.blue[100]),
+                      title: Text('Prepare the Surface'),
+                      trailing: Icon(Icons.chevron_right),
+                    ),
+                  ),
+                  Container(
+                    margin: EdgeInsets.symmetric(vertical: 4.0),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(4.0),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Color(0x0D000000),
+                          offset: Offset(0, 4),
+                          blurRadius: 4,
+                          spreadRadius: 0,
+                        ),
+                      ],
+                    ),
+                    child: ListTile(
+                      leading: CircleAvatar(child: Text('4'), backgroundColor: Colors.blue[100]),
+                      title: Text('Quality Inspection'),
+                      trailing: Icon(Icons.chevron_right),
+                    ),
+                  ),
+                  Container(
+                    margin: EdgeInsets.symmetric(vertical: 4.0),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(4.0),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Color(0x0D000000),
+                          offset: Offset(0, 4),
+                          blurRadius: 4,
+                          spreadRadius: 0,
+                        ),
+                      ],
+                    ),
+                    child: ListTile(
+                      leading: CircleAvatar(child: Text('5'), backgroundColor: Colors.blue[100]),
+                      title: Text('Final Inspection'),
+                      trailing: Icon(Icons.chevron_right),
+                    ),
                   ),
                 ],
               ),
             ),
-
-            // Input area
-            */
-/*Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(30),
-                ),
-                child: Row(
-                  children: [
-                    // Camera button
-                    SvgPicture.asset('assets/images/home/cam_icon.svg'),
-                    const SizedBox(width: 8),
-
-                    // Image/Gallery button
-                    SvgPicture.asset('assets/images/home/image_icon.svg'),
-                    const SizedBox(width: 12),
-
-                    // Text input field with mic icon
-                    Expanded(
-                      child: Container(
-                        height: 40,
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        decoration: BoxDecoration(
-                          color: AppColors.chatInput,
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: TextField(
-                                textAlignVertical: TextAlignVertical.center,
-                                decoration: InputDecoration(
-                                  hintText: 'Type here...',
-                                  border: InputBorder.none,
-                                  hintStyle: h4.copyWith(
-                                    color: Colors.grey,
-                                    fontSize: 14,
-                                  ),
-                                  contentPadding: EdgeInsets.symmetric(
-                                    vertical: 12,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            SvgPicture.asset('assets/images/home/mic_icon.svg'),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-
-                    // Send button
-                    SvgPicture.asset('assets/images/home/send_icon.svg'),
-                  ],
-                ),
-              ),
-            ),*//*
 
           ],
         ),
@@ -194,4 +202,3 @@ class ViewInstructionView extends GetView {
     );
   }
 }
-*/

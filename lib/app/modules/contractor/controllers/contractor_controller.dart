@@ -2,9 +2,67 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../data/api.dart';
+import '../../../data/base_client.dart';
+import '../../home/controllers/home_controller.dart';
+
+
+class Contractor {
+  final String name;
+  final bool availableThisWeek;
+  final String address;
+  final String phone;
+  final String email;
+  final String website;
+  final double rating;
+  final int totalReviews;
+  final List<String> specialties;
+  final List<String> servicesIncluded;
+  final Map<String, String> pricing;
+  final List<String> reviews;
+  final String? image;
+
+  Contractor({
+    required this.name,
+    required this.availableThisWeek,
+    required this.address,
+    required this.phone,
+    required this.email,
+    required this.website,
+    required this.rating,
+    required this.totalReviews,
+    required this.specialties,
+    required this.servicesIncluded,
+    required this.pricing,
+    required this.reviews,
+    this.image,
+  });
+
+  factory Contractor.fromJson(Map<String, dynamic> json) {
+    return Contractor(
+      name: json['name'] ?? '',
+      availableThisWeek: json['available_this_week'] ?? false,
+      address: json['address'] ?? '',
+      phone: json['phone'] ?? 'N/A',
+      email: json['email'] ?? 'N/A',
+      website: json['website'] ?? 'N/A',
+      rating: (json['rating'] ?? 0).toDouble(),
+      totalReviews: json['total_reviews'] ?? 0,
+      specialties: List<String>.from(json['specialties'] ?? []),
+      servicesIncluded: List<String>.from(json['services_included'] ?? []),
+      pricing: Map<String, String>.from(json['pricing'] ?? {}),
+      reviews: List<String>.from(json['reviews'] ?? []),
+      image: json['image'],
+    );
+  }
+}
+
 class ContractorController extends GetxController {
   var currentPage = 0.obs;
   var showConfirm = false.obs;
+  var contractors = <Contractor>[].obs; // Observable list for contractors
+  var isContractorsLoading = false.obs; // Loading state
+  var contractorsError = Rxn<String>(); // Error state
 
   final PageController pageController = PageController();
 
@@ -27,6 +85,12 @@ class ContractorController extends GetxController {
   var selectedApproxArea = ''.obs;
 
   @override
+  void onInit() {
+    super.onInit();
+    fetchContractors(); // Fetch contractors when controller initializes
+  }
+
+  @override
   void onClose() {
     nameController.dispose();
     emailController.dispose();
@@ -41,6 +105,56 @@ class ContractorController extends GetxController {
     dateController.dispose();
     pageController.dispose();
     super.onClose();
+  }
+
+  // Method to fetch contractors from API
+  Future<void> fetchContractors() async {
+    final HomeController homeController = Get.find<HomeController>();
+    final currentProject = homeController.currentProject.value;
+
+
+    // Find the first milestone with 'on_going' status
+    final milestone = currentProject?.milestones
+        .firstWhereOrNull((m) => m.status == 'on_going');
+
+    debugPrint('Milestone: ${milestone?.id} - ${milestone?.name}');
+
+
+    try {
+      isContractorsLoading.value = true;
+      contractorsError.value = null;
+      debugPrint('ContractorController: Fetching contractors');
+
+      final response = await BaseClient.getRequest(
+        api: Api.getContractors(milestone?.id), // Assume Api.contractors() returns the endpoint
+        headers: BaseClient.authHeaders(),
+      );
+
+      final data = await BaseClient.handleResponse(
+        response,
+        retryRequest: () => BaseClient.getRequest(
+          api: Api.getContractors(milestone?.id),
+          headers: BaseClient.authHeaders(),
+        ),
+      );
+
+      debugPrint('ContractorController: Raw API response: $data');
+
+      if (data is! Map<String, dynamic> || data['contractors'] is! List) {
+        throw Exception('Invalid response format: Expected a JSON object with contractors list');
+      }
+
+      contractors.value = (data['contractors'] as List)
+          .map((json) => Contractor.fromJson(json))
+          .toList();
+      debugPrint('ContractorController: Loaded ${contractors.length} contractors');
+    } catch (e, stackTrace) {
+      debugPrint('ContractorController: Error fetching contractors: $e\nStackTrace: $stackTrace');
+      contractorsError.value = 'Failed to fetch contractors: $e';
+      contractors.clear();
+    } finally {
+      isContractorsLoading.value = false;
+    }
   }
 
   // Method to select time
@@ -69,7 +183,6 @@ class ContractorController extends GetxController {
 
   // Method to open email client with pre-filled form data
   Future<void> openEmailClient() async {
-    // Construct the email body
     final String emailBody = '''
 New Schedule Submission:
 
@@ -93,15 +206,12 @@ Location:
 - Province: ${provinceController.text.isEmpty ? 'Not specified' : provinceController.text}
 ''';
 
-    // Encode the subject and body to handle special characters
     final String encodedSubject = Uri.encodeComponent('New Schedule Submission - ${DateTime.now()}');
     final String encodedBody = Uri.encodeComponent(emailBody);
-
-    // Construct the mailto URL
     final String mailtoUrl = 'mailto:recipient-email@example.com?subject=$encodedSubject&body=$encodedBody';
     final Uri emailUri = Uri.parse(mailtoUrl);
 
-    print('Attempting to launch URL: $mailtoUrl'); // Debug log
+    print('Attempting to launch URL: $mailtoUrl');
 
     try {
       if (await canLaunchUrl(emailUri)) {

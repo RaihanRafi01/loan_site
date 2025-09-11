@@ -32,7 +32,7 @@ class Api {
 
   static uploadMilestonePhoto(project_id,milestone_id) => "$baseUrl/project/milestone-complete-chatbot/$project_id/$milestone_id/";
 
-
+  static  getContractors(milestone_id) => "$baseUrl/project/get_contractors/?milestone_id=$milestone_id";
 
   /// community
   static const createPost = "$baseUrl/community/posts/";  //done

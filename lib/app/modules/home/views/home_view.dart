@@ -423,7 +423,7 @@ class HomeView extends GetView<HomeController> {
                         const SizedBox(width: 12),
                         Expanded(
                           child: GestureDetector(
-                            onTap: () => Get.to(ContractorView()),
+                            onTap: () => Get.to(ViewInstructionView()),
                             child: SvgPicture.asset(
                               'assets/images/home/view_instruction.svg',
                               width: MediaQuery.of(context).size.width,

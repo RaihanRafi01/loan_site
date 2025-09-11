@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
-import 'package:loan_site/app/modules/contractor/views/schedule_view.dart';
 import 'package:url_launcher/url_launcher.dart';
-
 import '../../../../common/appColors.dart';
 import '../../../../common/customFont.dart';
+import 'schedule_view.dart';
+import '../controllers/contractor_controller.dart';
 
-class ContractorDetailsView extends GetView {
-  const ContractorDetailsView({super.key});
+class ContractorDetailsView extends GetView<ContractorController> {
+  final Contractor contractor;
+
+  const ContractorDetailsView({super.key, required this.contractor});
 
   @override
   Widget build(BuildContext context) {
@@ -20,10 +22,7 @@ class ContractorDetailsView extends GetView {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 10,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                 width: double.maxFinite,
                 color: AppColors.chatCard,
                 child: Row(
@@ -52,98 +51,111 @@ class ContractorDetailsView extends GetView {
                   ],
                 ),
               ),
-              SizedBox(height: 10),
+              const SizedBox(height: 10),
               // Profile Header
               Padding(
                 padding: const EdgeInsets.all(8),
                 child: Card(
                   elevation: 0.5,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(
-                      6,
-                    ), // Adjust radius here
+                    borderRadius: BorderRadius.circular(6),
                   ),
                   color: Colors.white,
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 10,
-                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            Image.asset(
+                            contractor.image != null && contractor.image!.startsWith('http')
+                                ? Image.network(
+                              contractor.image!,
+                              width: 80,
+                              height: 80,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) => Image.asset(
+                                'assets/images/contractor/contractor_image_2.png',
+                                width: 80,
+                                height: 80,
+                              ),
+                            )
+                                : Image.asset(
                               'assets/images/contractor/contractor_image_2.png',
+                              width: 80,
+                              height: 80,
                             ),
-                            SizedBox(width: 16),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'BlueWave Plumbing',
-                                  style: h3.copyWith(
-                                    fontSize: 16,
-                                    color: AppColors.textColor,
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    contractor.name,
+                                    style: h3.copyWith(
+                                      fontSize: 16,
+                                      color: AppColors.textColor,
+                                    ),
                                   ),
-                                ),
-                                SizedBox(height: 8),
-                                Row(
-                                  children: [
-                                    SvgPicture.asset(
-                                      'assets/images/contractor/star.svg',
-                                    ),
-                                    SizedBox(width: 5),
-                                    Text(
-                                      '4.9(127)',
-                                      style: h3.copyWith(
-                                        color: AppColors.textColor,
-                                        fontSize: 14,
+                                  const SizedBox(height: 8),
+                                  Row(
+                                    children: [
+                                      SvgPicture.asset(
+                                        'assets/images/contractor/star.svg',
                                       ),
-                                    ),
-                                    SizedBox(width: 10),
-                                    Text(
-                                      'Available this weelk',
-                                      style: h4.copyWith(
-                                        color: AppColors.textGreen2,
-                                        fontSize: 14,
+                                      const SizedBox(width: 5),
+                                      Text(
+                                        '${contractor.rating}(${contractor.totalReviews})',
+                                        style: h3.copyWith(
+                                          color: AppColors.textColor,
+                                          fontSize: 14,
+                                        ),
                                       ),
-                                    ),
-                                  ],
-                                ),
-                              ],
+                                      const SizedBox(width: 10),
+                                      Text(
+                                        contractor.availableThisWeek
+                                            ? 'Available this week'
+                                            : 'Not available',
+                                        style: h4.copyWith(
+                                          color: AppColors.textGreen2,
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
                             ),
                           ],
                         ),
-                        SizedBox(height: 10),
+                        const SizedBox(height: 10),
                         buildHyperlinkRow(
                           svgPath: 'assets/images/contractor/location.svg',
-                          text: '1234 Constraction Ave, ST 12345',
+                          text: contractor.address,
                           isHyperlink: false,
                           url: '',
                           isUnderline: false,
                         ),
                         buildHyperlinkRow(
                           svgPath: 'assets/images/contractor/phone_icon.svg',
-                          text: '(555) 123-4567',
-                          isHyperlink: false,
-                          url: '',
+                          text: contractor.phone,
+                          isHyperlink: contractor.phone != 'N/A',
+                          url: 'tel:${contractor.phone}',
                           isUnderline: true,
                         ),
                         buildHyperlinkRow(
                           svgPath: 'assets/images/contractor/mail_icon.svg',
-                          text: 'info@gmail.com',
-                          isHyperlink: false,
-                          url: '',
+                          text: contractor.email == 'N/A' ? 'Not available' : contractor.email,
+                          isHyperlink: contractor.email != 'N/A',
+                          url: 'mailto:${contractor.email}',
                           isUnderline: true,
                         ),
                         buildHyperlinkRow(
                           svgPath: 'assets/images/contractor/web_icon.svg',
-                          text: 'www.premiumfloor.com',
-                          isHyperlink: true,
-                          url: 'www.premiumfloor.com',
+                          text: contractor.website == 'N/A' ? 'Not available' : contractor.website,
+                          isHyperlink: contractor.website != 'N/A',
+                          url: contractor.website,
                           isUnderline: true,
                         ),
                         Padding(
@@ -156,11 +168,11 @@ class ContractorDetailsView extends GetView {
                                   'assets/images/contractor/call_now.svg',
                                 ),
                               ),
-                              SizedBox(width: 20),
+                              const SizedBox(width: 20),
                               Expanded(
                                 child: GestureDetector(
-                                  onTap: (){
-                                    Get.to(ScheduleView());
+                                  onTap: () {
+                                    Get.to(() => ScheduleView());
                                   },
                                   child: SvgPicture.asset(
                                     'assets/images/contractor/shedule.svg',
@@ -175,9 +187,7 @@ class ContractorDetailsView extends GetView {
                   ),
                 ),
               ),
-
               const SizedBox(height: 12),
-
               // Services & Specialties
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -194,15 +204,12 @@ class ContractorDetailsView extends GetView {
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 10),
                       child: Wrap(
-                        spacing: 12, // Horizontal spacing between widgets
-                        runSpacing: 10, // Vertical spacing between lines
+                        spacing: 12,
+                        runSpacing: 10,
                         alignment: WrapAlignment.start,
-                        children: [
-                          roundedTextWidget(text: 'Installation'),
-                          roundedTextWidget(text: 'Repair'),
-                          roundedTextWidget(text: 'Water Heater'),
-                          roundedTextWidget(text: 'Kitchen Plumbing'),
-                        ],
+                        children: contractor.specialties
+                            .map<Widget>((specialty) => roundedTextWidget(text: specialty))
+                            .toList(),
                       ),
                     ),
                     const SizedBox(height: 5),
@@ -214,27 +221,16 @@ class ContractorDetailsView extends GetView {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    _buildServiceItem('Residential'),
-                    _buildServiceItem('Kitchen Plumbing'),
-                    _buildServiceItem('Service Included'),
-                    _buildServiceItem('Pipe Installation and Repair'),
-                    _buildServiceItem('Water Heater Installation and Repair'),
-                    _buildServiceItem('Leak Detection and Repair'),
-                    _buildServiceItem('Sewer Line Repair and Replacement'),
-                    _buildServiceItem('Bathroom Plumbing Systems'),
-                    _buildServiceItem('Plumbing Inspections'),
-                    _buildServiceItem('Drain Warranty'),
+                    ...contractor.servicesIncluded
+                        .map<Widget>((service) => _buildServiceItem(service))
+                        .toList(),
                   ],
                 ),
               ),
-
               const SizedBox(height: 12),
-
               // Pricing
               pricingSection(),
-
               const SizedBox(height: 12),
-
               // Recent Reviews
               Padding(
                 padding: const EdgeInsets.all(12),
@@ -244,8 +240,8 @@ class ContractorDetailsView extends GetView {
                     borderRadius: BorderRadius.circular(6),
                     color: Colors.white,
                     border: Border.all(
-                      color: AppColors.borderClr1, // Added border color
-                      width: 1.0, // Default border width, adjust as needed
+                      color: AppColors.borderClr1,
+                      width: 1.0,
                     ),
                   ),
                   padding: const EdgeInsets.all(16),
@@ -259,29 +255,25 @@ class ContractorDetailsView extends GetView {
                           color: AppColors.textColor,
                         ),
                       ),
-                      _buildReviewItem(
-                        'Sarah M.',
-                        4,
-                        'The technician was extremely professional and the entire process was smooth. They explained everything in detail and made sure all my questions were answered. I would definitely recommend their services to anyone.',
-                      ),
-                      Divider(),
-                      _buildReviewItem(
-                        'Sarah M.',
-                        5,
-                        'Very knowledgeable and courteous. He also ran estimates for extra work that might make sense based on current condition. The workers were on time and did good work.',
-                      ),
-                      Divider(),
-                      _buildReviewItem(
-                        'Michael R.',
-                        5,
-                        'The entire process was seamless and the guys were very professional. Will be using them for all my future plumbing needs.',
-                      ),
-                      Divider(),
-                      _buildReviewItem(
-                        'David L.',
-                        5,
-                        'They did a thorough job including our main water line. Great work and very clean finish. Will be contacting them for future work.',
-                      ),
+                      ...contractor.reviews.asMap().entries.map<Widget>(
+                            (entry) {
+                          int idx = entry.key;
+                          String review = entry.value;
+                          if (review.isEmpty || review == 'No additional review available.') {
+                            return Container();
+                          }
+                          return Column(
+                            children: [
+                              _buildReviewItem(
+                                'User ${idx + 1}',
+                                contractor.rating.toInt(),
+                                review,
+                              ),
+                              if (idx < contractor.reviews.length - 1) const Divider(),
+                            ],
+                          );
+                        },
+                      ).toList(),
                     ],
                   ),
                 ),
@@ -323,7 +315,7 @@ class ContractorDetailsView extends GetView {
     Future<void> _launchUrl(String url) async {
       final Uri uri = Uri.parse(url);
       if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
-        throw 'Could not launch $url';
+        Get.snackbar('Error', 'Could not launch $url');
       }
     }
 
@@ -336,29 +328,20 @@ class ContractorDetailsView extends GetView {
           children: [
             SvgPicture.asset(svgPath),
             const SizedBox(width: 5),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                isHyperlink
-                    ? Text(
-                        text,
-                        style: h4.copyWith(
-                          fontSize: 14,
-                          color: Colors.blue,
-                          decoration: TextDecoration.underline,
-                        ),
-                      )
-                    : Text(
-                        text,
-                        style: h4.copyWith(
-                          fontSize: 14,
-                          color: AppColors.gray3,
-                          decoration: isUnderline
-                              ? TextDecoration.underline
-                              : TextDecoration.none,
-                        ),
-                      ),
-              ],
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    text,
+                    style: h4.copyWith(
+                      fontSize: 14,
+                      color: isHyperlink ? Colors.blue : AppColors.gray3,
+                      decoration: isUnderline ? TextDecoration.underline : TextDecoration.none,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -402,9 +385,7 @@ class ContractorDetailsView extends GetView {
           price,
           style: h2.copyWith(
             fontSize: 16,
-            color: price.toLowerCase() == 'free'
-                ? AppColors.textGreen2
-                : AppColors.textColor,
+            color: price.toLowerCase() == 'free' ? AppColors.textGreen2 : AppColors.textColor,
           ),
         ),
       ],
@@ -412,6 +393,9 @@ class ContractorDetailsView extends GetView {
   }
 
   Widget pricingSection() {
+    // Convert pricing entries to a list for easier indexing
+    final pricingEntries = contractor.pricing.entries.toList();
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12),
       child: Container(
@@ -421,7 +405,6 @@ class ContractorDetailsView extends GetView {
           borderRadius: BorderRadius.circular(6),
           border: Border.all(
             color: AppColors.borderClr1,
-            // Assuming AppColors.borderClr1 is defined
             width: 1.0,
           ),
         ),
@@ -433,32 +416,33 @@ class ContractorDetailsView extends GetView {
               style: h2.copyWith(fontSize: 20, color: AppColors.textColor),
             ),
             const SizedBox(height: 16),
-            // First Row
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(child: _buildPricingItem('Consultation', 'Free')),
-                const SizedBox(width: 4), // Minimal horizontal spacing
-                Expanded(child: _buildPricingItem('Repire', '\$200-1500')),
-              ],
-            ),
-            const SizedBox(height: 10), // Minimal vertical spacing
-            // Second Row
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: _buildPricingItem('Kithchen Plumbing', '\$150-500'),
-                ),
-                const SizedBox(width: 4), // Minimal horizontal spacing
-                Expanded(
-                  child: _buildPricingItem(
-                    'Water Heater',
-                    'Starting \$100-400',
+            // Build rows of pricing items (two per row)
+            for (int i = 0; i < pricingEntries.length; i += 2)
+              Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: _buildPricingItem(
+                          pricingEntries[i].key,
+                          pricingEntries[i].value,
+                        ),
+                      ),
+                      if (i + 1 < pricingEntries.length)
+                        Expanded(
+                          child: _buildPricingItem(
+                            pricingEntries[i + 1].key,
+                            pricingEntries[i + 1].value,
+                          ),
+                        )
+                      else
+                        const Expanded(child: SizedBox()), // Empty space if odd number
+                    ],
                   ),
-                ),
-              ],
-            ),
+                  const SizedBox(height: 10),
+                ],
+              ),
           ],
         ),
       ),
@@ -481,7 +465,7 @@ class ContractorDetailsView extends GetView {
               Row(
                 children: List.generate(
                   rating,
-                  (index) => SvgPicture.asset(
+                      (index) => SvgPicture.asset(
                     'assets/images/contractor/star_icon.svg',
                   ),
                 ),

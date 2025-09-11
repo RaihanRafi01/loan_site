@@ -234,7 +234,7 @@ class ProjectView extends GetView<ProjectController> {
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 8.0),
                       child: GestureDetector(
-                        onTap: () => Get.to(() => const ContractorView()),
+                        onTap: () => Get.to(() => ContractorView()),
                         child: SvgPicture.asset('assets/images/project/view_instruction.svg',
                             width: MediaQuery.of(context).size.width),
                       ),

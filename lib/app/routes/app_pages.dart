@@ -34,7 +34,7 @@ part 'app_routes.dart';
 class AppPages {
   AppPages._();
 
-  static const INITIAL = Routes.DASHBOARD;
+  static const INITIAL = Routes.AUTH;
 
   static final routes = [
     GetPage(
@@ -59,7 +59,7 @@ class AppPages {
     ),
     GetPage(
       name: _Paths.CONTRACTOR,
-      page: () => const ContractorView(),
+      page: () => ContractorView(),
       binding: ContractorBinding(),
     ),
     GetPage(

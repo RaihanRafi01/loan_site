@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 import 'package:loan_site/app/modules/home/views/home_view.dart';
 import 'package:loan_site/app/modules/home/views/upload_photo_view.dart';
 import 'package:loan_site/app/modules/home/views/view_instruction_view.dart';
@@ -350,6 +351,17 @@ class ProgressView extends GetView {
   }
 
   Widget _buildStatCard(String value, String label, Color color) {
+    // Format value as currency if the label is 'Budget Used'
+    String displayValue = value;
+    if (label == 'Budget Used' && value != 'N/A') {
+      try {
+        final number = double.parse(value.replaceAll(',', '')); // Remove commas if already present
+        displayValue = '\$${NumberFormat('#,##0').format(number)}'; // Format with $ and commas
+      } catch (e) {
+        displayValue = value; // Fallback to original value if parsing fails
+      }
+    }
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 4),
       child: Card(
@@ -359,16 +371,16 @@ class ProgressView extends GetView {
           borderRadius: BorderRadius.circular(6),
         ),
         child: Container(
-          height: 150, // Adjusted back to original height
+          height: 90,
           padding: const EdgeInsets.all(8),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
-                value,
+                displayValue,
                 textAlign: TextAlign.center,
                 style: h1.copyWith(
-                  fontSize: 32,
+                  fontSize: 18,
                   color: color,
                 ),
               ),
@@ -377,7 +389,7 @@ class ProgressView extends GetView {
                 label,
                 textAlign: TextAlign.center,
                 style: h4.copyWith(
-                  fontSize: 14,
+                  fontSize: 12,
                   color: color,
                 ),
               ),

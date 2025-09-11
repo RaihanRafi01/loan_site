@@ -5,15 +5,18 @@ import '../../../../common/appColors.dart';
 import '../../../../common/customFont.dart';
 import '../../home/views/chat_home_view.dart';
 import 'contractor_details_view.dart';
+import '../controllers/contractor_controller.dart';
 
-class ContractorView extends GetView {
-  const ContractorView({super.key});
+class ContractorView extends GetView<ContractorController> {
+  ContractorView({super.key});
+
   @override
   Widget build(BuildContext context) {
+    Get.put(ContractorController());
     return Scaffold(
       backgroundColor: AppColors.appBc,
       body: SafeArea(
-        child: Column(
+        child: Obx(() => Column(
           children: [
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -45,31 +48,46 @@ class ContractorView extends GetView {
                 ],
               ),
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             // Chat messages area
             Expanded(
               flex: 2,
               child: ListView(
                 padding: const EdgeInsets.all(16),
                 children: [
-                  // First AI message
-                  ChatHomeView().buildAIMessage(context,
+                  ChatHomeView().buildAIMessage(
+                    context,
                     "Hi there! I'm your AI assistant, here to help you manage and track your flooring or construction project — every step of the way.",
                   ),
                   const SizedBox(height: 16),
-
-                  // Second AI message
-                  ChatHomeView().buildAIMessage(context,
+                  ChatHomeView().buildAIMessage(
+                    context,
                     "I share you a list of contractor company in your nearby location",
-
                   ),
                 ],
               ),
             ),
-
+            // Contractor list
             Expanded(
               flex: 5,
-              child: ListView(
+              child: controller.isContractorsLoading.value
+                  ? const Center(child: CircularProgressIndicator())
+                  : controller.contractorsError.value != null
+                  ? Center(
+                child: Text(
+                  controller.contractorsError.value!,
+                  style: h4.copyWith(color: AppColors.textColor),
+                  textAlign: TextAlign.center,
+                ),
+              )
+                  : controller.contractors.isEmpty
+                  ? Center(
+                child: Text(
+                  'No contractors available',
+                  style: h4.copyWith(color: AppColors.textColor),
+                ),
+              )
+                  : ListView(
                 padding: const EdgeInsets.all(16),
                 children: [
                   Padding(
@@ -77,7 +95,7 @@ class ContractorView extends GetView {
                     child: Row(
                       children: [
                         SvgPicture.asset('assets/images/contractor/arrow.svg'),
-                        SizedBox(width: 10),
+                        const SizedBox(width: 10),
                         Text(
                           'Popular contactor in your city',
                           style: h3.copyWith(
@@ -88,56 +106,45 @@ class ContractorView extends GetView {
                       ],
                     ),
                   ),
-
-                  // First AI message
-                  ContractorView().buildContractor(
-                    'assets/images/contractor/contractor_image.png',
-                    'BlueWave Plumbing',
-                    'ST 12345',
-                    '4.9(127)',
-                    'Available this weelk',
-                  ),
-                  const SizedBox(height: 5),
-
-                  // Second AI message
-                  ContractorView().buildContractor(
-                    'assets/images/contractor/contractor_image.png',
-                    'PipeMasters Plumbing',
-                    'ST 12345',
-                    '4.9(127)',
-                    'Available this weelk',
-                  ),
-                  const SizedBox(height: 5),
-
-                  // Second AI message
-                  ContractorView().buildContractor(
-                    'assets/images/contractor/contractor_image.png',
-                    'ClearFlow Plumbing Solutions',
-                    'ST 12345',
-                    '4.9(127)',
-                    'Available this weelk',
-                  ),
+                  ...controller.contractors.map((contractor) => Column(
+                    children: [
+                      buildContractor(
+                        contractor.image ??
+                            'assets/images/contractor/contractor_image.png',
+                        contractor.name,
+                        contractor.address.split(',').first,
+                        '${contractor.rating}(${contractor.totalReviews})',
+                        contractor.availableThisWeek
+                            ? 'Available this week'
+                            : 'Not available',
+                        contractor,
+                      ),
+                      const SizedBox(height: 5),
+                    ],
+                  )).toList(),
                 ],
               ),
             ),
           ],
-        ),
+        )),
       ),
     );
   }
+
   Widget buildContractor(
       String imagePath,
       String title,
       String location,
       String rating,
       String available,
+      Contractor contractor,
       ) {
     return GestureDetector(
-      onTap: ()=> Get.to(ContractorDetailsView()),
+      onTap: () => Get.to(() => ContractorDetailsView(contractor: contractor)),
       child: Card(
         elevation: 0.5,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(6), // Adjust radius here
+          borderRadius: BorderRadius.circular(6),
         ),
         color: Colors.white,
         child: Padding(
@@ -145,27 +152,60 @@ class ContractorView extends GetView {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Image.asset(imagePath),
-              SizedBox(width: 20),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: h3.copyWith(fontSize: 16, color: AppColors.textColor),
-                  ),
-                  SizedBox(height: 4),
-                  Row(children: [
-                    SvgPicture.asset('assets/images/contractor/location.svg'),
-                    SizedBox(width: 5),
-                    Text(location,style: h4.copyWith(color: AppColors.blurtext6,fontSize: 14),),
-                    SizedBox(width: 15),
-                    SvgPicture.asset('assets/images/contractor/star.svg'),
-                    SizedBox(width: 5),
-                    Text(rating,style: h3.copyWith(color: AppColors.textColor,fontSize: 14))]),
-                  SizedBox(height: 4),
-                  Text(available,style: h4.copyWith(color: AppColors.textGreen2,fontSize: 14)),
-                ],
+              imagePath.startsWith('http')
+                  ? Image.network(
+                imagePath,
+                width: 80,
+                height: 80,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) => Image.asset(
+                  'assets/images/contractor/contractor_image.png',
+                  width: 80,
+                  height: 80,
+                ),
+              )
+                  : Image.asset(imagePath, width: 80, height: 80),
+              const SizedBox(width: 20),
+              Expanded(
+                // Wrap Column in Expanded to constrain its width
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: h3.copyWith(fontSize: 16, color: AppColors.textColor),
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        SvgPicture.asset('assets/images/contractor/location.svg'),
+                        const SizedBox(width: 5),
+                        Expanded(
+                          // Wrap location Text in Expanded to allow wrapping
+                          child: Text(
+                            location,
+                            style: h4.copyWith(color: AppColors.blurtext6, fontSize: 14),
+                            maxLines: 2, // Allow up to 2 lines for location
+                            overflow: TextOverflow.ellipsis, // Truncate with ellipsis if still too long
+                          ),
+                        ),
+                        const SizedBox(width: 15),
+                        SvgPicture.asset('assets/images/contractor/star.svg'),
+                        const SizedBox(width: 5),
+                        Text(
+                          rating,
+                          style: h3.copyWith(color: AppColors.textColor, fontSize: 14),
+                        ),
+                        const SizedBox(width: 5),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      available,
+                      style: h4.copyWith(color: AppColors.textGreen2, fontSize: 14),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),

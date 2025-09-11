@@ -22,7 +22,7 @@ class DashboardView extends GetView<DashboardController> {
     // List of pages to navigate
     final List<Widget> pages = [
       const HomeView(),
-      const ContractorView(),
+      ContractorView(),
       const ProgressView(),
       const CommunityView(),
       const SettingsView(isBorrower: true),
