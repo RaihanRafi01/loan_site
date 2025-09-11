@@ -151,15 +151,20 @@ class ContractorDetailsView extends GetView {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              SvgPicture.asset(
-                                'assets/images/contractor/call_now.svg',
-                              ),
-                              GestureDetector(
-                                onTap: (){
-                                  Get.to(ScheduleView());
-                                },
+                              Expanded(
                                 child: SvgPicture.asset(
-                                  'assets/images/contractor/shedule.svg',
+                                  'assets/images/contractor/call_now.svg',
+                                ),
+                              ),
+                              SizedBox(width: 20),
+                              Expanded(
+                                child: GestureDetector(
+                                  onTap: (){
+                                    Get.to(ScheduleView());
+                                  },
+                                  child: SvgPicture.asset(
+                                    'assets/images/contractor/shedule.svg',
+                                  ),
                                 ),
                               ),
                             ],
