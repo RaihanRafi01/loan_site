@@ -1,17 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-
 import 'package:get/get.dart';
-import 'package:loan_site/app/modules/contractor/views/contractor_details_view.dart';
-
 import '../../../../common/appColors.dart';
 import '../../../../common/customFont.dart';
 import '../../home/views/chat_home_view.dart';
-import '../controllers/contractor_controller.dart';
+import 'contractor_details_view.dart';
 
-class ContractorView extends GetView<ContractorController> {
+class ContractorView extends GetView {
   const ContractorView({super.key});
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -52,7 +48,7 @@ class ContractorView extends GetView<ContractorController> {
             SizedBox(height: 16),
             // Chat messages area
             Expanded(
-              flex: 4,
+              flex: 2,
               child: ListView(
                 padding: const EdgeInsets.all(16),
                 children: [
@@ -64,14 +60,15 @@ class ContractorView extends GetView<ContractorController> {
 
                   // Second AI message
                   ChatHomeView().buildAIMessage(context,
-                    "Do you need any help? I am here to assist you.",
+                    "I share you a list of contractor company in your nearby location",
+
                   ),
                 ],
               ),
             ),
 
             Expanded(
-              flex: 7,
+              flex: 5,
               child: ListView(
                 padding: const EdgeInsets.all(16),
                 children: [
@@ -93,7 +90,7 @@ class ContractorView extends GetView<ContractorController> {
                   ),
 
                   // First AI message
-                  buildContractor(
+                  ContractorView().buildContractor(
                     'assets/images/contractor/contractor_image.png',
                     'BlueWave Plumbing',
                     'ST 12345',
@@ -103,7 +100,7 @@ class ContractorView extends GetView<ContractorController> {
                   const SizedBox(height: 5),
 
                   // Second AI message
-                  buildContractor(
+                  ContractorView().buildContractor(
                     'assets/images/contractor/contractor_image.png',
                     'PipeMasters Plumbing',
                     'ST 12345',
@@ -113,7 +110,7 @@ class ContractorView extends GetView<ContractorController> {
                   const SizedBox(height: 5),
 
                   // Second AI message
-                  buildContractor(
+                  ContractorView().buildContractor(
                     'assets/images/contractor/contractor_image.png',
                     'ClearFlow Plumbing Solutions',
                     'ST 12345',
@@ -125,7 +122,7 @@ class ContractorView extends GetView<ContractorController> {
             ),
 
             // Input area
-            Padding(
+            /*Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
               child: Container(
                 padding: const EdgeInsets.symmetric(
@@ -185,20 +182,19 @@ class ContractorView extends GetView<ContractorController> {
                   ],
                 ),
               ),
-            ),
+            ),*/
           ],
         ),
       ),
     );
   }
-
   Widget buildContractor(
-    String imagePath,
-    String title,
-    String location,
-    String rating,
-    String available,
-  ) {
+      String imagePath,
+      String title,
+      String location,
+      String rating,
+      String available,
+      ) {
     return GestureDetector(
       onTap: ()=> Get.to(ContractorDetailsView()),
       child: Card(

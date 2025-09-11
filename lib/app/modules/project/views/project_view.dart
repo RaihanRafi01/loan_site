@@ -7,6 +7,7 @@ import '../../../../common/appColors.dart';
 import '../../../../common/customFont.dart';
 import '../../../../common/widgets/customButton.dart';
 import '../../../../common/widgets/custom_snackbar.dart';
+import '../../contractor/views/contractor_view.dart';
 import '../../home/controllers/chat_controller.dart';
 import '../../home/controllers/home_controller.dart';
 import '../../home/views/view_instruction_view.dart';
@@ -233,7 +234,7 @@ class ProjectView extends GetView<ProjectController> {
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 8.0),
                       child: GestureDetector(
-                        onTap: () => Get.to(() => const ViewInstructionView()),
+                        onTap: () => Get.to(() => const ContractorView()),
                         child: SvgPicture.asset('assets/images/project/view_instruction.svg',
                             width: MediaQuery.of(context).size.width),
                       ),

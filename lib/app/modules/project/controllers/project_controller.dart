@@ -21,6 +21,7 @@ class ProjectDetail {
   final String location;
   final ProjectProgress progress;
   final List<ProjectMilestone> milestones;
+  final List<ProjectUpdate> recentUpdates;
 
   ProjectDetail({
     required this.id,
@@ -30,6 +31,7 @@ class ProjectDetail {
     required this.location,
     required this.progress,
     required this.milestones,
+    required this.recentUpdates,
   });
 
   factory ProjectDetail.fromJson(Map<String, dynamic> j) {
@@ -43,6 +45,9 @@ class ProjectDetail {
         progress: ProjectProgress.fromJson(j['project_progress'] as Map<String, dynamic>? ?? {}),
         milestones: (j['milestones'] as List<dynamic>? ?? [])
             .map((e) => ProjectMilestone.fromJson(e as Map<String, dynamic>))
+            .toList(),
+        recentUpdates: (j['project_recent_updates'] as List<dynamic>? ?? [])
+            .map((e) => ProjectUpdate.fromJson(e as Map<String, dynamic>))
             .toList(),
       );
     } catch (e, stackTrace) {
@@ -59,6 +64,7 @@ class ProjectProgress {
   final int completedPhases;
   final int totalPhases;
   final int? duration;
+  final int? budget_used;
 
   ProjectProgress({
     required this.percentage,
@@ -67,6 +73,7 @@ class ProjectProgress {
     required this.completedPhases,
     required this.totalPhases,
     required this.duration,
+    required this.budget_used
   });
 
   factory ProjectProgress.fromJson(Map<String, dynamic> j) {
@@ -78,6 +85,7 @@ class ProjectProgress {
         completedPhases: (j['completed_phases'] as num?)?.toInt() ?? 0,
         totalPhases: (j['total_phases'] as num?)?.toInt() ?? 0,
         duration: (j['duration'] as num?)?.toInt(),
+        budget_used: (j['budget_used'] as num?)?.toInt(),
       );
     } catch (e, stackTrace) {
       debugPrint('Error parsing ProjectProgress: $e\nStackTrace: $stackTrace');
@@ -124,6 +132,34 @@ class ProjectMilestone {
       );
     } catch (e, stackTrace) {
       debugPrint('Error parsing ProjectMilestone: $e\nStackTrace: $stackTrace');
+      rethrow;
+    }
+  }
+}
+
+class ProjectUpdate {
+  final String milestoneName;
+  final String status;
+  final String date;
+  final String message;
+
+  ProjectUpdate({
+    required this.milestoneName,
+    required this.status,
+    required this.date,
+    required this.message,
+  });
+
+  factory ProjectUpdate.fromJson(Map<String, dynamic> j) {
+    try {
+      return ProjectUpdate(
+        milestoneName: j['milestone_name'] as String? ?? '',
+        status: j['status'] as String? ?? '',
+        date: j['date'] as String? ?? '',
+        message: j['message'] as String? ?? '',
+      );
+    } catch (e, stackTrace) {
+      debugPrint('Error parsing ProjectUpdate: $e\nStackTrace: $stackTrace');
       rethrow;
     }
   }
@@ -471,9 +507,18 @@ class ProjectPrefs {
         'completed_phases': projectDetail.progress.completedPhases,
         'total_phases': projectDetail.progress.totalPhases,
         'duration': projectDetail.progress.duration,
+        'budget_used': projectDetail.progress.budget_used,
       },
       'milestones': projectDetail.milestones
           .map((m) => {'id': m.id, 'name': m.name, 'status': m.status})
+          .toList(),
+      'project_recent_updates': projectDetail.recentUpdates
+          .map((u) => {
+        'milestone_name': u.milestoneName,
+        'status': u.status,
+        'date': u.date,
+        'message': u.message,
+      })
           .toList(),
     });
     await sp.setString(_kCurrentProject, projectJson);
@@ -495,7 +540,6 @@ class ProjectPrefs {
     }
   }
 
-  // Optional: Method to clear the current project
   static Future<void> clearCurrentProject() async {
     final sp = await SharedPreferences.getInstance();
     await sp.remove(_kCurrentProject);

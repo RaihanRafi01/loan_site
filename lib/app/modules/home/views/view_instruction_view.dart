@@ -1,3 +1,4 @@
+/*
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
@@ -50,25 +51,13 @@ class ViewInstructionView extends GetView {
             SizedBox(height: 16),
             // Chat messages area
             Expanded(
-              flex: 7,
+              flex: 2,
               child: ListView(
                 padding: const EdgeInsets.all(16),
                 children: [
                   // First AI message
                   ChatHomeView().buildAIMessage(context,
                     "Hi there! I'm your AI assistant, here to help you manage and track your flooring or construction project — every step of the way.",
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Second AI message
-                  ChatHomeView().buildAIMessage(context,
-                    "Do you need Contractor nearby?",
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Second AI message
-                  ChatHomeView().buildUserMessage(context,
-                    "Yes, I need",
                   ),
                   const SizedBox(height: 16),
 
@@ -136,7 +125,8 @@ class ViewInstructionView extends GetView {
             ),
 
             // Input area
-            Padding(
+            */
+/*Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
               child: Container(
                 padding: const EdgeInsets.symmetric(
@@ -196,10 +186,12 @@ class ViewInstructionView extends GetView {
                   ],
                 ),
               ),
-            ),
+            ),*//*
+
           ],
         ),
       ),
     );
   }
 }
+*/

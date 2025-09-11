@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
+import 'package:loan_site/app/modules/contractor/views/contractor_view.dart';
 import 'package:loan_site/app/modules/home/views/chat_home_view.dart';
 import 'package:loan_site/app/modules/home/views/upload_photo_view.dart';
 import 'package:loan_site/app/modules/home/views/view_instruction_view.dart';
@@ -57,21 +59,21 @@ class HomeView extends GetView<HomeController> {
                       // Dynamic profile image
                       dashboardController.profileImageUrl.value.isNotEmpty
                           ? CircleAvatar(
-                              radius: 40, // Adjust size as needed
-                              backgroundImage: NetworkImage(
-                                dashboardController.profileImageUrl.value,
-                              ),
-                              onBackgroundImageError: (exception, stackTrace) {
-                                // Handle image loading error (optional)
-                                print(
-                                  'Error loading profile image: $exception',
-                                );
-                              },
-                            )
+                        radius: 40, // Adjust size as needed
+                        backgroundImage: NetworkImage(
+                          dashboardController.profileImageUrl.value,
+                        ),
+                        onBackgroundImageError: (exception, stackTrace) {
+                          // Handle image loading error (optional)
+                          print(
+                            'Error loading profile image: $exception',
+                          );
+                        },
+                      )
                           : Image.asset(
-                              'assets/images/home/user_image.png',
-                              scale: 4,
-                            ),
+                        'assets/images/home/user_image.png',
+                        scale: 4,
+                      ),
                       SizedBox(width: 16),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -322,7 +324,7 @@ class HomeView extends GetView<HomeController> {
                                     displayMilestones[i + 1].name,
                                     displayMilestones[i + 1].status == 'completed'
                                         ? 'assets/images/home/tic_icon.svg'
-                                        : 'assets/images/home/ongoing_icon.svg',
+                                        : 'assets/images/home/waiting_icon.svg',
                                     displayMilestones[i + 1].status == 'completed'
                                         ? AppColors.greenCard
                                         : AppColors.yellowCard,
@@ -395,7 +397,7 @@ class HomeView extends GetView<HomeController> {
                             ),
                           ),
                           Text(
-                            'Complete ${project.milestones.firstWhereOrNull((m) => m.status != 'completed')?.name ?? 'General'} and upload progress photos',
+                            'Complete ${project.milestones.firstWhereOrNull((m) => m.status == 'on_going')?.name ?? 'General'} and upload progress photos',
                             style: h4.copyWith(
                               color: AppColors.textColor2,
                               fontSize: 16,
@@ -421,7 +423,7 @@ class HomeView extends GetView<HomeController> {
                         const SizedBox(width: 12),
                         Expanded(
                           child: GestureDetector(
-                            onTap: () => Get.to(ViewInstructionView()),
+                            onTap: () => Get.to(ContractorView()),
                             child: SvgPicture.asset(
                               'assets/images/home/view_instruction.svg',
                               width: MediaQuery.of(context).size.width,
@@ -443,7 +445,7 @@ class HomeView extends GetView<HomeController> {
                     const SizedBox(height: 16),
                     Obx(() {
                       final project = controller.currentProject.value;
-                      if (project == null) {
+                      if (project == null || project.recentUpdates.isEmpty) {
                         return Text(
                           'No recent updates available',
                           style: h4.copyWith(
@@ -452,32 +454,28 @@ class HomeView extends GetView<HomeController> {
                           ),
                         );
                       }
-                      final currentMilestone =
-                          project.milestones
-                              .firstWhereOrNull((m) => m.status != 'completed')
-                              ?.name ??
-                          'General';
                       return Column(
-                        children: [
-                          buildUpdateCard(
-                            'Milestone Reminder',
-                            '$currentMilestone deadline is approaching in ${project.progress.daysRemaining} days',
-                            'assets/images/home/info_icon.svg',
-                            AppColors.yellowCard,
-                            AppColors.textYellow,
-                          ),
-                          const SizedBox(height: 12),
-                          if (project.milestones.any(
-                            (m) => m.status == 'completed',
-                          ))
-                            buildUpdateCard(
-                              'Milestone Reminder',
-                              '${project.milestones.lastWhere((m) => m.status == 'completed').name} completed successfully',
-                              'assets/images/home/tic_icon.svg',
-                              AppColors.greenCard,
-                              AppColors.textGreen,
-                            ),
-                        ],
+                        children: project.recentUpdates.map((update) {
+                          return Column(
+                            children: [
+                              buildUpdateCard(
+                                update.milestoneName,
+                                update.message,
+                                update.status == 'completed'
+                                    ? 'assets/images/home/tic_icon.svg'
+                                    : 'assets/images/home/info_icon.svg',
+                                update.status == 'completed'
+                                    ? AppColors.greenCard
+                                    : AppColors.yellowCard,
+                                update.status == 'completed'
+                                    ? AppColors.textGreen
+                                    : AppColors.textYellow,
+                                date: update.date,
+                              ),
+                              const SizedBox(height: 12),
+                            ],
+                          );
+                        }).toList(),
                       );
                     }),
                   ],
@@ -491,13 +489,11 @@ class HomeView extends GetView<HomeController> {
   }
 
   Widget buildMilestoneCard(
-    String title,
-    String svgPath,
-    Color color,
-    Color txtColor,
-    bool isCompleted, {
-    String? subtitle,
-  }) {
+      String title,
+      String svgPath,
+      Color color,
+      Color txtColor,
+      bool isCompleted) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -517,12 +513,6 @@ class HomeView extends GetView<HomeController> {
                   style: h4.copyWith(fontSize: 16, color: txtColor),
                 ),
               ),
-              if (subtitle != null) ...[
-                Text(
-                  subtitle,
-                  style: h4.copyWith(fontSize: 12, color: txtColor),
-                ),
-              ],
             ],
           ),
         ],
@@ -531,12 +521,13 @@ class HomeView extends GetView<HomeController> {
   }
 
   Widget buildUpdateCard(
-    String title,
-    String description,
-    String svgPath,
-    Color color,
-    Color txtColor,
-  ) {
+      String title,
+      String description,
+      String svgPath,
+      Color color,
+      Color txtColor, {
+        String? date,
+      }) {
     return Container(
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
@@ -559,6 +550,13 @@ class HomeView extends GetView<HomeController> {
                   description,
                   style: h4.copyWith(fontSize: 14, color: AppColors.gray1),
                 ),
+                if (date != null) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    date,
+                    style: h4.copyWith(fontSize: 12, color: AppColors.gray1),
+                  ),
+                ],
               ],
             ),
           ),
