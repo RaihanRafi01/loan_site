@@ -21,9 +21,13 @@ class HomeController extends GetxController {
   }
 
   @override
-  void onInit() {
+  Future<void> onInit() async {
     super.onInit();
-    loadContextFromPrefs();
+    final role = await BaseClient.getStoredRole();
+    if (role == 'borrower') {
+      loadContextFromPrefs();
+    } else if (role == 'private_lender') {
+    }
   }
 
   Future<void> loadContextFromPrefs() async {

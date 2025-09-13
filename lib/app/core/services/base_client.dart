@@ -13,6 +13,20 @@ import 'fcm_service.dart';
 class BaseClient {
   static const _storage = FlutterSecureStorage();
 
+  static Future<bool> isLoggedIn() async {
+    final token = await getAccessToken();
+    return token != null && token.isNotEmpty;
+  }
+
+  static Future<void> storeRole({required String role}) async {
+    await _storage.write(key: 'user_role', value: role);
+    }
+
+// Get stored user role (e.g., 'borrower' or 'private_lender')
+  static Future<String?> getStoredRole() async {
+    return await _storage.read(key: 'user_role');
+  }
+
   // Store tokens in secure storage
   static Future<void> storeTokens({required String accessToken, required String refreshToken}) async {
     await _storage.write(key: 'access_token', value: accessToken);
@@ -36,6 +50,7 @@ class BaseClient {
     await fcmService.setFCMToken();
     await _storage.delete(key: 'access_token');
     await _storage.delete(key: 'refresh_token');
+    await _storage.delete(key: 'user_role');
     print('DELETE=======================>>>>>>>>>>>>>');
   }
 

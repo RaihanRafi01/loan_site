@@ -1,5 +1,6 @@
 import 'package:get/get.dart';
 import 'package:loan_site/app/modules/auth/views/login_view.dart';
+import 'package:loan_site/app/modules/dashboard/views/dashboard_lender_view.dart';
 import 'package:loan_site/app/modules/project/views/create_project_view.dart';
 import 'package:loan_site/app/modules/project/views/project_list_view.dart';
 import '../modules/auth/bindings/auth_binding.dart';
@@ -55,6 +56,11 @@ class AppPages {
     GetPage(
       name: _Paths.DASHBOARD,
       page: () => const DashboardView(),
+      binding: DashboardBinding(),
+    ),
+    GetPage(
+      name: _Paths.DASHBOARD_LENDER,
+      page: () => const DashboardLenderView(),
       binding: DashboardBinding(),
     ),
     GetPage(

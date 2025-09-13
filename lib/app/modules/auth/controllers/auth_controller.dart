@@ -251,6 +251,10 @@ class AuthController extends GetxController {
         accessToken: responseData['access_token'],
         refreshToken: responseData['refresh_token'],
       );
+      // Store role in secure storage for quick access on app startup
+      await BaseClient.storeRole(
+        role: responseData['role'],
+      );
       await fcmService.setFCMToken();
       kSnackBar(title: 'Success', message: 'Signed in successfully!');
       clearForm();
