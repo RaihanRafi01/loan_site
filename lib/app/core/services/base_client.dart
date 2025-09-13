@@ -5,9 +5,10 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
-import '../../common/appColors.dart';
-import '../../common/widgets/custom_snackbar.dart';
-import 'api.dart';
+import '../../../common/appColors.dart';
+import '../../../common/widgets/custom_snackbar.dart';
+import '../constants/api.dart';
+import 'fcm_service.dart';
 
 class BaseClient {
   static const _storage = FlutterSecureStorage();
@@ -31,6 +32,8 @@ class BaseClient {
 
   // Clear tokens from secure storage (e.g., on logout)
   static Future<void> clearTokens() async {
+    final fcmService = FCMService();
+    await fcmService.setFCMToken();
     await _storage.delete(key: 'access_token');
     await _storage.delete(key: 'refresh_token');
     print('DELETE=======================>>>>>>>>>>>>>');

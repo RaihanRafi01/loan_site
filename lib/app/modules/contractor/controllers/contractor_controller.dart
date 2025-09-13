@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../../data/api.dart';
-import '../../../data/base_client.dart';
+import '../../../core/constants/api.dart';
+import '../../../core/services/base_client.dart';
 import '../../home/controllers/home_controller.dart';
 
 

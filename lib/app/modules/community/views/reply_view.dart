@@ -4,7 +4,7 @@ import 'package:get/get.dart';
 
 import '../../../../common/appColors.dart';
 import '../../../../common/customFont.dart';
-import '../../../data/api.dart';
+import '../../../core/constants/api.dart';
 import '../controllers/community_controller.dart';
 
 class ReplyView extends GetView<CommunityController> {

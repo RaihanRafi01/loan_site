@@ -1,4 +1,4 @@
-package com.angelo.loansite.loan_site
+package com.angelo.loansite
 
 import io.flutter.embedding.android.FlutterActivity
 

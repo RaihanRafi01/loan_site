@@ -9,8 +9,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../common/appColors.dart';
 import '../../../../common/customFont.dart';
 import '../../../../common/widgets/customButton.dart';
-import '../../../data/api.dart';
-import '../../../data/base_client.dart';
+import '../../../core/constants/api.dart';
+import '../../../core/services/base_client.dart';
 import '../../../data/models/project.dart';
 
 class ProjectDetail {

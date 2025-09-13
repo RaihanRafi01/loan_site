@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../common/appColors.dart';
-import '../../../data/api.dart';
-import '../../../data/base_client.dart';
+import '../../../core/constants/api.dart';
+import '../../../core/services/base_client.dart';
 import '../../project/controllers/project_controller.dart';
 
 class ChatMessage {

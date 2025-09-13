@@ -9,7 +9,7 @@ import 'package:loan_site/app/modules/progress/views/progress_view.dart';
 import 'package:loan_site/app/modules/settings/views/settings_view.dart';
 import '../../../../common/appColors.dart';
 import '../../../../common/customFont.dart';
-import '../../../data/base_client.dart';
+import '../../../core/services/base_client.dart';
 import '../controllers/dashboard_controller.dart';
 
 class DashboardView extends GetView<DashboardController> {

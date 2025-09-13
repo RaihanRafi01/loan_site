@@ -7,8 +7,8 @@ import 'package:loan_site/common/widgets/customButton.dart';
 import 'package:loan_site/common/appColors.dart';
 import 'package:loan_site/common/customFont.dart';
 
-import '../../../data/api.dart';
-import '../../../data/base_client.dart';
+import '../../../core/constants/api.dart';
+import '../../../core/services/base_client.dart';
 
 class SetMilestoneView extends GetView<ProjectController> {
   const SetMilestoneView({super.key});

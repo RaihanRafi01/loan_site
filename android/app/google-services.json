@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "643293121801",
+    "project_id": "lonesite-65689",
+    "storage_bucket": "lonesite-65689.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:643293121801:android:21cf289ccea91cc85797d8",
+        "android_client_info": {
+          "package_name": "com.angelo.loansite"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDBuJKZJRCuhhp42VKWD5HGPpXsu2WMmK0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

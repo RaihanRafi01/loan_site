@@ -11,8 +11,11 @@ import 'package:loan_site/app/modules/project/views/onboarding_project_view.dart
 import 'dart:convert';
 import '../../../../common/appColors.dart';
 import '../../../../common/widgets/custom_snackbar.dart';
-import '../../../data/api.dart';
-import '../../../data/base_client.dart';
+import '../../../core/constants/api.dart';
+import '../../../core/services/base_client.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+
+import '../../../core/services/fcm_service.dart';
 
 enum ResetMethod { email, sms }
 
@@ -45,6 +48,8 @@ class AuthController extends GetxController {
   final isRememberMe = false.obs;
   final showConfirm = false.obs;
   final resetMethod = ResetMethod.email.obs;
+
+  final fcmService = FCMService();
 
   // Navigation Methods
   void navigateToCreatePassword() {
@@ -212,6 +217,7 @@ class AuthController extends GetxController {
     final email = emailController.text;
     final password = passwordController.text;
 
+
     if (!_validateEmail(email)) {
       return _showWarning('Please enter a valid email address');
     }
@@ -245,6 +251,7 @@ class AuthController extends GetxController {
         accessToken: responseData['access_token'],
         refreshToken: responseData['refresh_token'],
       );
+      await fcmService.setFCMToken();
       kSnackBar(title: 'Success', message: 'Signed in successfully!');
       clearForm();
       if(responseData['role'] == 'borrower'){
@@ -347,6 +354,8 @@ class AuthController extends GetxController {
         accessToken: responseData['access_token'],
         refreshToken: responseData['refresh_token'],
       );
+
+      await fcmService.setFCMToken();
 
       if (isForgot == true) {
         navigateToCreatePassword();

@@ -51,4 +51,8 @@ class Api {
 
   static const chatAssistant = '$baseUrl/project/ai-assistant/';
   static const chatHistory = '$baseUrl/project/ai-assistant/';
+
+  /// notification
+
+  static const registerDeviceToken = '$baseUrl/notification/register_unregister_device_token/';
 }

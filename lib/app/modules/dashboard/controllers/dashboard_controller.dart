@@ -2,8 +2,8 @@ import 'package:get/get.dart';
 import 'package:loan_site/common/widgets/custom_snackbar.dart';
 import 'package:loan_site/common/appColors.dart';
 
-import '../../../data/api.dart';
-import '../../../data/base_client.dart';
+import '../../../core/constants/api.dart';
+import '../../../core/services/base_client.dart';
 
 class DashboardController extends GetxController {
   var selectedIndex = 0.obs;

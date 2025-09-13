@@ -9,8 +9,8 @@ import 'package:loan_site/common/customFont.dart';
 import 'package:loan_site/common/widgets/customDropDown.dart';
 import 'package:loan_site/common/widgets/customTextField.dart';
 import 'package:loan_site/common/widgets/custom_snackbar.dart';
-import '../../../data/api.dart';
-import '../../../data/base_client.dart';
+import '../../../core/constants/api.dart';
+import '../../../core/services/base_client.dart';
 
 class StartMilestoneView extends GetView<HomeController> {
   const StartMilestoneView({super.key});

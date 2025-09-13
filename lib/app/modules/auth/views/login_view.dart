@@ -9,6 +9,7 @@ import '../../../../common/widgets/customTextField.dart';
 import '../../../../common/widgets/custom_title_subTitle.dart';
 import '../../project/views/onboarding_project_view.dart';
 import '../controllers/auth_controller.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 class LoginScreen extends GetView<AuthController> {
   const LoginScreen({super.key});

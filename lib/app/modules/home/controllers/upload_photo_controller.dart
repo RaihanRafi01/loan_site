@@ -8,8 +8,8 @@ import 'package:loan_site/app/modules/home/controllers/home_controller.dart';
 import '../../../../common/appColors.dart';
 import '../../../../common/customFont.dart';
 import '../../../../common/widgets/custom_snackbar.dart';
-import '../../../data/api.dart';
-import '../../../data/base_client.dart';
+import '../../../core/constants/api.dart';
+import '../../../core/services/base_client.dart';
 
 class UploadPhotoController extends GetxController {
   final ImagePicker _picker = ImagePicker();
