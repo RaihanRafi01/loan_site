@@ -121,16 +121,6 @@ class NotificationCommunityView extends GetView {
                             ),
                           ),
                         ),
-                        DropdownMenuItem<String>(
-                          value: 'turn_off_notification',
-                          child: Text(
-                            'Turn off notifications about this post',
-                            style: h4.copyWith(
-                              color: AppColors.textColor,
-                              fontSize: 16,
-                            ),
-                          ),
-                        ),
                       ],
                       onChanged: (value) {
                         if (value == 'delete_notification') {
