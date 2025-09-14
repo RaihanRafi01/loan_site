@@ -7,15 +7,16 @@ import 'package:loan_site/common/widgets/customTextField.dart';
 import '../../../../common/appColors.dart';
 import '../../../../common/customFont.dart';
 import 'dart:io';
-import 'package:cached_network_image/cached_network_image.dart';  // Import CachedNetworkImage
+import 'package:cached_network_image/cached_network_image.dart';
+
+import '../../dashboard/controllers/dashboard_controller.dart';  // Import CachedNetworkImage
 
 class AccountSettingsView extends GetView<SettingsController> {
   const AccountSettingsView({super.key});
 
   @override
   Widget build(BuildContext context) {
-    Get.put(SettingsController());
-
+    final DashboardController dashboardController = Get.find<DashboardController>();
     return Scaffold(
       backgroundColor: AppColors.appBc,
       appBar: AppBar(
@@ -44,12 +45,12 @@ class AccountSettingsView extends GetView<SettingsController> {
                     radius: 55,
                     backgroundImage: controller.selectedImage.value != null
                         ? FileImage(controller.selectedImage.value!)
-                        : controller.profileImageUrl.value.isNotEmpty
+                        : dashboardController.profileImageUrl.value.isNotEmpty
                         ? CachedNetworkImageProvider(
-                      controller.profileImageUrl.value,
+                      dashboardController.profileImageUrl.value,
                       errorListener: (exception) {
                         debugPrint('Image load error: $exception');
-                        controller.profileImageUrl.value = '';
+                        dashboardController.profileImageUrl.value = '';
                       },
                     ) as ImageProvider
                         : const AssetImage('assets/images/settings/profile_image.png'),
@@ -75,7 +76,7 @@ class AccountSettingsView extends GetView<SettingsController> {
             const SizedBox(height: 16),
             Obx(
                   () => Text(
-                'Hello ${controller.name.value}!',
+                'Hello ${dashboardController.name.value}!',
                 textAlign: TextAlign.center,
                 style: h2.copyWith(
                   fontSize: 30,
@@ -86,7 +87,7 @@ class AccountSettingsView extends GetView<SettingsController> {
             const SizedBox(height: 2),
             Obx(
                   () => Text(
-                controller.email.value,
+                    dashboardController.email.value,
                 style: h4.copyWith(
                   fontSize: 18,
                   color: AppColors.blurtext4,

@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
 import 'package:loan_site/app/modules/community/views/community_view.dart';
 import 'package:loan_site/app/modules/contractor/views/contractor_view.dart';
+import 'package:loan_site/app/modules/dashboard/controllers/dashboard_lender_controller.dart';
 import 'package:loan_site/app/modules/home/views/home_view.dart';
 import 'package:loan_site/app/modules/progress/views/progress_view.dart';
 import 'package:loan_site/app/modules/project_lender/views/project_lender_view.dart';
@@ -14,12 +15,13 @@ import '../../../../common/customFont.dart';
 import '../../home_lender/views/home_lender_view.dart';
 import '../controllers/dashboard_controller.dart';
 
-class DashboardLenderView extends GetView<DashboardController> {
+class DashboardLenderView extends GetView<DashboardLenderController> {
   const DashboardLenderView({super.key});
 
   @override
   Widget build(BuildContext context) {
-    controller.fetchProfile();
+    final DashboardController dashboardController = Get.find<DashboardController>();
+    dashboardController.fetchProfile();
     // Initialize the controller
     //final DashboardController controller = Get.put(DashboardController());
 
@@ -27,7 +29,6 @@ class DashboardLenderView extends GetView<DashboardController> {
     final List<Widget> pages = [
       const HomeLenderView(),
       const ProjectLenderView(),
-      const ProjectRequestView(),
       const SettingsView(isBorrower: false,),
     ];
 
@@ -71,17 +72,6 @@ class DashboardLenderView extends GetView<DashboardController> {
                 leading: SvgPicture.asset(
                   'assets/images/nav/projects_iocn.svg',
                   color: controller.selectedIndex.value == 1 ? AppColors.appColor2 : null,
-                ),
-                iconActiveColor: Colors.white,
-                iconColor: Colors.black,
-              ),
-              GButton(
-                icon: Icons.settings,
-                text: 'Request',
-                textStyle: h2.copyWith(fontSize: 16,color: controller.selectedIndex.value == 2 ? AppColors.appColor2 : null),
-                leading: SvgPicture.asset(
-                  'assets/images/nav/request_icon.svg',
-                  color: controller.selectedIndex.value == 2 ? AppColors.appColor2 : null,
                 ),
                 iconActiveColor: Colors.white,
                 iconColor: Colors.black,

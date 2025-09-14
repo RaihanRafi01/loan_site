@@ -2,13 +2,25 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../common/appColors.dart';
 import '../../../../common/customFont.dart';
-import '../controllers/project_lender_controller.dart';
+import '../../dashboard/controllers/dashboard_lender_controller.dart';
 
-class ProjectLenderView extends GetView<ProjectLenderController> {
+class ProjectLenderView extends GetView<DashboardLenderController> {
   const ProjectLenderView({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final ScrollController scrollController = ScrollController();
+
+    // Add listener for pagination
+    scrollController.addListener(() {
+      if (scrollController.position.pixels >=
+          scrollController.position.maxScrollExtent - 200 &&
+          !controller.isLoadingMore.value &&
+          controller.hasMoreProjects.value) {
+        controller.fetchProjectsData(isLoadMore: true);
+      }
+    });
+
     return Scaffold(
       backgroundColor: AppColors.appBc,
       appBar: AppBar(
@@ -54,8 +66,8 @@ class ProjectLenderView extends GetView<ProjectLenderController> {
                     fontSize: 14,
                   ),
                   dividerColor: Colors.transparent,
-                  splashFactory: NoSplash.splashFactory, // Disable splash effect
-                  overlayColor: MaterialStateProperty.all(Colors.transparent), // Disable overlay/shadow on tap
+                  splashFactory: NoSplash.splashFactory,
+                  overlayColor: MaterialStateProperty.all(Colors.transparent),
                   tabs: const [
                     Tab(text: 'Active'),
                     Tab(text: 'Complete'),
@@ -67,9 +79,9 @@ class ProjectLenderView extends GetView<ProjectLenderController> {
             Expanded(
               child: TabBarView(
                 children: [
-                  _buildProjectList(status: 'Active', statusColor: Colors.green, itemCount: 5),
-                  _buildProjectList(status: 'Complete', statusColor: Colors.blue, itemCount: 4),
-                  _buildProjectList(status: 'Delayed', statusColor: Colors.orange, itemCount: 6),
+                  _buildProjectList(status: 'On Going', statusColor: AppColors.textYellow, scrollController: scrollController),
+                  _buildProjectList(status: 'Completed', statusColor: AppColors.clrGreen, scrollController: scrollController),
+                  _buildProjectList(status: 'Delayed', statusColor: AppColors.lenderRed, scrollController: scrollController),
                 ],
               ),
             ),
@@ -82,24 +94,50 @@ class ProjectLenderView extends GetView<ProjectLenderController> {
   Widget _buildProjectList({
     required String status,
     required Color statusColor,
-    required int itemCount,
+    required ScrollController scrollController,
   }) {
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: itemCount,
-      itemBuilder: (context, index) {
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 12),
-          child: _buildProjectCard(
-            projectName: '$status Project ${index + 1}',
-            companyName: 'Company ${index + 1}',
-            progress: (index + 1) * 20,
-            status: status,
-            statusColor: statusColor,
+    return Obx(() {
+      final filteredProjects = controller.projectList
+          .where((project) => project['project_status'] == status)
+          .toList();
+
+      if (filteredProjects.isEmpty && !controller.isLoadingMore.value) {
+        return Center(
+          child: Text(
+            'No $status projects found',
+            style: h4.copyWith(
+              fontSize: 16,
+              color: AppColors.gray12,
+            ),
           ),
         );
-      },
-    );
+      }
+
+      return ListView.builder(
+        controller: scrollController,
+        padding: const EdgeInsets.all(16),
+        itemCount: filteredProjects.length + (controller.isLoadingMore.value ? 1 : 0),
+        itemBuilder: (context, index) {
+          if (index == filteredProjects.length && controller.isLoadingMore.value) {
+            return const Padding(
+              padding: EdgeInsets.symmetric(vertical: 16),
+              child: Center(child: CircularProgressIndicator()),
+            );
+          }
+          final project = filteredProjects[index];
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: _buildProjectCard(
+              projectName: project['name'] ?? 'Unknown',
+              companyName: project['location'] ?? 'Unknown',
+              progress: project['progress_percentage'] ?? 0,
+              status: project['project_status'] ?? status,
+              statusColor: statusColor,
+            ),
+          );
+        },
+      );
+    });
   }
 
   Widget _buildProjectCard({
@@ -111,7 +149,6 @@ class ProjectLenderView extends GetView<ProjectLenderController> {
   }) {
     return Container(
       padding: const EdgeInsets.all(16),
-
       decoration: BoxDecoration(
         boxShadow: [
           BoxShadow(
@@ -122,7 +159,7 @@ class ProjectLenderView extends GetView<ProjectLenderController> {
         ],
         color: Colors.white,
         borderRadius: BorderRadius.circular(6),
-      ), // No boxShadow
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -161,7 +198,7 @@ class ProjectLenderView extends GetView<ProjectLenderController> {
                       color: AppColors.lenderSky,
                     ),
                   ),
-                  SizedBox(height: 6),
+                  const SizedBox(height: 6),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                     decoration: BoxDecoration(

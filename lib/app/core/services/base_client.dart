@@ -113,7 +113,7 @@ class BaseClient {
     required String body,
     Future<Map<String, String>>? headers,
   }) async {
-    debugPrint("API Hit: $api");
+    debugPrint(" 🪙🪙🪙🪙🪙 POST API Hit: $api");
     debugPrint("body: $body");
     final resolvedHeaders = headers != null ? await headers : null;
 
@@ -155,7 +155,7 @@ class BaseClient {
     required String body,
     Future<Map<String, String>>? headers,
   }) async {
-    debugPrint("API Hit: $api");
+    debugPrint(" 🪙🪙🪙🪙🪙 PATCH API Hit: $api");
     debugPrint("body: $body");
     final resolvedHeaders = headers != null ? await headers : null;
 
@@ -197,7 +197,7 @@ class BaseClient {
     required String body,
     Future<Map<String, String>>? headers,
   }) async {
-    debugPrint("API Hit: $api");
+    debugPrint(" 🪙🪙🪙🪙🪙 PUT API Hit: $api");
     debugPrint("body: $body");
     final resolvedHeaders = headers != null ? await headers : null;
 
@@ -240,7 +240,7 @@ class BaseClient {
     File? image,
     Future<Map<String, String>>? headers,
   }) async {
-    debugPrint("API Hit (Multipart): $api");
+    debugPrint("🪙🪙🪙🪙🪙 MULTIPART API Hit (Multipart): $api");
     debugPrint("Fields: $fields");
     final resolvedHeaders = headers != null ? await headers : <String, String>{};
 

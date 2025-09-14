@@ -9,6 +9,7 @@ import 'package:loan_site/app/modules/settings/views/help_support_view.dart';
 import 'package:loan_site/app/modules/settings/views/terms_condition_view.dart';
 import '../../../../common/appColors.dart';
 import '../../../../common/customFont.dart';
+import '../../dashboard/controllers/dashboard_controller.dart';
 import '../controllers/settings_controller.dart';
 
 class SettingsView extends GetView<SettingsController> {
@@ -19,6 +20,7 @@ class SettingsView extends GetView<SettingsController> {
   Widget build(BuildContext context) {
     // Ensure SettingsController is initialized
     Get.put(SettingsController());
+    final DashboardController dashboardController = Get.find<DashboardController>();
 
     return Scaffold(
       backgroundColor: AppColors.appBc,
@@ -47,19 +49,15 @@ class SettingsView extends GetView<SettingsController> {
                     radius: 50,
                     backgroundImage: controller.selectedImage.value != null
                         ? FileImage(controller.selectedImage.value!)
-                        : controller.profileImageUrl.value.isNotEmpty
+                        : dashboardController.profileImageUrl.value.isNotEmpty
                         ? CachedNetworkImageProvider(
-                      controller.profileImageUrl.value,
+                      dashboardController.profileImageUrl.value,
                       errorListener: (exception) {
                         debugPrint('Image load error: $exception');
-                        controller.profileImageUrl.value = '';
+                        dashboardController.profileImageUrl.value = '';
                       },
                     ) as ImageProvider
                         : const AssetImage('assets/images/settings/profile_image.png'),
-                    child: controller.selectedImage.value == null &&
-                        controller.profileImageUrl.value.isEmpty
-                        ? null
-                        : null,
                   ),
                 ),
                 const SizedBox(width: 15),
@@ -69,9 +67,9 @@ class SettingsView extends GetView<SettingsController> {
                     children: [
                       Obx(
                             () => Text(
-                          controller.name.value.isEmpty
+                          dashboardController.name.value.isEmpty
                               ? 'User'
-                              : controller.name.value,
+                              : dashboardController.name.value,
                           style: h2.copyWith(
                             fontSize: 30,
                             color: AppColors.textColor,
@@ -81,9 +79,9 @@ class SettingsView extends GetView<SettingsController> {
                       const SizedBox(height: 2),
                       Obx(
                             () => Text(
-                          controller.email.value.isEmpty
+                          dashboardController.email.value.isEmpty
                               ? 'email@example.com'
-                              : controller.email.value,
+                              : dashboardController.email.value,
                           style: h4.copyWith(
                             fontSize: 18,
                             color: AppColors.blurtext4,
@@ -112,18 +110,16 @@ class SettingsView extends GetView<SettingsController> {
                     svgPath: 'assets/images/settings/noti_icon.svg',
                     title: 'Notification',
                     onTap: () {
-                      // Handle notification tap
+                      controller.toggleNotificationPreference();
                     },
                     hasSwitch: true,
-                    switchValue: true,
+                    switchValue: controller.notificationEnabled.value,
                   ),
                   if (isBorrower)
                     _buildSettingsItem(
                       svgPath: 'assets/images/settings/flag_icon.svg',
                       title: 'My Project',
-                      onTap: () {
-                        Get.to(const ProjectListView());
-                      },
+                      onTap: () => Get.to(const ProjectListView()),
                     ),
                   _buildSettingsItem(
                     svgPath: 'assets/images/settings/help_icon.svg',
@@ -201,12 +197,14 @@ class SettingsView extends GetView<SettingsController> {
           ),
         ),
         trailing: hasSwitch
-            ? Switch(
-          value: switchValue,
-          onChanged: (value) {
-            // Handle switch change
-          },
-          activeColor: Colors.blue,
+            ? Obx(
+              () => Switch(
+            value: Get.find<SettingsController>().notificationEnabled.value,
+            onChanged: (value) {
+              Get.find<SettingsController>().toggleNotificationPreference();
+            },
+            activeColor: AppColors.appColor2, // Use consistent color
+          ),
         )
             : SvgPicture.asset('assets/images/settings/arrow_right.svg'),
         onTap: hasSwitch ? null : onTap,
@@ -226,7 +224,7 @@ class SettingsView extends GetView<SettingsController> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: Text('Cancel',style: h3.copyWith(color: AppColors.textColor),),
+              child: Text('Cancel', style: h3.copyWith(color: AppColors.textColor)),
             ),
             TextButton(
               onPressed: controller.logout,

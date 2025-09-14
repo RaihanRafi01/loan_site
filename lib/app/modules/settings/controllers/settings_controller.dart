@@ -29,34 +29,53 @@ class SettingsController extends GetxController {
   final obscureConfirmPassword = true.obs;
   final isLoading = false.obs;
   final selectedImage = Rx<File?>(null);
-  final profileImageUrl = RxString('');
-  final name = RxString('');
-  final email = RxString('');
-  final phone = RxString('');
+  final notificationEnabled = true.obs;
 
   // Reference to DashboardController
-  late final DashboardController dashboardController;
+  final DashboardController dashboardController = Get.find<DashboardController>();
 
   @override
   void onInit() {
     super.onInit();
     profilePasswordController.text = '********';
-    // Get the DashboardController instance
-    dashboardController = Get.find<DashboardController>();
     // Sync local reactive variables with DashboardController's data
     syncWithDashboard();
+    // Fetch initial notification preference
+    fetchNotificationPreference();
   }
 
   // Sync local variables with DashboardController's profile data
   void syncWithDashboard() {
-    name.value = dashboardController.name.value;
-    email.value = dashboardController.email.value;
-    phone.value = dashboardController.phone.value;
-    profileImageUrl.value = dashboardController.profileImageUrl.value;
-    // Sync TextEditingController with Rx values
-    nameController.text = name.value;
-    emailController.text = email.value;
-    phoneController.text = phone.value;
+    nameController.text = dashboardController.name.value;
+    emailController.text = dashboardController.email.value;
+    phoneController.text = dashboardController.phone.value;
+  }
+
+  // Fetch initial notification preference from API
+  Future<void> fetchNotificationPreference() async {
+    try {
+      final response = await BaseClient.getRequest(
+        api: Api.getProfile, // Assuming profile API includes notification settings
+        headers: BaseClient.authHeaders(),
+      );
+      final result = await BaseClient.handleResponse(
+        response,
+        retryRequest: () => BaseClient.getRequest(
+          api: Api.getProfile,
+          headers: BaseClient.authHeaders(),
+        ),
+      );
+      notificationEnabled.value = result['email_notifications'] ??
+          result['push_notifications'] ??
+          result['sms_notifications'] ??
+          true;
+    } catch (e) {
+      kSnackBar(
+        title: 'Warning',
+        message: 'Failed to fetch notification preference: $e',
+        bgColor: AppColors.snackBarWarning,
+      );
+    }
   }
 
   // Pick image from gallery with permission handling
@@ -273,6 +292,47 @@ class SettingsController extends GetxController {
       );
     } finally {
       isLoading.value = false;
+    }
+  }
+
+  // Toggle notification preference via API
+  Future<void> toggleNotificationPreference() async {
+    final bodyEnable = jsonEncode({
+      "email_notifications": true,
+      "push_notifications": true,
+      "sms_notifications": true
+    });
+    final bodyDisable = jsonEncode({
+      "email_notifications": false,
+      "push_notifications": false,
+      "sms_notifications": false
+    });
+
+    try {
+      final response = await BaseClient.patchRequest(
+        api: Api.updateNotificationPreference,
+        headers: BaseClient.authHeaders(),
+        body: notificationEnabled.value ? bodyDisable : bodyEnable,
+      );
+      final result = await BaseClient.handleResponse(
+        response,
+        retryRequest: () => BaseClient.patchRequest(
+          api: Api.updateNotificationPreference,
+          headers: BaseClient.authHeaders(),
+          body: notificationEnabled.value ? bodyDisable : bodyEnable,
+        ),
+      );
+      notificationEnabled.value = result['email_notifications'] ?? result['push_notifications'] ?? result['sms_notifications'] ?? !notificationEnabled.value;
+      kSnackBar(
+        title: 'Success',
+        message: 'Notification preference updated',
+      );
+    } catch (e) {
+      kSnackBar(
+        title: 'Warning',
+        message: 'Failed to update notification preference: $e',
+        bgColor: AppColors.snackBarWarning,
+      );
     }
   }
 

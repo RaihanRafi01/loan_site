@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:loan_site/app/modules/dashboard/controllers/dashboard_lender_controller.dart';
+import 'package:loan_site/app/modules/settings/controllers/settings_controller.dart';
 import '../../../../common/appColors.dart';
 import '../../../../common/customFont.dart';
+import '../../dashboard/controllers/dashboard_controller.dart';
 import '../../notification/views/notification_view.dart';
 
 class HomeLenderView extends GetView<DashboardLenderController> {
@@ -12,6 +14,7 @@ class HomeLenderView extends GetView<DashboardLenderController> {
   @override
   Widget build(BuildContext context) {
     final ScrollController scrollController = ScrollController();
+    final DashboardController dashboardController = Get.find<DashboardController>();
 
     // Add listener for pagination
     scrollController.addListener(() {
@@ -47,11 +50,11 @@ class HomeLenderView extends GetView<DashboardLenderController> {
                   children: [
                     Row(
                       children: [
-                        Obx(() => controller.profileImageUrl.value.isNotEmpty
+                        Obx(() => dashboardController.profileImageUrl.value.isNotEmpty
                             ? CircleAvatar(
                           radius: 40,
                           backgroundImage: NetworkImage(
-                            controller.profileImageUrl.value,
+                            dashboardController.profileImageUrl.value,
                           ),
                           onBackgroundImageError: (exception, stackTrace) {
                             print('Error loading profile image: $exception');
@@ -66,8 +69,8 @@ class HomeLenderView extends GetView<DashboardLenderController> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Obx(() => Text(
-                              controller.name.value.isNotEmpty
-                                  ? controller.name.value
+                              dashboardController.name.value.isNotEmpty
+                                  ? dashboardController.name.value
                                   : 'User',
                               style: h2.copyWith(
                                 color: AppColors.textColor,
