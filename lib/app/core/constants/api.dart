@@ -34,6 +34,11 @@ class Api {
 
   static  getContractors(milestone_id) => "$baseUrl/project/get_contractors/?milestone_id=$milestone_id";
 
+  /// lender project
+
+  static const getLenderDashboardData = "$baseUrl/dashboard/data/";  //done
+  static const getLenderProjects = "$baseUrl/dashboard/projects/";  //done
+
   /// community
   static const createPost = "$baseUrl/community/posts/";  //done
 

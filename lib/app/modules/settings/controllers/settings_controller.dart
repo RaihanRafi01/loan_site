@@ -208,10 +208,16 @@ class SettingsController extends GetxController {
       final refreshToken = await BaseClient.getRefreshToken();
       await ProjectPrefs.clearCurrentProject();
 
-      final projectController = Get.find<ProjectController>();
-      projectController.reset();
-      Get.delete<ProjectController>();
-      Get.delete<HomeController>();
+      if (Get.isRegistered<ProjectController>()) {
+        final projectController = Get.find<ProjectController>();
+        projectController.reset(); // Assumes reset() is defined in ProjectController
+        Get.delete<ProjectController>();
+      }
+
+      // Delete HomeController if it exists
+      if (Get.isRegistered<HomeController>()) {
+        Get.delete<HomeController>();
+      }
 
       final body = jsonEncode({
         'refresh_token': refreshToken,
@@ -233,6 +239,8 @@ class SettingsController extends GetxController {
       );
 
       if (response.statusCode == 200) {
+        final DashboardController dashboardController = Get.find<DashboardController>();
+        dashboardController.selectedIndex.value = 0;
         await BaseClient.clearTokens();
       } else if (response.statusCode == 400) {
         final responseData = jsonDecode(response.body);
