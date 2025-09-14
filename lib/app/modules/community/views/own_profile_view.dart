@@ -7,6 +7,7 @@ import 'package:loan_site/common/widgets/customButton.dart';
 import '../../../../common/appColors.dart';
 import '../../../../common/customFont.dart';
 import '../../../../common/widgets/community/communityWidgets.dart';
+import '../../dashboard/controllers/dashboard_controller.dart';
 import '../controllers/community_controller.dart';
 
 class OwnProfileView extends GetView<CommunityController> {
@@ -16,6 +17,7 @@ class OwnProfileView extends GetView<CommunityController> {
   Widget build(BuildContext context) {
     Get.put(CommunityController());
     final ScrollController scrollController = ScrollController();
+    final DashboardController dashboardController = Get.find<DashboardController>();
 
     scrollController.addListener(() {
       if (scrollController.position.pixels >=
@@ -37,9 +39,9 @@ class OwnProfileView extends GetView<CommunityController> {
                 children: [
                   CircleAvatar(
                     radius: 40,
-                    backgroundImage: controller.currentUser.value?.image != null &&
-                        controller.currentUser.value!.image!.isNotEmpty
-                        ? NetworkImage(controller.currentUser.value!.image!)
+                    backgroundImage: dashboardController.profileImageUrl.value != null &&
+                        dashboardController.profileImageUrl.value.isNotEmpty
+                        ? NetworkImage(dashboardController.profileImageUrl.value)
                         : const AssetImage('assets/images/community/default_user.png') as ImageProvider,
                     onBackgroundImageError: (_, __) =>
                     const AssetImage('assets/images/community/default_user.png'),
@@ -50,7 +52,7 @@ class OwnProfileView extends GetView<CommunityController> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Hello ${controller.currentUser.value?.name ?? 'User'}!',
+                          'Hello ${dashboardController.name ?? 'User'}!',
                           style: h2.copyWith(
                             fontSize: 24,
                             color: AppColors.textColor,

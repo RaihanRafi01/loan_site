@@ -7,6 +7,7 @@ import '../../../../common/widgets/community/communityDrawer.dart';
 import '../../../../common/widgets/community/communityWidgets.dart';
 import '../../../../common/appColors.dart';
 import '../../../../common/customFont.dart';
+import '../../dashboard/controllers/dashboard_controller.dart';
 import '../controllers/community_controller.dart';
 
 class CommunityView extends GetView<CommunityController> {
@@ -16,6 +17,7 @@ class CommunityView extends GetView<CommunityController> {
   Widget build(BuildContext context) {
     Get.put(CommunityController());
     final ScrollController scrollController = ScrollController();
+    final DashboardController dashboardController = Get.find<DashboardController>();
 
     scrollController.addListener(() {
       if (scrollController.position.pixels >=
@@ -39,13 +41,15 @@ class CommunityView extends GetView<CommunityController> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Obx(() => CircleAvatar(
+                  CircleAvatar(
                     radius: 20,
-                    backgroundImage: controller.currentUser.value?.image != null
-                        ? NetworkImage(controller.currentUser.value!.image!)
+                    backgroundImage: dashboardController.profileImageUrl.value != null &&
+                        dashboardController.profileImageUrl.value.isNotEmpty
+                        ? NetworkImage(dashboardController.profileImageUrl.value)
                         : const AssetImage('assets/images/community/default_user.png') as ImageProvider,
-                    onBackgroundImageError: (_, __) => const AssetImage('assets/images/community/default_user.png'),
-                  )),
+                    onBackgroundImageError: (_, __) =>
+                    const AssetImage('assets/images/community/default_user.png'),
+                  ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: GestureDetector(
