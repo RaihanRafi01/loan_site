@@ -2,15 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../common/appColors.dart';
 import '../../../../common/customFont.dart';
+import '../controllers/message_controller.dart';
 import 'message_individual_view.dart';
-
-class MessageController extends GetxController {
-  var selectedTabIndex = 0.obs;
-
-  void selectTab(int index) {
-    selectedTabIndex.value = index;
-  }
-}
 
 class MessageView extends GetView<MessageController> {
   const MessageView({super.key});
