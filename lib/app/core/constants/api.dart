@@ -61,4 +61,11 @@ class Api {
 
   static const registerDeviceToken = '$baseUrl/notification/register_unregister_device_token/';
   static const updateNotificationPreference = '$baseUrl/notification/notification_settings/update/';
+
+
+  /// chat
+
+  static const getActiveUsers = '$baseUrl/chat/active-users/';
+
+
 }

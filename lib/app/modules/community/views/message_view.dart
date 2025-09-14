@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 import '../../../../common/appColors.dart';
 import '../../../../common/customFont.dart';
+import '../../../core/constants/api.dart';
 import '../controllers/message_controller.dart';
 import 'message_individual_view.dart';
+
+// Define baseUrl here or import it from a constants file
+const String baseUrl = Api.baseUrlPicture; // Replace with your actual base URL
 
 class MessageView extends GetView<MessageController> {
   const MessageView({super.key});
@@ -115,11 +120,11 @@ class MessageView extends GetView<MessageController> {
                   decoration: BoxDecoration(
                     color: controller.selectedTabIndex.value == index
                         ? Colors.blue
-                        : Colors.grey[300], // Inactive tabs have a light grey background
+                        : Colors.grey[300],
                     borderRadius: BorderRadius.horizontal(
                       left: index == 0 ? const Radius.circular(4) : Radius.zero,
                       right: index == 2 ? const Radius.circular(4) : Radius.zero,
-                    ), // Rounded edges only on the first and last tabs
+                    ),
                   ),
                 ),
               ],
@@ -241,31 +246,32 @@ class MessageView extends GetView<MessageController> {
           ),
         ];
       case 'Active':
-        return [
-          _buildMessageItem(
-            name: 'Marvin',
-            message: 'Hey there!',
-            time: '5:30 PM',
-            avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
+        return controller.activeUsers.map<Widget>((userData) {
+          final user = userData['user'];
+          final name = user['name'] as String;
+          final avatar = '$baseUrl${user['image']}' as String;
+          final lastSeen = userData['last_seen'] as String;
+          final time = _formatTime(lastSeen);
+          final message = 'Active now'; // Placeholder
+          return _buildMessageItem(
+            name: name,
+            message: message,
+            time: time,
+            avatar: avatar,
             type: 'active',
-          ),
-          _buildMessageItem(
-            name: 'Arthur',
-            message: 'See you tomorrow',
-            time: '2:20 PM',
-            avatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=150&h=150&fit=crop&crop=face',
-            type: 'active',
-          ),
-          _buildMessageItem(
-            name: 'Esther',
-            message: 'Thanks for your help!',
-            time: '12:15 PM',
-            avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face',
-            type: 'active',
-          ),
-        ];
+          );
+        }).toList();
       default:
         return [];
+    }
+  }
+
+  String _formatTime(String isoString) {
+    try {
+      final dateTime = DateTime.parse(isoString);
+      return DateFormat('h:mm a').format(dateTime);
+    } catch (e) {
+      return 'Unknown';
     }
   }
 
@@ -334,14 +340,13 @@ class MessageView extends GetView<MessageController> {
     );
   }
 
-
   Widget buildAvatar(String type, String avatar, List<String>? groupAvatars) {
     switch (type) {
       case 'active':
         return Padding(
-          padding: const EdgeInsets.only(bottom: 6, right: 6), // Add padding to prevent cropping
+          padding: const EdgeInsets.only(bottom: 6, right: 6),
           child: Stack(
-            clipBehavior: Clip.none, // Allow overflow to show the green circle
+            clipBehavior: Clip.none,
             children: [
               CircleAvatar(
                 radius: 25,
