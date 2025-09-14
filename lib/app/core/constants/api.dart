@@ -56,6 +56,7 @@ class Api {
 
   static const chatAssistant = '$baseUrl/project/ai-assistant/';
   static const chatHistory = '$baseUrl/project/ai-assistant/';
+  static const createChatRoom = '$baseUrl/chat/direct-message/';
 
   /// notification
 

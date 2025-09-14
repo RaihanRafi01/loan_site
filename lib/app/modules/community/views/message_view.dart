@@ -158,97 +158,17 @@ class MessageView extends GetView<MessageController> {
     switch (tab) {
       case 'All':
         return [
-          _buildMessageItem(
-            name: 'Jack',
-            message: 'New Message',
-            time: '6:01 PM',
-            avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
-            type: 'individual',
-          ),
-          _buildMessageItem(
-            name: 'Development Team',
-            message: 'John: Let\'s schedule the meeting',
-            time: '5:45 PM',
-            avatar: 'https://images.unsplash.com/photo-1494790108755-2616b2fb69ec?w=150&h=150&fit=crop&crop=face',
-            type: 'group',
-            groupAvatars: [
-              'https://images.unsplash.com/photo-1494790108755-2616b2fb69ec?w=150&h=150&fit=crop&crop=face',
-              'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
-            ],
-          ),
-          _buildMessageItem(
-            name: 'Marvin',
-            message: 'Hey there!',
-            time: '5:30 PM',
-            avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
-            type: 'active',
-          ),
-          _buildMessageItem(
-            name: 'Henry',
-            message: 'How are you doing?',
-            time: '4:15 PM',
-            avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face',
-            type: 'individual',
-          ),
-          _buildMessageItem(
-            name: 'Design Team',
-            message: 'Sarah: New mockups ready',
-            time: '3:45 PM',
-            avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face',
-            type: 'group',
-            groupAvatars: [
-              'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face',
-              'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&h=150&fit=crop&crop=face',
-            ],
-          ),
-          _buildMessageItem(
-            name: 'Arthur',
-            message: 'See you tomorrow',
-            time: '2:20 PM',
-            avatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=150&h=150&fit=crop&crop=face',
-            type: 'active',
-          ),
+
         ];
       case 'Group':
         return [
-          _buildMessageItem(
-            name: 'Development Team',
-            message: 'John: Let\'s schedule the meeting',
-            time: '5:45 PM',
-            avatar: 'https://images.unsplash.com/photo-1494790108755-2616b2fb69ec?w=150&h=150&fit=crop&crop=face',
-            type: 'group',
-            groupAvatars: [
-              'https://images.unsplash.com/photo-1494790108755-2616b2fb69ec?w=150&h=150&fit=crop&crop=face',
-              'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
-            ],
-          ),
-          _buildMessageItem(
-            name: 'Design Team',
-            message: 'Sarah: New mockups ready',
-            time: '3:45 PM',
-            avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face',
-            type: 'group',
-            groupAvatars: [
-              'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face',
-              'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&h=150&fit=crop&crop=face',
-            ],
-          ),
-          _buildMessageItem(
-            name: 'Marketing Team',
-            message: 'Mike: Campaign results are in',
-            time: '1:30 PM',
-            avatar: 'https://images.unsplash.com/photo-1507591064344-4c6ce005b128?w=150&h=150&fit=crop&crop=face',
-            type: 'group',
-            groupAvatars: [
-              'https://images.unsplash.com/photo-1507591064344-4c6ce005b128?w=150&h=150&fit=crop&crop=face',
-              'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face',
-            ],
-          ),
+
         ];
       case 'Active':
         return controller.activeUsers.map<Widget>((userData) {
           final user = userData['user'];
           final name = user['name'] as String;
+          final userId = user['id'];
           final avatar = '$baseUrl${user['image']}' as String;
           final lastSeen = userData['last_seen'] as String;
           final time = _formatTime(lastSeen);
@@ -258,6 +178,7 @@ class MessageView extends GetView<MessageController> {
             message: message,
             time: time,
             avatar: avatar,
+            userId: userId,
             type: 'active',
           );
         }).toList();
@@ -281,15 +202,29 @@ class MessageView extends GetView<MessageController> {
     required String time,
     required String avatar,
     required String type,
+    required int userId,
     List<String>? groupAvatars,
   }) {
     return GestureDetector(
-      onTap: () {
-        Get.to(() => MessageIndividualView(
-          name: name,
-          message: message,
-          avatar: avatar,
-        ));
+      onTap: () async {
+        if (type == 'active') {
+          final roomId = await controller.createChatRoom(userId);
+          if (roomId != null) {
+            Get.to(() => MessageIndividualView(
+              name: name,
+              message: message,
+              avatar: avatar,
+              roomId: roomId,
+            ));
+          }
+        } else {
+          Get.to(() => MessageIndividualView(
+            name: name,
+            message: message,
+            avatar: avatar,
+            roomId: 0, // Placeholder for non-active tabs
+          ));
+        }
       },
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12),
