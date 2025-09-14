@@ -7,13 +7,25 @@ import 'package:loan_site/common/widgets/customButton.dart';
 import '../../../../common/appColors.dart';
 import '../../../../common/customFont.dart';
 import '../../../../common/widgets/community/communityWidgets.dart';
-import '../controllers/community_controller.dart'; // Import the controller
+import '../controllers/community_controller.dart';
 
 class OwnProfileView extends GetView<CommunityController> {
   const OwnProfileView({super.key});
 
   @override
   Widget build(BuildContext context) {
+    Get.put(CommunityController());
+    final ScrollController scrollController = ScrollController();
+
+    scrollController.addListener(() {
+      if (scrollController.position.pixels >=
+          scrollController.position.maxScrollExtent - 200 &&
+          !controller.isLoadingMoreMyPosts.value &&
+          controller.hasMoreMyPosts.value) {
+        controller.fetchMyPosts(isLoadMore: true);
+      }
+    });
+
     return Scaffold(
       backgroundColor: AppColors.appBc,
       body: SafeArea(
@@ -25,9 +37,12 @@ class OwnProfileView extends GetView<CommunityController> {
                 children: [
                   CircleAvatar(
                     radius: 40,
-                    backgroundImage: controller.currentUser.value?.image != null
+                    backgroundImage: controller.currentUser.value?.image != null &&
+                        controller.currentUser.value!.image!.isNotEmpty
                         ? NetworkImage(controller.currentUser.value!.image!)
-                        : const NetworkImage('https://via.placeholder.com/100'), // Placeholder
+                        : const AssetImage('assets/images/community/default_user.png') as ImageProvider,
+                    onBackgroundImageError: (_, __) =>
+                    const AssetImage('assets/images/community/default_user.png'),
                   ),
                   const SizedBox(width: 10),
                   Expanded(
@@ -42,7 +57,6 @@ class OwnProfileView extends GetView<CommunityController> {
                           ),
                         ),
                         const SizedBox(height: 4),
-                        // Email
                         Text(
                           controller.currentUser.value?.email ?? '',
                           style: h4.copyWith(
@@ -89,18 +103,22 @@ class OwnProfileView extends GetView<CommunityController> {
                     customButton: Container(
                       decoration: BoxDecoration(
                         color: AppColors.cardSky,
-                        borderRadius: BorderRadius.circular(32), // Adjust the radius as needed
+                        borderRadius: BorderRadius.circular(32),
                       ),
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6), // Add padding
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                       child: Row(
                         children: [
                           SvgPicture.asset('assets/images/community/tic_blue.svg'),
-                          const SizedBox(width: 8), // Optional: Add spacing between elements
-                          Text(
-                            'All',
+                          const SizedBox(width: 8),
+                          Obx(() => Text(
+                            controller.selectedMyPostFilter.value == 'filter_all'
+                                ? 'All'
+                                : controller.selectedMyPostFilter.value == 'filter_new'
+                                ? 'Newest'
+                                : 'Oldest',
                             style: h4.copyWith(color: AppColors.appColor2),
-                          ),
-                          const SizedBox(width: 8), // Optional: Add spacing between elements
+                          )),
+                          const SizedBox(width: 8),
                           SvgPicture.asset('assets/images/community/filter_icon.svg'),
                         ],
                       ),
@@ -110,9 +128,7 @@ class OwnProfileView extends GetView<CommunityController> {
                         value: 'filter_all',
                         child: Row(
                           children: [
-                            SvgPicture.asset(
-                              'assets/images/community/tic_icon.svg',
-                            ),
+                            SvgPicture.asset('assets/images/community/tic_icon.svg'),
                             const SizedBox(width: 8),
                             Text(
                               'All',
@@ -156,8 +172,9 @@ class OwnProfileView extends GetView<CommunityController> {
                       ),
                     ],
                     onChanged: (value) {
-                      // TODO: Implement sorting based on value
-                      print('Selected filter: $value');
+                      if (value != null) {
+                        controller.applyMyPostSort(value);
+                      }
                     },
                     dropdownStyleData: DropdownStyleData(
                       width: 150,
@@ -178,29 +195,70 @@ class OwnProfileView extends GetView<CommunityController> {
               ),
             ),
             Expanded(
-              child: Obx(() => ListView.builder(
-                itemCount: controller.myPosts.length,
-                itemBuilder: (context, index) {
-                  final post = controller.myPosts[index];
-
-                  final images = post.images
-                      .where((imageData) => imageData.image != null && imageData.image.isNotEmpty)
-                      .map((imageData) => {'image': imageData.image}) // Convert each image URL to a Map
-                      .toList();
-
-                  return _buildPostItem(
-                    username: post.user.name!,
-                    userAvatar: post.user.image ?? 'https://via.placeholder.com/100',
-                    timeAgo: getTimeAgo(DateTime.parse(post.createdAt)),
-                    content: post.content, // Dynamic content
-                    images: images,
-                    likes: post.likeCount,
-                    comments: post.commentCount,
-                    post: post, // Pass the post for like functionality
-                    share: post.sharesCount
+              child: Obx(() {
+                if (controller.isInitialLoading.value) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                final posts = controller.myPosts;
+                if (posts.isEmpty) {
+                  return Center(
+                    child: Text(
+                      'No posts found',
+                      style: h4.copyWith(
+                        fontSize: 16,
+                        color: AppColors.gray12,
+                      ),
+                    ),
                   );
-                },
-              )),
+                }
+                return ListView.builder(
+                  controller: scrollController,
+                  itemCount: posts.length +
+                      (posts.isNotEmpty &&
+                          (controller.isLoadingMoreMyPosts.value || controller.hasMoreMyPosts.value)
+                          ? 1
+                          : 0),
+                  itemBuilder: (context, index) {
+                    if (index == posts.length && posts.isNotEmpty) {
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        child: Center(
+                          child: controller.isLoadingMoreMyPosts.value
+                              ? const CircularProgressIndicator()
+                              : Text(
+                            'No more posts',
+                            style: h4.copyWith(
+                              fontSize: 16,
+                              color: AppColors.gray12,
+                            ),
+                          ),
+                        ),
+                      );
+                    }
+                    final post = posts[index];
+                    final username = post.user.name ?? 'User';
+                    final userAvatar = post.user.image ?? '';
+                    final timeAgo = getTimeAgo(DateTime.tryParse(post.createdAt));
+                    final content = post.content;
+                    final images = post.images
+                        .where((imageData) => imageData.image != null && imageData.image.isNotEmpty)
+                        .map((imageData) => {'image': imageData.image})
+                        .toList();
+
+                    return _buildPostItem(
+                      username: username,
+                      userAvatar: userAvatar,
+                      timeAgo: timeAgo,
+                      content: content,
+                      images: images,
+                      likes: post.likeCount,
+                      comments: post.commentCount,
+                      post: post,
+                      share: post.sharesCount,
+                    );
+                  },
+                );
+              }),
             ),
           ],
         ),
@@ -230,7 +288,11 @@ class OwnProfileView extends GetView<CommunityController> {
               children: [
                 CircleAvatar(
                   radius: 20,
-                  backgroundImage: NetworkImage(userAvatar),
+                  backgroundImage: userAvatar.isNotEmpty
+                      ? NetworkImage(userAvatar)
+                      : const AssetImage('assets/images/community/default_user.png') as ImageProvider,
+                  onBackgroundImageError: (_, __) =>
+                  const AssetImage('assets/images/community/default_user.png'),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -303,23 +365,26 @@ class OwnProfileView extends GetView<CommunityController> {
               ],
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.only(bottom: 8.0, top: 4),
-            child: Text(
-              content,
-              style: h2.copyWith(fontSize: 16, color: AppColors.textColor),
+          if (content.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8.0, top: 4),
+              child: Text(
+                content,
+                style: h2.copyWith(fontSize: 16, color: AppColors.textColor),
+              ),
             ),
-          ),
           buildImageGrid(images),
           const SizedBox(height: 16),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               buildActionButton(
-                post.isLikedByUser ? 'assets/images/community/love_icon_filled.svg' : 'assets/images/community/love_icon.svg',
+                post.isLikedByUser
+                    ? 'assets/images/community/love_icon_filled.svg'
+                    : 'assets/images/community/love_icon.svg',
                 likes.toString(),
                 onPressed: () {
-                  controller.toggleLike(post.id, post.isLikedByUser);
+                  controller.toggleLikeGlobal(post.id, post.isLikedByUser);
                 },
               ),
               buildActionButton(
@@ -329,7 +394,7 @@ class OwnProfileView extends GetView<CommunityController> {
               ),
               buildActionButton(
                 'assets/images/community/share_icon.svg',
-                  share.toString(),
+                share.toString(),
               ),
             ],
           ),

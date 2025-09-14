@@ -14,14 +14,24 @@ class CommunityView extends GetView<CommunityController> {
 
   @override
   Widget build(BuildContext context) {
-    Get.put(CommunityController()); // ensure controller available
+    Get.put(CommunityController());
+    final ScrollController scrollController = ScrollController();
+
+    scrollController.addListener(() {
+      if (scrollController.position.pixels >=
+          scrollController.position.maxScrollExtent - 200 &&
+          !controller.isLoadingMoreAllPosts.value &&
+          controller.hasMoreAllPosts.value) {
+        controller.fetchAllPosts(isLoadMore: true);
+      }
+    });
+
     return Scaffold(
       backgroundColor: AppColors.appBc,
       endDrawer: buildDrawer(),
       body: SafeArea(
         child: Column(
           children: [
-            // Header
             Container(
               color: Colors.white,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -29,12 +39,13 @@ class CommunityView extends GetView<CommunityController> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  CircleAvatar(
+                  Obx(() => CircleAvatar(
                     radius: 20,
-                    backgroundImage: const NetworkImage(
-                      'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face',
-                    ),
-                  ),
+                    backgroundImage: controller.currentUser.value?.image != null
+                        ? NetworkImage(controller.currentUser.value!.image!)
+                        : const AssetImage('assets/images/community/default_user.png') as ImageProvider,
+                    onBackgroundImageError: (_, __) => const AssetImage('assets/images/community/default_user.png'),
+                  )),
                   const SizedBox(width: 12),
                   Expanded(
                     child: GestureDetector(
@@ -74,34 +85,52 @@ class CommunityView extends GetView<CommunityController> {
                 ],
               ),
             ),
-
-            // Body: All posts (dynamic)
             Expanded(
               child: Obx(() {
-                final posts = controller.allPosts;
-                if (posts.isEmpty) {
-                  // You can improve with a shimmer/empty state
+                if (controller.isInitialLoading.value) {
                   return const Center(child: CircularProgressIndicator());
                 }
+                final posts = controller.allPosts;
+                if (posts.isEmpty) {
+                  return Center(
+                    child: Text(
+                      'No posts found',
+                      style: h4.copyWith(
+                        fontSize: 16,
+                        color: AppColors.gray12,
+                      ),
+                    ),
+                  );
+                }
                 return ListView.builder(
-                  itemCount: posts.length,
+                  controller: scrollController,
+                  itemCount: posts.length + (posts.isNotEmpty && (controller.isLoadingMoreAllPosts.value || controller.hasMoreAllPosts.value) ? 1 : 0),
                   itemBuilder: (context, index) {
+                    if (index == posts.length && posts.isNotEmpty) {
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        child: Center(
+                          child: controller.isLoadingMoreAllPosts.value
+                              ? const CircularProgressIndicator()
+                              : Text(
+                            'No more posts',
+                            style: h4.copyWith(
+                              fontSize: 16,
+                              color: AppColors.gray12,
+                            ),
+                          ),
+                        ),
+                      );
+                    }
                     final post = posts[index];
                     final username = post.user.name ?? 'User';
-                    final userAvatar = post.user.image ?? 'https://via.placeholder.com/100';
+                    final userAvatar = post.user.image ?? '';
                     final timeAgo = getTimeAgo(DateTime.tryParse(post.createdAt));
                     final content = post.content;
-
-                    // Ensure images is a valid list of strings (with no invalid data)
                     final images = post.images
                         .where((imageData) => imageData.image != null && imageData.image.isNotEmpty)
-                        .map((imageData) => {'image': imageData.image}) // Convert each image URL to a Map
+                        .map((imageData) => {'image': imageData.image})
                         .toList();
-
-
-
-
-
 
                     return _buildDynamicPostItem(
                       post: post,
@@ -138,14 +167,16 @@ class CommunityView extends GetView<CommunityController> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // header
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 8),
             child: Row(
               children: [
                 CircleAvatar(
                   radius: 20,
-                  backgroundImage: NetworkImage(userAvatar),
+                  backgroundImage: userAvatar.isNotEmpty
+                      ? NetworkImage(userAvatar)
+                      : const AssetImage('assets/images/community/default_user.png') as ImageProvider,
+                  onBackgroundImageError: (_, __) => const AssetImage('assets/images/community/default_user.png'),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -201,8 +232,6 @@ class CommunityView extends GetView<CommunityController> {
               ],
             ),
           ),
-
-          // caption/content
           if (content.isNotEmpty)
             Padding(
               padding: const EdgeInsets.only(bottom: 8.0, top: 4),
@@ -211,17 +240,11 @@ class CommunityView extends GetView<CommunityController> {
                 style: h2.copyWith(fontSize: 16, color: AppColors.textColor),
               ),
             ),
-
-          // images
-          buildImageGrid(images), // Pass the list as is
-
+          buildImageGrid(images),
           const SizedBox(height: 16),
-
-          // actions
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              // inside _buildDynamicPostItem actions row
               buildActionButton(
                 post.isLikedByUser
                     ? 'assets/images/community/love_icon_filled.svg'
@@ -229,7 +252,6 @@ class CommunityView extends GetView<CommunityController> {
                 post.likesCount.toString(),
                 onPressed: () => controller.toggleLikeGlobal(post.id, post.isLikedByUser),
               ),
-
               buildActionButton(
                 'assets/images/community/comment_icon.svg',
                 comments.toString(),

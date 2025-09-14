@@ -72,7 +72,7 @@ class BaseClient {
     Map<String, String>? params,
     Future<Map<String, String>>? headers,
   }) async {
-    debugPrint("API Hit: $api");
+    debugPrint(" 🪙🪙🪙🪙🪙 GET API Hit: $api");
     final resolvedHeaders = headers != null ? await headers : null;
     debugPrint("Header: $resolvedHeaders");
 

@@ -16,7 +16,6 @@ class CreatePostView extends GetView<CommunityController> {
 
   @override
   Widget build(BuildContext context) {
-    Get.put(CommunityController());  // Note: This might be redundant if using GetView; consider removing if controller is lazy-loaded elsewhere.
     return Scaffold(
       backgroundColor: AppColors.appBc,
       appBar: AppBar(
@@ -41,13 +40,16 @@ class CreatePostView extends GetView<CommunityController> {
                 children: [
                   CircleAvatar(
                     radius: 32,
-                    backgroundImage: NetworkImage(
-                      'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face',
-                    ),
+                    backgroundImage: controller.currentUser.value?.image != null &&
+                        controller.currentUser.value!.image!.isNotEmpty
+                        ? NetworkImage(controller.currentUser.value!.image!)
+                        : const AssetImage('assets/images/community/default_user.png') as ImageProvider,
+                    onBackgroundImageError: (_, __) =>
+                    const AssetImage('assets/images/community/default_user.png'),
                   ),
                   const SizedBox(width: 20),
                   Text(
-                    'Hello Angelo!',
+                    'Hello ${controller.currentUser.value?.name ?? 'User'}!',
                     style: h2.copyWith(
                       fontSize: 24,
                       color: AppColors.textColor,

@@ -4,7 +4,6 @@ import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
-
 import '../../../../common/appColors.dart';
 import '../../../../common/widgets/custom_snackbar.dart';
 import '../../../core/constants/api.dart';
@@ -118,7 +117,6 @@ class Post {
         .map((cJson) => Comment.fromJson(cJson))
         .toList();
 
-    // Convert the images list into a List<ImageData> objects
     List<ImageData> images = (json['images'] as List)
         .map((imageData) => ImageData.fromJson(imageData))
         .toList();
@@ -128,7 +126,7 @@ class Post {
       user: User.fromJson(json['user']),
       title: json['title'],
       content: json['content'],
-      images: images,  // Use List<ImageData> instead of List<String>
+      images: images,
       tags: json['tags'],
       likeCount: json['like_count'],
       commentCount: json['comment_count'],
@@ -142,8 +140,6 @@ class Post {
       updatedAt: json['updated_at'],
     );
   }
-
-
 }
 
 class ImageData {
@@ -178,6 +174,13 @@ class CommunityController extends GetxController {
   final currentComment = Rx<Comment?>(null);
 
   final selectedMyPostFilter = 'filter_all'.obs;
+  final nextUrlAllPosts = RxString('');
+  final nextUrlMyPosts = RxString('');
+  final isLoadingMoreAllPosts = false.obs;
+  final isLoadingMoreMyPosts = false.obs;
+  final hasMoreAllPosts = true.obs;
+  final hasMoreMyPosts = true.obs;
+  final isInitialLoading = true.obs;
 
   @override
   void onInit() {
@@ -186,8 +189,111 @@ class CommunityController extends GetxController {
     fetchMyPosts();
   }
 
+  Future<void> fetchAllPosts({bool isLoadMore = false}) async {
+    if (isLoadMore && (!hasMoreAllPosts.value || isLoadingMoreAllPosts.value)) return;
+
+    try {
+      isLoadingMoreAllPosts.value = true;
+      if (!isLoadMore) isInitialLoading.value = true;
+      final response = await BaseClient.getRequest(
+        api: isLoadMore ? nextUrlAllPosts.value : Api.allPosts,
+        headers: BaseClient.authHeaders(),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data is Map<String, dynamic>) {
+          final List<dynamic> list = data['results'] ?? [];
+          final newPosts = list.map((e) {
+            if (e is Map<String, dynamic>) {
+              return Post.fromJson(e);
+            }
+            print('Invalid item found: $e');
+            return null;
+          }).whereType<Post>().toList();
+
+          if (isLoadMore) {
+            allPosts.addAll(newPosts);
+          } else {
+            allPosts.assignAll(newPosts);
+          }
+
+          nextUrlAllPosts.value = data['next'] ?? '';
+          hasMoreAllPosts.value = data['next'] != null;
+
+          if (currentUser.value == null && myPosts.isNotEmpty) {
+            currentUser.value = myPosts.first.user;
+          }
+        } else {
+          _showWarning('Unexpected response format. The data is not a Map.');
+        }
+      } else {
+        _showWarning('Failed to fetch all posts: ${response.reasonPhrase}');
+      }
+    } catch (e) {
+      print('Fetch all posts error: $e');
+      _showWarning('Failed to fetch all posts. Please try again.');
+      if (!isLoadMore) {
+        allPosts.clear();
+      }
+    } finally {
+      isLoadingMoreAllPosts.value = false;
+      isInitialLoading.value = false;
+    }
+  }
+
+  Future<void> fetchMyPosts({bool isLoadMore = false}) async {
+    if (isLoadMore && (!hasMoreMyPosts.value || isLoadingMoreMyPosts.value)) return;
+
+    try {
+      isLoadingMoreMyPosts.value = true;
+      final response = await BaseClient.getRequest(
+        api: isLoadMore ? nextUrlMyPosts.value : Api.myPosts,
+        headers: BaseClient.authHeaders(),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data is Map<String, dynamic>) {
+          final List<dynamic> list = data['results'] ?? [];
+          final newPosts = list.map((e) {
+            if (e is Map<String, dynamic>) {
+              return Post.fromJson(e);
+            }
+            print('Invalid item found: $e');
+            return null;
+          }).whereType<Post>().toList();
+
+          if (isLoadMore) {
+            myPosts.addAll(newPosts);
+          } else {
+            myPosts.assignAll(newPosts);
+          }
+
+          nextUrlMyPosts.value = data['next'] ?? '';
+          hasMoreMyPosts.value = data['next'] != null;
+
+          if (currentUser.value == null && newPosts.isNotEmpty) {
+            currentUser.value = newPosts.first.user;
+          }
+        } else {
+          _showWarning('Unexpected response format. The data is not a Map.');
+        }
+      } else {
+        _showWarning('Failed to fetch my posts: ${response.reasonPhrase}');
+      }
+    } catch (e) {
+      print('Fetch my posts error: $e');
+      _showWarning('Failed to fetch my posts. Please try again.');
+      if (!isLoadMore) {
+        myPosts.clear();
+      }
+    } finally {
+      isLoadingMoreMyPosts.value = false;
+    }
+  }
+
   Future<void> toggleLikeGlobal(int postId, bool currentlyLiked) async {
-    // Optimistic update for like toggle
     Post? _touch(List<Post> list) {
       final p = list.firstWhereOrNull((e) => e.id == postId);
       if (p != null) {
@@ -277,61 +383,10 @@ class CommunityController extends GetxController {
     }
   }
 
-  Future<void> fetchAllPosts() async {
-
-    try {
-      final response = await BaseClient.getRequest(
-        api: Api.allPosts,
-        headers: BaseClient.authHeaders(),
-      );
-
-      if (response.statusCode == 200) {
-        print('Response body: ${response.body}'); // For debugging
-
-        // Decode the response body as JSON
-        final data = jsonDecode(response.body);
-
-        // Ensure 'data' is a Map<String, dynamic>
-        if (data is Map<String, dynamic>) {
-          final List<dynamic> list = data['results'] ?? [];
-
-          // Debugging: Print each item to inspect its structure
-          for (var item in list) {
-            print('Item: $item');
-          }
-          // Safely map through the list and handle potential issues with malformed data
-          allPosts.value = list.map((e) {
-            if (e is Map<String, dynamic>) {
-              return Post.fromJson(e);
-            }
-            // Handle invalid items in the 'results' list (not a Map<String, dynamic>)
-            print('Invalid item found: $e');
-            return null;
-          }).whereType<Post>().toList(); // Filter out nulls (invalid items)
-
-          // If currentUser is null, update it from myPosts
-          if (currentUser.value == null && myPosts.isNotEmpty) {
-            currentUser.value = myPosts.first.user;
-          }
-        } else {
-          _showWarning('Unexpected response format. The data is not a Map.');
-        }
-      } else {
-        _showWarning('Failed to fetch all posts: ${response.reasonPhrase}');
-      }
-    } catch (e) {
-      print('Fetch all posts error: $e');
-      _showWarning('Failed to fetch all posts. Please try again.');
-    }
-  }
-
-
-  // --- OwnProfile sorting ---
   void applyMyPostSort(String filter) {
     selectedMyPostFilter.value = filter;
     if (myPosts.isEmpty) return;
 
-    // Safe parse helper
     int _safeCompare(String a, String b) {
       final da = DateTime.tryParse(a);
       final db = DateTime.tryParse(b);
@@ -342,31 +397,23 @@ class CommunityController extends GetxController {
     final list = [...myPosts];
     switch (filter) {
       case 'filter_new':
-        list.sort(
-          (a, b) => _safeCompare(b.createdAt, a.createdAt),
-        ); // newest first
+        list.sort((a, b) => _safeCompare(b.createdAt, a.createdAt));
         break;
       case 'filter_old':
-        list.sort(
-          (a, b) => _safeCompare(a.createdAt, b.createdAt),
-        ); // oldest first
+        list.sort((a, b) => _safeCompare(a.createdAt, b.createdAt));
         break;
       case 'filter_all':
       default:
-        // if API already returns newest first, you can re-fetch or keep as-is
-        // do nothing
         break;
     }
     myPosts.value = list;
   }
 
   void updateReplies(Comment comment) {
-    // Find the comment in the posts list and update its replies
     final post = myPosts.firstWhere((p) => p.id == comment.post);
     final updatedComment = post.comments.firstWhere((c) => c.id == comment.id);
-    updatedComment.replies =
-        comment.replies; // Update the replies in the comment
-    myPosts.refresh(); // Trigger reactivity to update the UI
+    updatedComment.replies = comment.replies;
+    myPosts.refresh();
   }
 
   void _showWarning(String message, {String title = 'Warning'}) {
@@ -393,18 +440,15 @@ class CommunityController extends GetxController {
 
     isLoading.value = true;
     try {
-      // Use MultipartRequest to handle file uploads alongside fields
-      var uri = Uri.parse(Api.createPost);  // Assuming Api.createPost is a string URL
+      var uri = Uri.parse(Api.createPost);
       var request = http.MultipartRequest('POST', uri);
       request.headers.addAll(await BaseClient.authHeaders());
 
-      // Add text fields
       request.fields['title'] = 'My First Post';
       request.fields['content'] = statusController.text;
 
-      // Add media files (assuming API accepts multiple under 'images' key; adjust key if needed)
       for (var file in pickedMedia) {
-        var multipartFile = await http.MultipartFile.fromPath('images', file.path);  // Use 'images' for multiple; change to 'image' if single
+        var multipartFile = await http.MultipartFile.fromPath('images', file.path);
         request.files.add(multipartFile);
       }
 
@@ -412,16 +456,10 @@ class CommunityController extends GetxController {
       var response = await http.Response.fromStream(streamedResponse);
 
       debugPrint("API Hit: $uri");
-
-
       debugPrint('💥💥💥💥💥💥💥💥💥💥 🚀 ➤➤➤ Code: ${response.statusCode}');
       debugPrint('💥💥💥💥💥💥💥💥💥💥 🚀 ➤➤➤ Response: ${response.body}');
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        //final newPostData = jsonDecode(response.body);
-        //final newPost = Post.fromJson(newPostData);
-        //myPosts.insert(0, newPost);
-        //myPosts.refresh();
         fetchAllPosts();
         fetchMyPosts();
         Get.snackbar('Success', 'Post created successfully!');
@@ -438,40 +476,15 @@ class CommunityController extends GetxController {
     }
   }
 
-  Future<void> fetchMyPosts() async {
-    try {
-      final response = await BaseClient.getRequest(
-        api: Api.myPosts,
-        headers: BaseClient.authHeaders(),
-      );
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        myPosts.value = (data['results'] as List)
-            .map((e) => Post.fromJson(e))
-            .toList();
-        if (myPosts.isNotEmpty) {
-          currentUser.value = myPosts[0].user;
-        }
-      } else {
-        _showWarning('Failed to fetch posts: ${response.reasonPhrase}');
-      }
-    } catch (e) {
-      print('Fetch posts error: $e');
-      _showWarning('Failed to fetch posts. Please try again.');
-    }
-  }
-
   Future<void> toggleLike(int postId, bool currentlyLiked) async {
     final post = myPosts.firstWhereOrNull((p) => p.id == postId);
     if (post == null) return;
 
-    // Optimistic update
     final oldLiked = post.isLikedByUser;
     final oldLikes = post.likesCount;
     post.isLikedByUser = !currentlyLiked;
     post.likesCount += currentlyLiked ? -1 : 1;
-    post.likeCount = post.likesCount; // If likeCount is alias
+    post.likeCount = post.likesCount;
     myPosts.refresh();
 
     try {
@@ -483,7 +496,6 @@ class CommunityController extends GetxController {
       );
 
       if (!(response.statusCode == 200 || response.statusCode == 201)) {
-        // Revert on failure
         post.isLikedByUser = oldLiked;
         post.likesCount = oldLikes;
         post.likeCount = oldLikes;
@@ -491,7 +503,6 @@ class CommunityController extends GetxController {
         _showWarning('Failed to toggle like: ${response.reasonPhrase}');
       }
     } catch (e) {
-      // Revert on error
       post.isLikedByUser = oldLiked;
       post.likesCount = oldLikes;
       post.likeCount = oldLikes;
@@ -517,7 +528,6 @@ class CommunityController extends GetxController {
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        // API call successful, local state already updated
       } else {
         if (comment != null) {
           comment.isLikedByUser.value = currentlyLiked;

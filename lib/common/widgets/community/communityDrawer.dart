@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
+import 'package:loan_site/app/modules/community/controllers/community_controller.dart';
 
 import '../../../app/modules/community/views/message_view.dart';
 import '../../../app/modules/community/views/notification_chat_view.dart';
 import '../../../app/modules/community/views/own_profile_view.dart';
+import '../../../app/modules/dashboard/controllers/dashboard_controller.dart';
 import '../../appColors.dart';
 import '../../customFont.dart';
 
 Widget buildDrawer() {
+  final DashboardController dashboardController = Get.find<DashboardController>();
   return Drawer(
     backgroundColor: Colors.white,
     child: Column(
@@ -26,18 +29,21 @@ Widget buildDrawer() {
               children: [
                 Row(
                   children: [
-                    const CircleAvatar(
-                      radius: 43,
-                      backgroundImage: NetworkImage(
-                        'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face',
-                      ),
+                    CircleAvatar(
+                      radius: 40,
+                      backgroundImage: dashboardController.profileImageUrl.value != null &&
+                          dashboardController.profileImageUrl.value.isNotEmpty
+                          ? NetworkImage(dashboardController.profileImageUrl.value)
+                          : const AssetImage('assets/images/community/default_user.png') as ImageProvider,
+                      onBackgroundImageError: (_, __) =>
+                      const AssetImage('assets/images/community/default_user.png'),
                     ),
                     const SizedBox(width: 20),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Hello Angelo!',
+                          'Hello ${dashboardController.name.value ?? 'User'}!',
                           style: h2.copyWith(
                             fontSize: 24,
                             color: AppColors.textColor,
@@ -45,7 +51,7 @@ Widget buildDrawer() {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          'zanlee@gmail.com',
+                          dashboardController.email.value ?? '',
                           style: h4.copyWith(
                             fontSize: 16,
                             color: AppColors.blurtext4,
@@ -98,12 +104,12 @@ Widget buildDrawer() {
                     children: [
                       _buildContactItem(
                         svgPath: 'assets/images/community/call_icon.svg',
-                        text: '+56994562587',
+                        text: dashboardController.phone.value ?? '',
                       ),
                       const SizedBox(height: 12),
                       _buildContactItem(
                         svgPath: 'assets/images/community/mail_icon.svg',
-                        text: 'angelo@gmail.com',
+                        text: dashboardController.email.value ?? '',
                       ),
                     ],
                   ),
