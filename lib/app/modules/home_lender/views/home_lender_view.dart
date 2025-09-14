@@ -46,14 +46,14 @@ class HomeLenderView extends GetView<DashboardLenderController> {
                         Row(
                           children: [
                             Obx(() => controller.profileImageUrl.value.isNotEmpty
-                                ? Image.network(
-                              controller.profileImageUrl.value,
-                              scale: 4,
-                              errorBuilder: (context, error, stackTrace) =>
-                                  Image.asset(
-                                    'assets/images/home/user_image.png',
-                                    scale: 4,
-                                  ),
+                                ? CircleAvatar(
+                              radius: 40,
+                              backgroundImage: NetworkImage(
+                                controller.profileImageUrl.value,
+                              ),
+                              onBackgroundImageError: (exception, stackTrace) {
+                                print('Error loading profile image: $exception');
+                              },
                             )
                                 : Image.asset(
                               'assets/images/home/user_image.png',
@@ -142,16 +142,28 @@ class HomeLenderView extends GetView<DashboardLenderController> {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    ...projectList.map<Widget>((project) => Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
-                      child: _buildProjectCard(
-                        projectName: project['name'] ?? 'Unknown',
-                        companyName: project['location'] ?? 'Unknown',
-                        progress: project['progress_percentage'] ?? 0,
-                        status: project['project_status'] ?? 'Unknown',
-                        statusColor: controller.getStatusColor(project['project_status']),
+                    projectList.isEmpty
+                        ? Center(
+                      child: Text(
+                        'No projects found',
+                        style: h4.copyWith(
+                          fontSize: 16,
+                          color: AppColors.gray12,
+                        ),
                       ),
-                    )).toList(),
+                    )
+                        : Column(
+                      children: projectList.map<Widget>((project) => Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: _buildProjectCard(
+                          projectName: project['name'] ?? 'Unknown',
+                          companyName: project['location'] ?? 'Unknown',
+                          progress: project['progress_percentage'] ?? 0,
+                          status: project['project_status'] ?? 'Unknown',
+                          statusColor: controller.getStatusColor(project['project_status']),
+                        ),
+                      )).toList(),
+                    ),
                   ],
                 ),
               );

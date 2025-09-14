@@ -1,10 +1,8 @@
 import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:loan_site/common/widgets/custom_snackbar.dart';
 import 'package:loan_site/common/appColors.dart';
-
 import '../../../core/constants/api.dart';
 import '../../../core/services/base_client.dart';
 
@@ -17,6 +15,11 @@ class DashboardLenderController extends GetxController {
   final phone = RxString('');
   final profileImageUrl = RxString('');
 
+  @override
+  void onInit() {
+    super.onInit();
+    fetchProfile(); // Call fetchProfile when the controller is initialized
+  }
 
   // Fetch user profile data from API
   Future<void> fetchProfile() async {
@@ -51,11 +54,10 @@ class DashboardLenderController extends GetxController {
     }
   }
 
-
   Future<Map<String, dynamic>> fetchOverviewData() async {
     try {
       final response = await BaseClient.getRequest(
-        api: Api.getLenderDashboardData, // Assuming an API constant for overview endpoint
+        api: Api.getLenderDashboardData,
         headers: BaseClient.authHeaders(),
       );
       final result = await BaseClient.handleResponse(
@@ -74,7 +76,7 @@ class DashboardLenderController extends GetxController {
   Future<Map<String, dynamic>> fetchProjectsData() async {
     try {
       final response = await BaseClient.getRequest(
-        api: Api.getLenderProjects, // Assuming an API constant for projects endpoint
+        api: Api.getLenderProjects,
         headers: BaseClient.authHeaders(),
       );
       final result = await BaseClient.handleResponse(
