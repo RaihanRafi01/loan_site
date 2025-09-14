@@ -83,7 +83,7 @@ class ContractorView extends GetView<ContractorController> {
                   : controller.contractors.isEmpty
                   ? Center(
                 child: Text(
-                  'No contractors available',
+                  'No contractors available please select a project first',
                   style: h4.copyWith(color: AppColors.textColor),
                 ),
               )

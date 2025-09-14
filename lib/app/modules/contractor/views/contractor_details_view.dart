@@ -164,8 +164,13 @@ class ContractorDetailsView extends GetView<ContractorController> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Expanded(
-                                child: SvgPicture.asset(
-                                  'assets/images/contractor/call_now.svg',
+                                child: GestureDetector(
+                                  onTap: contractor.phone != 'N/A'
+                                      ? () => controller.launch('tel:${contractor.phone}')
+                                      : null,
+                                  child: SvgPicture.asset(
+                                    'assets/images/contractor/call_now.svg',
+                                  ),
                                 ),
                               ),
                               const SizedBox(width: 20),

@@ -90,6 +90,13 @@ class ContractorController extends GetxController {
     fetchContractors(); // Fetch contractors when controller initializes
   }
 
+  Future<void> launch(String url) async {
+    final Uri uri = Uri.parse(url);
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+      Get.snackbar('Error', 'Could not launch $url');
+    }
+  }
+
   @override
   void onClose() {
     nameController.dispose();
@@ -111,6 +118,10 @@ class ContractorController extends GetxController {
   Future<void> fetchContractors() async {
     final HomeController homeController = Get.find<HomeController>();
     final currentProject = homeController.currentProject.value;
+
+    if(currentProject == null){
+      return;
+    }
 
 
     // Find the first milestone with 'on_going' status

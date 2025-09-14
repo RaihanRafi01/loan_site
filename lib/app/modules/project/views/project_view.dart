@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:loan_site/app/modules/contractor/controllers/contractor_controller.dart';
 import 'package:loan_site/app/modules/project/controllers/project_controller.dart';
 import '../../../../common/appColors.dart';
 import '../../../../common/customFont.dart';
@@ -265,6 +266,9 @@ class ProjectView extends GetView<ProjectController> {
                     // Update ChatController (if applicable)
                     if (Get.isRegistered<ChatController>()) {
                       Get.find<ChatController>().refreshContext();
+                    }
+                    if (Get.isRegistered<ContractorController>()) {
+                      Get.find<ContractorController>().fetchContractors();
                     }
                     Get.snackbar('Success', 'Switched to project: ${d.name}');
                   },
