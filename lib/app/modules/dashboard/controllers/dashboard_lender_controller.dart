@@ -15,10 +15,17 @@ class DashboardLenderController extends GetxController {
   final phone = RxString('');
   final profileImageUrl = RxString('');
 
+  // Reactive variables for pagination
+  final projectList = <Map<String, dynamic>>[].obs;
+  final nextUrl = RxString('');
+  final isLoadingMore = false.obs;
+  final hasMoreProjects = true.obs;
+
   @override
   void onInit() {
     super.onInit();
-    fetchProfile(); // Call fetchProfile when the controller is initialized
+    fetchProfile(); // Fetch profile data on initialization
+    fetchProjectsData(); // Fetch initial projects
   }
 
   // Fetch user profile data from API
@@ -73,22 +80,44 @@ class DashboardLenderController extends GetxController {
     }
   }
 
-  Future<Map<String, dynamic>> fetchProjectsData() async {
+  Future<void> fetchProjectsData({bool isLoadMore = false}) async {
+    if (isLoadMore && (!hasMoreProjects.value || isLoadingMore.value)) return;
+
     try {
+      isLoadingMore.value = true;
       final response = await BaseClient.getRequest(
-        api: Api.getLenderProjects,
+        api: isLoadMore ? nextUrl.value : Api.getLenderProjects,
         headers: BaseClient.authHeaders(),
       );
       final result = await BaseClient.handleResponse(
         response,
         retryRequest: () => BaseClient.getRequest(
-          api: Api.getLenderProjects,
+          api: isLoadMore ? nextUrl.value : Api.getLenderProjects,
           headers: BaseClient.authHeaders(),
         ),
       );
-      return result;
+
+      // Append new projects to the existing list
+      if (isLoadMore) {
+        projectList.addAll(List<Map<String, dynamic>>.from(result['results'] ?? []));
+      } else {
+        projectList.assignAll(List<Map<String, dynamic>>.from(result['results'] ?? []));
+      }
+
+      // Update next URL and check if more projects are available
+      nextUrl.value = result['next'] ?? '';
+      hasMoreProjects.value = result['next'] != null;
     } catch (e) {
-      return {'results': []};
+      kSnackBar(
+        title: 'Warning',
+        message: 'Failed to load projects: $e',
+        bgColor: AppColors.snackBarWarning,
+      );
+      if (!isLoadMore) {
+        projectList.clear();
+      }
+    } finally {
+      isLoadingMore.value = false;
     }
   }
 
