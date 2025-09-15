@@ -57,7 +57,7 @@ class MessageIndividualView extends GetView<MessageController> {
                       ),
                       const SizedBox(width: 16),
                       CircleAvatar(
-                        radius: 32,
+                        radius: 25,
                         backgroundImage: NetworkImage(avatar),
                       ),
                       const SizedBox(width: 16),
@@ -111,7 +111,7 @@ class MessageIndividualView extends GetView<MessageController> {
               ),
             ),
 
-            // Debug count
+            /*// Debug count
             Obx(() {
               final roomMessages = controller.messages
                   .where((msg) => msg['chat_room'] == roomId)
@@ -127,7 +127,7 @@ class MessageIndividualView extends GetView<MessageController> {
                   style: h4.copyWith(color: AppColors.textColor8, fontSize: 12),
                 ),
               );
-            }),
+            }),*/
 
             // Messages
             Expanded(
