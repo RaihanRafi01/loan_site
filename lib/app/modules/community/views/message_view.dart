@@ -7,8 +7,8 @@ import '../../../core/constants/api.dart';
 import '../controllers/message_controller.dart';
 import 'message_individual_view.dart';
 
-// Define baseUrl here or import it from a constants file
-const String baseUrl = Api.baseUrlPicture; // Replace with your actual base URL
+// Define baseUrl for images
+const String baseUrl = Api.baseUrlPicture;
 
 class MessageView extends GetView<MessageController> {
   const MessageView({super.key});
@@ -91,46 +91,46 @@ class MessageView extends GetView<MessageController> {
   Widget _buildTabItem(String title, int index) {
     return Expanded(
       child: Obx(() => GestureDetector(
-          onTap: () => controller.selectTab(index),
-          child: Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8.0),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  title,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: controller.selectedTabIndex.value == index
-                        ? FontWeight.w600
-                        : FontWeight.w400,
-                    color: controller.selectedTabIndex.value == index
-                        ? AppColors.textColor
-                        : Colors.grey[600],
+        onTap: () => controller.selectTab(index),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8.0),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                title,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: controller.selectedTabIndex.value == index
+                      ? FontWeight.w600
+                      : FontWeight.w400,
+                  color: controller.selectedTabIndex.value == index
+                      ? AppColors.textColor
+                      : Colors.grey[600],
+                ),
+              ),
+              const SizedBox(height: 4),
+              Container(
+                height: 10,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: controller.selectedTabIndex.value == index
+                      ? Colors.blue
+                      : Colors.grey[300],
+                  borderRadius: BorderRadius.horizontal(
+                    left: index == 0 ? const Radius.circular(4) : Radius.zero,
+                    right: index == 2 ? const Radius.circular(4) : Radius.zero,
                   ),
                 ),
-                const SizedBox(height: 4),
-                Container(
-                  height: 10,
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    color: controller.selectedTabIndex.value == index
-                        ? Colors.blue
-                        : Colors.grey[300],
-                    borderRadius: BorderRadius.horizontal(
-                      left: index == 0 ? const Radius.circular(4) : Radius.zero,
-                      right: index == 2 ? const Radius.circular(4) : Radius.zero,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          )),
-      ),
+              ),
+            ],
+          ),
+        ),
+      )),
     );
   }
 
@@ -157,13 +157,9 @@ class MessageView extends GetView<MessageController> {
   List<Widget> _getMessagesForTab(String tab) {
     switch (tab) {
       case 'All':
-        return [
-
-        ];
+        return [];
       case 'Group':
-        return [
-
-        ];
+        return [];
       case 'Active':
         return controller.activeUsers.map<Widget>((userData) {
           final user = userData['user'];
@@ -172,7 +168,7 @@ class MessageView extends GetView<MessageController> {
           final avatar = '$baseUrl${user['image']}' as String;
           final lastSeen = userData['last_seen'] as String;
           final time = _formatTime(lastSeen);
-          final message = 'Active now'; // Placeholder
+          final message = 'Active now';
           return _buildMessageItem(
             name: name,
             message: message,
@@ -222,7 +218,7 @@ class MessageView extends GetView<MessageController> {
             name: name,
             message: message,
             avatar: avatar,
-            roomId: 0, // Placeholder for non-active tabs
+            roomId: 0,
           ));
         }
       },
@@ -230,11 +226,8 @@ class MessageView extends GetView<MessageController> {
         padding: const EdgeInsets.symmetric(vertical: 12),
         child: Row(
           children: [
-            // Avatar with different styles based on type
             buildAvatar(type, avatar, groupAvatars),
             const SizedBox(width: 12),
-
-            // Message Content
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -288,15 +281,17 @@ class MessageView extends GetView<MessageController> {
                 backgroundColor: Colors.grey[300],
                 backgroundImage: NetworkImage(avatar),
               ),
-              Positioned(
+              const Positioned(
                 bottom: -3,
                 right: -3,
-                child: Container(
+                child: SizedBox(
                   width: 20,
                   height: 20,
-                  decoration: BoxDecoration(
-                    color: Colors.green,
-                    shape: BoxShape.circle,
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: Colors.green,
+                      shape: BoxShape.circle,
+                    ),
                   ),
                 ),
               ),

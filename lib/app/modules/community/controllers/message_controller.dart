@@ -83,14 +83,13 @@ class MessageController extends GetxController {
           body: jsonEncode({'recipient_id': recipientId}),
         ),
       );
-      final roomId =
-          result['id'] as int; // Assuming API returns { "id": room_id }
+      final roomId = result['id'] as int;
       currentRoomId.value = roomId;
       developer.log(
         'Chat room created with ID: $roomId',
         name: 'MessageController',
       );
-      connectWebSocket();
+      await connectWebSocket();
       return roomId;
     } catch (e) {
       developer.log(
@@ -109,8 +108,8 @@ class MessageController extends GetxController {
 
   Future<void> connectWebSocket() async {
     const wsBaseUrl = 'ws://10.10.13.73:7000';
-    String? token = await BaseClient.getAccessToken();
-    if (token.isNull) {
+    final token = await BaseClient.getAccessToken();
+    if (token == null || token.isEmpty) {
       developer.log(
         'No access token available for WebSocket',
         name: 'MessageController',
@@ -132,57 +131,62 @@ class MessageController extends GetxController {
         Uri.parse('$wsBaseUrl/ws/chat/?token=$token'),
       );
       isWebSocketConnected.value = true;
-      developer.log(
-        'WebSocket connected successfully',
-        name: 'MessageController',
-      );
+      developer.log('WebSocket connected successfully', name: 'MessageController');
 
       _channel!.stream.listen(
-        (data) {
-          developer.log(
-            'Received WebSocket message: $data',
-            name: 'MessageController',
-          );
-          final message = jsonDecode(data) as Map<String, dynamic>;
-          if (message['type'] == 'room_notification') {
-            messages.add(message['message']);
-            developer.log(
-              'Room notification received: room_id=${message['message']['chat_room']}, content=${message['message']['content']}',
-              name: 'MessageController',
-            );
-          } else if (message['type'] == 'user_status_update') {
-            final userId = message['user_id'] as int;
-            final isOnline = message['is_online'] as bool;
-            final userIndex = activeUsers.indexWhere(
-              (user) => user['user']['id'] == userId,
-            );
-            if (userIndex != -1) {
-              activeUsers[userIndex]['is_online'] = isOnline;
-              activeUsers[userIndex]['user']['is_online'] = isOnline;
-              activeUsers.refresh();
-              developer.log(
-                'User status updated: user_id=$userId, is_online=$isOnline',
-                name: 'MessageController',
-              );
+            (data) {
+          developer.log('Received WebSocket raw data: $data', name: 'MessageController');
+          try {
+            final message = jsonDecode(data) as Map<String, dynamic>;
+            developer.log('Parsed WebSocket message: $message', name: 'MessageController');
+
+            if (message['type'] == 'room_notification') {
+              final newMessage = message['message'] as Map<String, dynamic>;
+
+              // Deduplicate by content & timestamp
+              final isDuplicate = messages.any((msg) =>
+              msg['chat_room'] == newMessage['chat_room'] &&
+                  msg['content'] == newMessage['content'] &&
+                  (DateTime.parse(msg['created_at'])
+                      .difference(DateTime.parse(newMessage['created_at']))
+                      .inSeconds
+                      .abs() <
+                      5));
+
+              if (!isDuplicate) {
+                messages.add(newMessage);
+                messages.refresh();
+                developer.log(
+                  'Room notification received: room_id=${newMessage['chat_room']}, '
+                      'content=${newMessage['content']}, type=${newMessage['message_type']}, '
+                      'image=${newMessage['image'] ?? 'none'}, file=${newMessage['file'] ?? 'none'}',
+                  name: 'MessageController',
+                );
+              } else {
+                developer.log('Duplicate message ignored: ${newMessage['content']}',
+                    name: 'MessageController');
+              }
+            } else if (message['type'] == 'user_status_update') {
+              final userId = message['user_id'] as int;
+              final isOnline = message['is_online'] as bool;
+              final userIndex =
+              activeUsers.indexWhere((user) => user['user']['id'] == userId);
+              if (userIndex != -1) {
+                activeUsers[userIndex]['is_online'] = isOnline;
+                activeUsers[userIndex]['user']['is_online'] = isOnline;
+                activeUsers.refresh();
+              }
             } else {
-              developer.log(
-                'User ID $userId not found in active users',
-                name: 'MessageController',
-              );
+              developer.log('Unknown message type: ${message['type']}',
+                  name: 'MessageController');
             }
-          } else {
-            developer.log(
-              'Unknown message type: ${message['type']}',
-              name: 'MessageController',
-            );
+          } catch (e) {
+            developer.log('Failed to parse WebSocket message: $e',
+                name: 'MessageController', error: e);
           }
         },
         onError: (error) {
-          developer.log(
-            'WebSocket error: $error',
-            name: 'MessageController',
-            error: error,
-          );
+          developer.log('WebSocket error: $error', name: 'MessageController', error: error);
           isWebSocketConnected.value = false;
           kSnackBar(
             title: 'Warning',
@@ -191,20 +195,14 @@ class MessageController extends GetxController {
           );
         },
         onDone: () {
-          developer.log(
-            'WebSocket connection closed',
-            name: 'MessageController',
-          );
+          developer.log('WebSocket connection closed', name: 'MessageController');
           isWebSocketConnected.value = false;
           _channel = null;
         },
       );
     } catch (e) {
-      developer.log(
-        'Failed to connect to WebSocket: $e',
-        name: 'MessageController',
-        error: e,
-      );
+      developer.log('Failed to connect to WebSocket: $e',
+          name: 'MessageController', error: e);
       isWebSocketConnected.value = false;
       kSnackBar(
         title: 'Error',
@@ -216,18 +214,32 @@ class MessageController extends GetxController {
 
   void sendMessage(String content, String messageType, {String file = ''}) {
     if (_channel == null || currentRoomId.value == 0) {
-      developer.log(
-        'Cannot send message: WebSocket is null or roomId is 0',
-        name: 'MessageController',
-      );
+      developer.log('Cannot send message: WebSocket is null or roomId is 0',
+          name: 'MessageController');
       kSnackBar(
         title: 'Error',
-        message:
-            'Cannot send message: No active chat room or WebSocket connection',
+        message: 'Cannot send message: No active chat room or WebSocket connection',
         bgColor: AppColors.snackBarWarning,
       );
       return;
     }
+
+    // Local echo
+    final localMessage = {
+      'chat_room': currentRoomId.value,
+      'content': content,
+      'message_type': messageType,
+      'sender': {
+        'id': _getCurrentUserId(),
+      },
+      'created_at': DateTime.now().toIso8601String(),
+      'file': file,   // base64 data URI if provided
+      'image': null,  // server may fill this on broadcast
+    };
+
+    messages.add(localMessage);
+    messages.refresh();
+
     final messageData = {
       'type': 'send_message',
       'room_id': currentRoomId.value,
@@ -235,7 +247,12 @@ class MessageController extends GetxController {
       'message_type': messageType,
       'file': file,
     };
-    developer.log('Sending message: $messageData', name: 'MessageController');
+    developer.log(' ❄️❄️❄️ Sending message: $messageData', name: 'MessageController');
     _channel!.sink.add(jsonEncode(messageData));
+  }
+
+  int _getCurrentUserId() {
+    // Replace with actual logic to get current user ID
+    return 6; // Placeholder
   }
 }
