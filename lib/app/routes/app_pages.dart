@@ -57,7 +57,7 @@ class AppPages {
     ),
     GetPage(
       name: _Paths.DASHBOARD,
-      page: () => const MessageView(),   /// change to OnboardingProjectView()
+      page: () => const OnboardingProjectView(),   /// change to OnboardingProjectView()  MessageView
       binding: DashboardBinding(),
     ),
     GetPage(

@@ -7,6 +7,7 @@ import '../../../../common/appColors.dart';
 import '../../../../common/widgets/custom_snackbar.dart';
 import '../../../core/constants/api.dart';
 import '../../../core/services/base_client.dart';
+import '../../dashboard/controllers/dashboard_controller.dart';
 
 class MessageController extends GetxController {
   RxInt selectedTabIndex = 0.obs;
@@ -315,7 +316,7 @@ class MessageController extends GetxController {
       'content': content,
       'message_type': messageType,
       'sender': {
-        'id': _getCurrentUserId(),
+        'id': getCurrentUserId(),
       },
       'created_at': DateTime.now().toIso8601String(),
       'file': file,
@@ -337,7 +338,11 @@ class MessageController extends GetxController {
     _channel!.sink.add(jsonEncode(messageData));
   }
 
-  int _getCurrentUserId() {
-    return 6; // Placeholder
+  int? getCurrentUserId() {
+    final DashboardController dashboardController = Get.find<DashboardController>();
+    final userId = dashboardController.userId.value;
+    print('---------->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> CURRENT USER ID $userId');
+    return userId;
+
   }
 }

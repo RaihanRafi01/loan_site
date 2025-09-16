@@ -9,6 +9,7 @@ class DashboardController extends GetxController {
   var selectedIndex = 0.obs;
 
   // Reactive variables to store profile data
+  final userId = RxnInt();
   final name = RxString('');
   final email = RxString('');
   final phone = RxString('');
@@ -29,6 +30,7 @@ class DashboardController extends GetxController {
           headers: BaseClient.authHeaders(),
         ),
       );
+      userId.value = result['id'] ?? '';
       name.value = result['name'] ?? '';
       email.value = result['email'] ?? '';
       phone.value = result['phone'] ?? '';

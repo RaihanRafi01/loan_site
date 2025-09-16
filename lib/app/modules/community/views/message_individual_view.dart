@@ -176,7 +176,7 @@ class MessageIndividualView extends GetView<MessageController> {
                       );
                     }
                     final msg = roomMessages[index];
-                    final isMe = msg['sender']['id'] == _getCurrentUserId();
+                    final isMe = msg['sender']['id'] == controller.getCurrentUserId();
                     final createdAt = msg['created_at'] ?? '';
                     final time = _formatTime(createdAt);
                     final type = (msg['message_type'] ?? '').toString();
@@ -544,9 +544,5 @@ class MessageIndividualView extends GetView<MessageController> {
     } catch (e) {
       return 'Unknown';
     }
-  }
-
-  int _getCurrentUserId() {
-    return 6; // Placeholder
   }
 }

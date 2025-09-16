@@ -41,7 +41,7 @@ class SettingsController extends GetxController {
     // Sync local reactive variables with DashboardController's data
     syncWithDashboard();
     // Fetch initial notification preference
-    fetchNotificationPreference();
+    //fetchNotificationPreference();
   }
 
   // Sync local variables with DashboardController's profile data
