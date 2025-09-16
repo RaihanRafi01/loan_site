@@ -43,7 +43,7 @@ class MessageIndividualView extends GetView<MessageController> {
       controller.fetchChatHistory(roomId);
     });
 
-    // Listen for scroll triggers
+    // Listen for scroll triggers to bottom
     ever(controller.shouldScrollToBottom, (shouldScroll) {
       if (shouldScroll && scrollController.hasClients) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -61,23 +61,15 @@ class MessageIndividualView extends GetView<MessageController> {
     // Listen for scroll to top to load more messages
     scrollController.addListener(() {
       if (scrollController.hasClients &&
-          scrollController.offset >= scrollController.position.minScrollExtent + 50 &&
+          scrollController.offset >= scrollController.position.minScrollExtent + 200 &&
           !scrollController.position.outOfRange &&
           !controller.isLoadingMoreMessages.value &&
-          controller.nextPageUrl.value.isNotEmpty) {
+          controller.hasMoreMessages.value) {
         developer.log(
-          'Reached top, fetching more messages, nextPageUrl: ${controller.nextPageUrl.value}',
+          'Near top, fetching more messages, nextPageUrl: ${controller.nextPageUrl.value}',
           name: 'MessageIndividualView',
         );
         controller.fetchMoreMessages();
-      } else {
-        developer.log(
-          'Scroll listener: offset=${scrollController.offset}, '
-              'minScrollExtent=${scrollController.position.minScrollExtent}, '
-              'isLoadingMoreMessages=${controller.isLoadingMoreMessages.value}, '
-              'nextPageUrl=${controller.nextPageUrl.value}',
-          name: 'MessageIndividualView',
-        );
       }
     });
 
@@ -161,7 +153,7 @@ class MessageIndividualView extends GetView<MessageController> {
             Expanded(
               child: Obx(() {
                 if (controller.isLoadingMessages.value) {
-                  return const Center(child: CircularProgressIndicator());
+                  return const Center(child: CircularProgressIndicator.adaptive());
                 }
                 final roomMessages = controller.messages
                     .where((msg) => msg['chat_room'] == roomId)
@@ -170,24 +162,16 @@ class MessageIndividualView extends GetView<MessageController> {
                   controller: scrollController,
                   reverse: true, // Newest messages at the bottom
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  itemCount: roomMessages.length +
-                      (controller.isLoadingMoreMessages.value
-                          ? 1
-                          : (controller.nextPageUrl.value.isEmpty ? 1 : 0)),
+                  itemCount: roomMessages.length + (controller.isLoadingMoreMessages.value ? 1 : 0),
                   itemBuilder: (context, index) {
                     if (index == roomMessages.length && controller.isLoadingMoreMessages.value) {
-                      return const Center(
-                        child: Padding(
-                          padding: EdgeInsets.all(8.0),
-                          child: CircularProgressIndicator(),
-                        ),
-                      );
-                    }
-                    if (index == roomMessages.length && controller.nextPageUrl.value.isEmpty) {
-                      return const Center(
-                        child: Padding(
-                          padding: EdgeInsets.all(8.0),
-                          child: Text('No more messages'),
+                      return const Padding(
+                        padding: EdgeInsets.all(8.0),
+                        child: Center(
+                          child: CircularProgressIndicator.adaptive(
+                            strokeWidth: 2.0,
+                            valueColor: AlwaysStoppedAnimation<Color>(AppColors.appColor2),
+                          ),
                         ),
                       );
                     }

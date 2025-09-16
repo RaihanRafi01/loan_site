@@ -1,10 +1,8 @@
 import 'dart:convert';
 import 'dart:developer' as developer;
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
-
 import '../../../../common/appColors.dart';
 import '../../../../common/widgets/custom_snackbar.dart';
 import '../../../core/constants/api.dart';
@@ -20,6 +18,7 @@ class MessageController extends GetxController {
   RxBool isLoadingMessages = false.obs;
   RxBool isLoadingMoreMessages = false.obs; // Track pagination loading
   RxString nextPageUrl = RxString(''); // Initialize as empty string
+  RxBool hasMoreMessages = true.obs; // Track if more messages are available
   final RxBool shouldScrollToBottom = false.obs; // Trigger scrolling
 
   void selectTab(int index) {
@@ -69,32 +68,66 @@ class MessageController extends GetxController {
     }
   }
 
-  Future<void> fetchChatHistory(int roomId) async {
+  Future<void> fetchChatHistory(int roomId, {bool isLoadMore = false}) async {
+    if (isLoadMore && (!hasMoreMessages.value || isLoadingMoreMessages.value)) {
+      developer.log('No more messages or already loading', name: 'MessageController');
+      return;
+    }
+
     try {
-      isLoadingMessages.value = true;
-      developer.log('Fetching chat history for roomId: $roomId', name: 'MessageController');
+      if (isLoadMore) {
+        isLoadingMoreMessages.value = true;
+      } else {
+        isLoadingMessages.value = true;
+      }
+      developer.log('Fetching chat history for roomId: $roomId, isLoadMore: $isLoadMore', name: 'MessageController');
       final response = await BaseClient.getRequest(
-        api: Api.getMessages(roomId),
+        api: isLoadMore ? nextPageUrl.value : Api.getMessages(roomId),
         headers: BaseClient.authHeaders(),
       );
       final result = await BaseClient.handleResponse(
         response,
         retryRequest: () => BaseClient.getRequest(
-          api: Api.getMessages(roomId),
+          api: isLoadMore ? nextPageUrl.value : Api.getMessages(roomId),
           headers: BaseClient.authHeaders(),
         ),
       );
       developer.log('API response for chat history: $result', name: 'MessageController');
       final List messagesList = result['results'] as List;
-      nextPageUrl.value = result['next'] as String? ?? ''; // Use empty string if null
-      // Sort messages by created_at in descending order (newest first)
-      messages.value = List<Map<String, dynamic>>.from(messagesList)
-        ..sort((a, b) => DateTime.parse(b['created_at']).compareTo(DateTime.parse(a['created_at'])));
-      developer.log('Fetched ${messages.length} messages for roomId: $roomId, next: ${nextPageUrl.value}', name: 'MessageController');
-      if (messages.isNotEmpty) {
-        developer.log('First message: ${messages.first['created_at']}, Last message: ${messages.last['created_at']}', name: 'MessageController');
+      nextPageUrl.value = result['next'] as String? ?? '';
+      hasMoreMessages.value = result['next'] != null;
+
+      final newMessages = List<Map<String, dynamic>>.from(messagesList);
+      if (isLoadMore) {
+        // Store current scroll extent for adjustment
+        double? previousExtent;
+        if (Get.isRegistered<ScrollController>()) {
+          final scrollController = Get.find<ScrollController>();
+          if (scrollController.hasClients) {
+            previousExtent = scrollController.position.maxScrollExtent;
+          }
+        }
+        messages.addAll(newMessages);
+        messages.refresh();
+        // Adjust scroll position
+        if (previousExtent != null && Get.isRegistered<ScrollController>()) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            final scrollController = Get.find<ScrollController>();
+            if (scrollController.hasClients) {
+              final newExtent = scrollController.position.maxScrollExtent;
+              final offsetDifference = newExtent - previousExtent!;
+              scrollController.jumpTo(scrollController.offset + offsetDifference);
+              developer.log('Adjusted scroll position by $offsetDifference, new offset: ${scrollController.offset}', name: 'MessageController');
+            }
+          });
+        }
+      } else {
+        messages.assignAll(newMessages);
       }
-      shouldScrollToBottom.value = true; // Trigger scroll after fetch
+      developer.log('Fetched ${newMessages.length} messages for roomId: $roomId, next: ${nextPageUrl.value}', name: 'MessageController');
+      if (!isLoadMore) {
+        shouldScrollToBottom.value = true; // Scroll to bottom only for initial load
+      }
     } catch (e) {
       developer.log('Failed to fetch chat history: $e', name: 'MessageController', error: e);
       kSnackBar(
@@ -102,75 +135,17 @@ class MessageController extends GetxController {
         message: 'Failed to fetch chat history: $e',
         bgColor: AppColors.snackBarWarning,
       );
+      if (!isLoadMore) {
+        messages.clear();
+      }
     } finally {
       isLoadingMessages.value = false;
+      isLoadingMoreMessages.value = false;
     }
   }
 
   Future<void> fetchMoreMessages() async {
-    if (nextPageUrl.value.isEmpty || isLoadingMoreMessages.value) {
-      developer.log('No more messages to fetch or already loading, nextPageUrl: ${nextPageUrl.value}', name: 'MessageController');
-      return;
-    }
-    try {
-      isLoadingMoreMessages.value = true;
-      developer.log('Fetching more messages from: ${nextPageUrl.value}', name: 'MessageController');
-      // Extract path if BaseClient prepends a base URL
-      String apiPath = nextPageUrl.value;
-      /*if (nextPageUrl.value.startsWith(Api.baseUrl)) {
-        apiPath = nextPageUrl.value.substring(Api.baseUrl.length);
-      }*/
-      final response = await BaseClient.getRequest(
-        api: apiPath,
-        headers: BaseClient.authHeaders(),
-      );
-      final result = await BaseClient.handleResponse(
-        response,
-        retryRequest: () => BaseClient.getRequest(
-          api: apiPath,
-          headers: BaseClient.authHeaders(),
-        ),
-      );
-      developer.log('API response for more messages: $result', name: 'MessageController');
-      final List newMessages = result['results'] as List;
-      nextPageUrl.value = result['next'] as String? ?? ''; // Use empty string if null
-      // Store current scroll offset
-      double? currentOffset;
-      if (Get.isRegistered<ScrollController>()) {
-        final scrollController = Get.find<ScrollController>();
-        if (scrollController.hasClients) {
-          currentOffset = scrollController.offset;
-        }
-      }
-      // Append new messages, maintaining descending order
-      final newMessagesSorted = List<Map<String, dynamic>>.from(newMessages)
-        ..sort((a, b) => DateTime.parse(b['created_at']).compareTo(DateTime.parse(a['created_at'])));
-      messages.addAll(newMessagesSorted);
-      messages.refresh();
-      developer.log('Fetched ${newMessages.length} more messages, next: ${nextPageUrl.value}', name: 'MessageController');
-      if (messages.isNotEmpty) {
-        developer.log('First message: ${messages.first['created_at']}, Last message: ${messages.last['created_at']}', name: 'MessageController');
-      }
-      // Adjust scroll position to maintain view
-      if (currentOffset != null && Get.isRegistered<ScrollController>()) {
-        final scrollController = Get.find<ScrollController>();
-        if (scrollController.hasClients) {
-          // Estimate additional height (adjust 50 based on your message widget height)
-          final additionalHeight = newMessages.length * 50;
-          scrollController.jumpTo(currentOffset + additionalHeight);
-          developer.log('Adjusted scroll position: ${currentOffset + additionalHeight}', name: 'MessageController');
-        }
-      }
-    } catch (e) {
-      developer.log('Failed to fetch more messages: $e', name: 'MessageController', error: e);
-      kSnackBar(
-        title: 'Error',
-        message: 'Failed to load more messages: $e',
-        bgColor: AppColors.snackBarWarning,
-      );
-    } finally {
-      isLoadingMoreMessages.value = false;
-    }
+    await fetchChatHistory(currentRoomId.value, isLoadMore: true);
   }
 
   Future<int?> createChatRoom(int recipientId) async {
@@ -262,11 +237,10 @@ class MessageController extends GetxController {
                       5));
 
               if (!isDuplicate) {
-                // Insert new message at the start to maintain descending order
                 messages.insert(0, newMessage);
                 messages.refresh();
                 if (newMessage['chat_room'] == currentRoomId.value) {
-                  shouldScrollToBottom.value = true; // Trigger scroll for new message
+                  shouldScrollToBottom.value = true;
                 }
                 developer.log(
                   'Room notification received: room_id=${newMessage['chat_room']}, '
@@ -348,10 +322,9 @@ class MessageController extends GetxController {
       'image': null,
     };
 
-    // Insert at the start to maintain descending order
     messages.insert(0, localMessage);
     messages.refresh();
-    shouldScrollToBottom.value = true; // Trigger scroll after sending
+    shouldScrollToBottom.value = true;
 
     final messageData = {
       'type': 'send_message',
