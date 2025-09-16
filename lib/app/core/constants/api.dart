@@ -67,6 +67,6 @@ class Api {
   /// chat
 
   static const getActiveUsers = '$baseUrl/chat/active-users/';
-
+  static getMessages(room_id) => '$baseUrl/chat/rooms/$room_id/messages/';
 
 }

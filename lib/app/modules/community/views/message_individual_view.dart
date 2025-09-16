@@ -15,7 +15,7 @@ import 'package:loan_site/common/customFont.dart';
 import 'dart:developer' as developer;
 import '../../../core/constants/api.dart';
 
-const String mediaBaseUrl = Api.baseUrlPicture; // e.g., https://your.domain
+const String mediaBaseUrl = Api.baseUrlPicture;
 
 class MessageIndividualView extends GetView<MessageController> {
   final String name;
@@ -33,7 +33,53 @@ class MessageIndividualView extends GetView<MessageController> {
 
   @override
   Widget build(BuildContext context) {
+    final ScrollController scrollController = ScrollController();
+    Get.put(scrollController); // Register ScrollController for MessageController
     final TextEditingController textController = TextEditingController();
+
+    // Set room ID and fetch chat history
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      controller.currentRoomId.value = roomId;
+      controller.fetchChatHistory(roomId);
+    });
+
+    // Listen for scroll triggers
+    ever(controller.shouldScrollToBottom, (shouldScroll) {
+      if (shouldScroll && scrollController.hasClients) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          scrollController.animateTo(
+            scrollController.position.maxScrollExtent,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeOut,
+          );
+          controller.shouldScrollToBottom.value = false; // Reset trigger
+          developer.log('Scrolled to bottom, offset: ${scrollController.offset}', name: 'MessageIndividualView');
+        });
+      }
+    });
+
+    // Listen for scroll to top to load more messages
+    scrollController.addListener(() {
+      if (scrollController.hasClients &&
+          scrollController.offset >= scrollController.position.minScrollExtent + 50 &&
+          !scrollController.position.outOfRange &&
+          !controller.isLoadingMoreMessages.value &&
+          controller.nextPageUrl.value.isNotEmpty) {
+        developer.log(
+          'Reached top, fetching more messages, nextPageUrl: ${controller.nextPageUrl.value}',
+          name: 'MessageIndividualView',
+        );
+        controller.fetchMoreMessages();
+      } else {
+        developer.log(
+          'Scroll listener: offset=${scrollController.offset}, '
+              'minScrollExtent=${scrollController.position.minScrollExtent}, '
+              'isLoadingMoreMessages=${controller.isLoadingMoreMessages.value}, '
+              'nextPageUrl=${controller.nextPageUrl.value}',
+          name: 'MessageIndividualView',
+        );
+      }
+    });
 
     return Scaffold(
       backgroundColor: AppColors.appBc,
@@ -111,34 +157,40 @@ class MessageIndividualView extends GetView<MessageController> {
               ),
             ),
 
-            /*// Debug count
-            Obx(() {
-              final roomMessages = controller.messages
-                  .where((msg) => msg['chat_room'] == roomId)
-                  .toList();
-              developer.log(
-                'Rendering messages for roomId=$roomId: ${roomMessages.length} messages',
-                name: 'MessageIndividualView',
-              );
-              return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Text(
-                  'Messages: ${roomMessages.length}',
-                  style: h4.copyWith(color: AppColors.textColor8, fontSize: 12),
-                ),
-              );
-            }),*/
-
             // Messages
             Expanded(
               child: Obx(() {
+                if (controller.isLoadingMessages.value) {
+                  return const Center(child: CircularProgressIndicator());
+                }
                 final roomMessages = controller.messages
                     .where((msg) => msg['chat_room'] == roomId)
                     .toList();
                 return ListView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  itemCount: roomMessages.length,
+                  controller: scrollController,
+                  reverse: true, // Newest messages at the bottom
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  itemCount: roomMessages.length +
+                      (controller.isLoadingMoreMessages.value
+                          ? 1
+                          : (controller.nextPageUrl.value.isEmpty ? 1 : 0)),
                   itemBuilder: (context, index) {
+                    if (index == roomMessages.length && controller.isLoadingMoreMessages.value) {
+                      return const Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(8.0),
+                          child: CircularProgressIndicator(),
+                        ),
+                      );
+                    }
+                    if (index == roomMessages.length && controller.nextPageUrl.value.isEmpty) {
+                      return const Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(8.0),
+                          child: Text('No more messages'),
+                        ),
+                      );
+                    }
                     final msg = roomMessages[index];
                     final isMe = msg['sender']['id'] == _getCurrentUserId();
                     final createdAt = msg['created_at'] ?? '';
@@ -150,7 +202,6 @@ class MessageIndividualView extends GetView<MessageController> {
                     }
 
                     if (type == 'file' || type == 'image') {
-                      // Prefer base64 in `file`; fallback to server `image` path
                       final raw = (msg['file'] ?? '').toString().trim();
                       final serverPath = (msg['image'] ?? '').toString().trim();
                       final payload = raw.isNotEmpty ? raw : serverPath;
@@ -165,7 +216,6 @@ class MessageIndividualView extends GetView<MessageController> {
                       );
                     }
 
-                    // default text
                     return _buildChatBubble(
                       msg['content'] ?? '',
                       isMe,
@@ -190,7 +240,6 @@ class MessageIndividualView extends GetView<MessageController> {
                 ),
                 child: Row(
                   children: [
-                    // Camera button (placeholder)
                     GestureDetector(
                       onTap: () {
                         developer.log('Camera button tapped', name: 'MessageIndividualView');
@@ -199,7 +248,6 @@ class MessageIndividualView extends GetView<MessageController> {
                       child: SvgPicture.asset('assets/images/home/cam_icon.svg'),
                     ),
                     const SizedBox(width: 8),
-                    // File picker
                     GestureDetector(
                       onTap: () async {
                         developer.log('File picker button tapped', name: 'MessageIndividualView');
@@ -217,7 +265,6 @@ class MessageIndividualView extends GetView<MessageController> {
                               String? base64File;
                               String fileName = file.name;
 
-                              // Validate file size (< 10MB)
                               if (file.size > 10 * 1024 * 1024) {
                                 developer.log(
                                   'File too large: $fileName, size: ${file.size} bytes',
@@ -244,7 +291,6 @@ class MessageIndividualView extends GetView<MessageController> {
                                 return;
                               }
 
-                              // MIME + message type
                               final ext = (file.extension ?? '').toLowerCase();
                               String mime;
                               String messageType;
@@ -287,7 +333,6 @@ class MessageIndividualView extends GetView<MessageController> {
                       child: SvgPicture.asset('assets/images/home/image_icon.svg'),
                     ),
                     const SizedBox(width: 12),
-                    // Text input field with mic icon
                     Expanded(
                       child: Container(
                         height: 40,
@@ -321,7 +366,6 @@ class MessageIndividualView extends GetView<MessageController> {
                       ),
                     ),
                     const SizedBox(width: 12),
-                    // Send button
                     GestureDetector(
                       onTap: () {
                         if (textController.text.trim().isNotEmpty) {
@@ -380,9 +424,8 @@ class MessageIndividualView extends GetView<MessageController> {
     );
   }
 
-  // New media bubble that supports base64 (data URI) and server path images
   Widget _buildMediaBubble({
-    required String payload,   // data URI OR server path
+    required String payload,
     required String label,
     required bool isMe,
     required String time,
@@ -407,7 +450,6 @@ class MessageIndividualView extends GetView<MessageController> {
         body = const Text('Failed to decode image');
       }
     } else if (!isDataUri) {
-      // Network url or server path
       final lower = resolved.toLowerCase();
       final looksLikeImage = lower.endsWith('.jpg') ||
           lower.endsWith('.jpeg') ||
@@ -424,11 +466,9 @@ class MessageIndividualView extends GetView<MessageController> {
           errorBuilder: (context, error, stackTrace) => const Text('Failed to load image'),
         );
       } else {
-        // Fallback for non-image files
         body = GestureDetector(
           onTap: () {
             Get.snackbar('Open', 'Opening file: $label');
-            // TODO: implement a viewer if desired
           },
           child: Text(
             'Tap to view file',
@@ -440,7 +480,6 @@ class MessageIndividualView extends GetView<MessageController> {
         );
       }
     } else {
-      // Unknown data URI
       body = Text(
         'Tap to view file',
         style: h4.copyWith(
@@ -460,7 +499,6 @@ class MessageIndividualView extends GetView<MessageController> {
           borderRadius: BorderRadius.circular(12),
         ),
         child: Column(
-          //crossAxisAlignment: isMe ? Alignment.centerRight.crossAxisAlignment : Alignment.centerLeft.crossAxisAlignment,
           children: [
             Text(
               label,
@@ -489,7 +527,6 @@ class MessageIndividualView extends GetView<MessageController> {
     if (input.startsWith('http://') || input.startsWith('https://') || input.startsWith('data:')) {
       return input;
     }
-    // Treat as server-relative path
     return '$mediaBaseUrl$input';
   }
 
@@ -526,7 +563,6 @@ class MessageIndividualView extends GetView<MessageController> {
   }
 
   int _getCurrentUserId() {
-    // Replace with actual logic to get current user ID
     return 6; // Placeholder
   }
 }
