@@ -22,6 +22,7 @@ class MessageIndividualView extends GetView<MessageController> {
   final String message;
   final String avatar;
   final int roomId;
+  final int recipientId;
 
   const MessageIndividualView({
     super.key,
@@ -29,6 +30,7 @@ class MessageIndividualView extends GetView<MessageController> {
     required this.message,
     required this.avatar,
     required this.roomId,
+    required this.recipientId,
   });
 
   @override
@@ -127,7 +129,7 @@ class MessageIndividualView extends GetView<MessageController> {
                     ],
                     onChanged: (value) {
                       if (value == 'create_group') {
-                        Get.to(() => const CreateGroupView());
+                        Get.to(() => CreateGroupView(recipientId: recipientId));
                       }
                     },
                     dropdownStyleData: DropdownStyleData(

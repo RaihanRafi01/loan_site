@@ -58,6 +58,12 @@ class Api {
   static const chatHistory = '$baseUrl/project/ai-assistant/';
   static const createChatRoom = '$baseUrl/chat/direct-message/';
 
+
+
+
+  static const getAllUsers = '$baseUrl/chat/all-users/';
+  static const createGroup = '$baseUrl/chat/rooms/';
+
   /// notification
 
   static const registerDeviceToken = '$baseUrl/notification/register_unregister_device_token/';

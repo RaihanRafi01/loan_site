@@ -211,6 +211,7 @@ class MessageView extends GetView<MessageController> {
               message: message,
               avatar: avatar,
               roomId: roomId,
+              recipientId: userId,
             ));
           }
         } else {
@@ -219,6 +220,7 @@ class MessageView extends GetView<MessageController> {
             message: message,
             avatar: avatar,
             roomId: 0,
+            recipientId: 0,
           ));
         }
       },
