@@ -52,8 +52,6 @@ class CommentsView extends GetView<CommunityController> {
           final username = post.user.name ?? 'Anonymous';
           final userAvatar = post.user.image ?? 'https://via.placeholder.com/100';
           final timeAgo = getTimeAgo(DateTime.parse(post.createdAt));
-          final likes = post.likeCount;
-          final comments = post.commentCount;
           final content = post.content;
 
           final images = post.images
@@ -66,7 +64,7 @@ class CommentsView extends GetView<CommunityController> {
               // Original Post
               Container(
                 color: AppColors.appBc,
-                child: _buildOriginalPost(post, username, userAvatar, timeAgo, content, images, likes, comments),
+                child: _buildOriginalPost(post, username, userAvatar, timeAgo, content, images),
               ),
 
               // Comments Section Header
@@ -86,19 +84,23 @@ class CommentsView extends GetView<CommunityController> {
                 ),
               ),
 
-            // Comments List
-            Expanded(
-              child: Container(
-                color: AppColors.appBc,
-                child: ListView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  itemCount: post.comments.length,
-                  itemBuilder: (context, index) {
-                    return _buildCommentItem(post.comments[index]);
-                  },
-                ),
+              // Comments List
+              Expanded(
+                child: Obx(() {
+                  final updatedPost = controller.allPosts.firstWhereOrNull((p) => p.id == postId);
+                  return Container(
+                    color: AppColors.appBc,
+                    child: ListView.builder(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      itemCount: updatedPost?.comments.length ?? post.comments.length,
+                      itemBuilder: (context, index) {
+                        final comment = (updatedPost?.comments[index] ?? post.comments[index]);
+                        return _buildCommentItem(comment);
+                      },
+                    ),
+                  );
+                }),
               ),
-            ),
 
               // Comment Input
               Padding(
@@ -126,7 +128,7 @@ class CommentsView extends GetView<CommunityController> {
     }
   }
 
-  Widget _buildOriginalPost(Post post, String username, String userAvatar, String timeAgo, String content, List<Map<String, dynamic>> images, int likes, int comments) {
+  Widget _buildOriginalPost(Post post, String username, String userAvatar, String timeAgo, String content, List<Map<String, dynamic>> images) {
     return Container(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -181,19 +183,27 @@ class CommentsView extends GetView<CommunityController> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              GestureDetector(
-                onTap: () {
-                  controller.toggleLike(post.id, post.isLikedByUser);
-                },
-                child: _buildActionButton(
-                  post.isLikedByUser ? 'assets/images/community/love_icon_filled.svg' : 'assets/images/community/love_icon.svg',
-                  likes.toString(),
-                ),
-              ),
-              _buildActionButton(
-                'assets/images/community/comment_icon.svg',
-                comments.toString(),
-              ),
+              Obx(() {
+                final currentPost = controller.allPosts.firstWhereOrNull((p) => p.id == post.id) ?? post;
+                return GestureDetector(
+                  onTap: () {
+                    controller.toggleLikeGlobal(currentPost.id, currentPost.isLikedByUser);
+                  },
+                  child: _buildActionButton(
+                    currentPost.isLikedByUser
+                        ? 'assets/images/community/love_icon_filled.svg'
+                        : 'assets/images/community/love_icon.svg',
+                    currentPost.likesCount.toString(),
+                  ),
+                );
+              }),
+              Obx(() {
+                final currentPost = controller.allPosts.firstWhereOrNull((p) => p.id == post.id) ?? post;
+                return _buildActionButton(
+                  'assets/images/community/comment_icon.svg',
+                  currentPost.commentCount.toString(),
+                );
+              }),
               GestureDetector(
                 onTap: () {
                   Get.to(() => SharePostView(postId: post.id));
@@ -202,7 +212,7 @@ class CommentsView extends GetView<CommunityController> {
               ),
               GestureDetector(
                 onTap: () {
-                  //Get.to(() => SharePostView(postId: post.id));
+                  Get.to(() => SharePostView(postId: post.id));
                 },
                 child: _buildActionButton('assets/images/community/share_icon.svg', ''),
               ),
@@ -253,7 +263,9 @@ class CommentsView extends GetView<CommunityController> {
                         controller.toggleLikeComment(comment.id, comment.isLikedByUser.value);
                       },
                       child: _buildActionButton(
-                        comment.isLikedByUser.value ? 'assets/images/community/love_icon_filled.svg' : 'assets/images/community/love_icon.svg',
+                        comment.isLikedByUser.value
+                            ? 'assets/images/community/love_icon_filled.svg'
+                            : 'assets/images/community/love_icon.svg',
                         comment.likesCount.toString(),
                       ),
                     )),
@@ -331,8 +343,9 @@ class CommentsView extends GetView<CommunityController> {
           const SizedBox(width: 12),
           // Send button
           GestureDetector(
-              onTap: _addComment,
-              child: SvgPicture.asset('assets/images/home/send_icon.svg')),
+            onTap: _addComment,
+            child: SvgPicture.asset('assets/images/home/send_icon.svg'),
+          ),
         ],
       ),
     );
