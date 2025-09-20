@@ -113,13 +113,6 @@ class MessageIndividualView extends GetView<MessageController> {
                               fontWeight: FontWeight.w600,
                             ),
                           ),
-                          Text(
-                            'Active', // You might want to fetch actual status
-                            style: h4.copyWith(
-                              fontSize: 14,
-                              color: AppColors.textColor8,
-                            ),
-                          ),
                         ],
                       ),
                     ],
@@ -192,6 +185,7 @@ class MessageIndividualView extends GetView<MessageController> {
                       );
                     }
                     final msg = roomMessages[index];
+                    final content = msg['content'] as String? ?? '';
                     final isMe = msg['sender']['id'] == controller.getCurrentUserId();
                     final createdAt = msg['created_at'] ?? '';
                     final time = _formatTime(createdAt);
@@ -202,8 +196,12 @@ class MessageIndividualView extends GetView<MessageController> {
                         ? (controller.getCurrentUserId() == recipientId ? avatar : '') // Adjust based on your user data
                         : avatar;
 
-                    if (type == 'post') {
-                      return _buildSharedPostBubble(msg['post_id'] ?? 0, senderName, senderAvatar);
+                    if (content.startsWith('postShareUniqueKey001')) {
+                      final parts = content.split(' ');
+                      if (parts.length > 1 && int.tryParse(parts[1]) != null) {
+                        final postId = int.parse(parts[1]);
+                        return _buildSharedPostBubble(postId, senderName, senderAvatar);
+                      }
                     }
 
                     if (type == 'file' || type == 'image') {

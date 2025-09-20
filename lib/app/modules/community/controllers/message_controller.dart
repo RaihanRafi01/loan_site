@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:developer' as developer;
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:get/Get.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import '../../../../common/appColors.dart';
 import '../../../../common/widgets/custom_snackbar.dart';
@@ -18,10 +18,10 @@ class MessageController extends GetxController {
   WebSocketChannel? _channel;
   RxBool isWebSocketConnected = false.obs;
   RxBool isLoadingMessages = false.obs;
-  RxBool isLoadingMoreMessages = false.obs;
-  RxString nextPageUrl = RxString('');
-  RxBool hasMoreMessages = true.obs;
-  final RxBool shouldScrollToBottom = false.obs;
+  RxBool isLoadingMoreMessages = false.obs; // Track pagination loading
+  RxString nextPageUrl = RxString(''); // Initialize as empty string
+  RxBool hasMoreMessages = true.obs; // Track if more messages are available
+  final RxBool shouldScrollToBottom = false.obs; // Trigger scrolling
 
   void selectTab(int index) {
     selectedTabIndex.value = index;
@@ -30,9 +30,9 @@ class MessageController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    connectWebSocket();
     fetchActiveUsers();
     fetchChatRooms();
+    connectWebSocket();
   }
 
   @override
@@ -76,7 +76,7 @@ class MessageController extends GetxController {
     try {
       developer.log('Fetching chat rooms...', name: 'MessageController');
       final response = await BaseClient.getRequest(
-        api: Api.getChatRooms,
+        api: Api.getChatRooms, // Assuming Api.getChatRooms is defined in api.dart; add if needed (e.g., static String getChatRooms = '/chat/rooms/';)
         headers: BaseClient.authHeaders(),
       );
       final List result = await BaseClient.handleResponse(
@@ -91,6 +91,7 @@ class MessageController extends GetxController {
         developer.log('Current user ID not found', name: 'MessageController');
         return;
       }
+      // Filter rooms where current user is a participant
       allChatRooms.value = result
           .where((room) {
         if (room is! Map) return false;
@@ -144,6 +145,7 @@ class MessageController extends GetxController {
 
       final newMessages = List<Map<String, dynamic>>.from(messagesList);
       if (isLoadMore) {
+        // Store current scroll extent for adjustment
         double? previousExtent;
         if (Get.isRegistered<ScrollController>()) {
           final scrollController = Get.find<ScrollController>();
@@ -153,6 +155,7 @@ class MessageController extends GetxController {
         }
         messages.addAll(newMessages);
         messages.refresh();
+        // Adjust scroll position
         if (previousExtent != null && Get.isRegistered<ScrollController>()) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             final scrollController = Get.find<ScrollController>();
@@ -169,7 +172,7 @@ class MessageController extends GetxController {
       }
       developer.log('Fetched ${newMessages.length} messages for roomId: $roomId, next: ${nextPageUrl.value}', name: 'MessageController');
       if (!isLoadMore) {
-        shouldScrollToBottom.value = true;
+        shouldScrollToBottom.value = true; // Scroll to bottom only for initial load
       }
     } catch (e) {
       developer.log('Failed to fetch chat history: $e', name: 'MessageController', error: e);
@@ -217,6 +220,7 @@ class MessageController extends GetxController {
         name: 'MessageController',
       );
 
+      // Refresh chat rooms after creating a new one
       await fetchChatRooms();
       return roomId;
     } catch (e) {
@@ -381,11 +385,13 @@ class MessageController extends GetxController {
     _channel!.sink.add(jsonEncode(messageData));
   }
 
+
   int? getCurrentUserId() {
     final DashboardController dashboardController = Get.find<DashboardController>();
     final userId = dashboardController.userId.value;
     print('---------->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> CURRENT USER ID $userId');
     return userId;
+
   }
 
   Future<void> markMessagesAsRead(int roomId) async {

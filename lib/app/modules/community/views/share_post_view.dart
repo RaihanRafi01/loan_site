@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'package:get/get.dart';
+import 'package:flutter_svg/svg.dart';
+import 'package:get/Get.dart';
 import 'package:loan_site/common/appColors.dart';
 import 'package:loan_site/common/customFont.dart';
 import 'package:loan_site/common/widgets/customTextField.dart';
 import '../../../core/constants/api.dart';
 import '../../../core/services/base_client.dart';
+import '../controllers/message_controller.dart';
 import 'create_group_view.dart';
 import 'message_view.dart';
 
@@ -27,8 +28,10 @@ class User {
 class SharePostController extends GetxController {
   // List of users with their checkbox states
   RxList<User> users = <User>[].obs;
+
   // Filtered list for search functionality
   RxList<User> filteredUsers = <User>[].obs;
+
   // Search controller for the text field
   final TextEditingController searchController = TextEditingController();
 
@@ -68,15 +71,19 @@ class SharePostController extends GetxController {
           headers: BaseClient.authHeaders(),
         ),
       );
-      users.value = result.map((u) => User(
-        id: u['id'],
-        name: u['name']?.toString().isNotEmpty == true
-            ? u['name'].toString()
-            : (u['email']?.toString() ?? 'Unknown'),
-        imageUrl: u['image'] != null && u['image'].toString().isNotEmpty
-            ? '$mediaBaseUrl${u['image']}'
-            : '',
-      )).toList();
+      users.value = result
+          .map(
+            (u) => User(
+              id: u['id'],
+              name: u['name']?.toString().isNotEmpty == true
+                  ? u['name'].toString()
+                  : (u['email']?.toString() ?? 'Unknown'),
+              imageUrl: u['image'] != null && u['image'].toString().isNotEmpty
+                  ? '$mediaBaseUrl${u['image']}'
+                  : '',
+            ),
+          )
+          .toList();
       filteredUsers.assignAll(users); // Update filtered list after fetching
     } catch (e) {
       Get.snackbar(
@@ -93,7 +100,39 @@ class SharePostController extends GetxController {
   void toggleCheck(int index) {
     users[index].isChecked.value = !users[index].isChecked.value;
     // Update filteredUsers to reflect the change
-    filteredUsers.assignAll(users.where((u) => u.name.toLowerCase().contains(searchController.text.toLowerCase())).toList());
+    filteredUsers.assignAll(
+      users
+          .where(
+            (u) => u.name.toLowerCase().contains(
+              searchController.text.toLowerCase(),
+            ),
+          )
+          .toList(),
+    );
+  }
+
+  Future<void> sharePost(int postId) async {
+    final selected = users.where((u) => u.isChecked.value).toList();
+    if (selected.isEmpty) {
+      Get.snackbar(
+        'Error',
+        'Select at least one user to share with',
+        backgroundColor: AppColors.snackBarWarning,
+      );
+      return;
+    }
+    final messageController = Get.find<MessageController>();
+    for (var user in selected) {
+      final roomId = await messageController.createChatRoom(user.id!);
+      if (roomId != null) {
+        messageController.sendMessage('postShareUniqueKey001 $postId', 'text');
+      }
+    }
+    Get.snackbar('Success', 'Post shared with selected users');
+    // Reset checks
+    for (var u in selected) {
+      u.isChecked.value = false;
+    }
   }
 }
 
@@ -122,8 +161,12 @@ class GroupHeaderWidget extends StatelessWidget {
             children: [
               CircleAvatar(
                 radius: 24,
-                backgroundImage: imageUrl.isNotEmpty ? NetworkImage(imageUrl) : null,
-                backgroundColor: imageUrl.isEmpty ? AppColors.appColor2.withOpacity(0.2) : null,
+                backgroundImage: imageUrl.isNotEmpty
+                    ? NetworkImage(imageUrl)
+                    : null,
+                backgroundColor: imageUrl.isEmpty
+                    ? AppColors.appColor2.withOpacity(0.2)
+                    : null,
                 child: imageUrl.isEmpty
                     ? Icon(Icons.person, size: 32, color: AppColors.appColor2)
                     : null,
@@ -131,34 +174,33 @@ class GroupHeaderWidget extends StatelessWidget {
               const SizedBox(width: 12),
               Text(
                 title,
-                style: h2.copyWith(
-                  fontSize: 20,
-                  color: AppColors.textColor,
-                ),
+                style: h2.copyWith(fontSize: 20, color: AppColors.textColor),
               ),
             ],
           ),
           GestureDetector(
             onTap: onCheckTap,
-            child: Obx(() => Container(
-              width: 24,
-              height: 24,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: isChecked.value ? AppColors.appColor2 : AppColors.gray11,
-                  width: 1,
+            child: Obx(
+              () => Container(
+                width: 24,
+                height: 24,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: isChecked.value
+                        ? AppColors.appColor2
+                        : AppColors.gray11,
+                    width: 1,
+                  ),
+                  color: isChecked.value
+                      ? AppColors.appColor2
+                      : Colors.transparent,
                 ),
-                color: isChecked.value ? AppColors.appColor2 : Colors.transparent,
+                child: isChecked.value
+                    ? const Icon(Icons.check, size: 16, color: Colors.white)
+                    : null,
               ),
-              child: isChecked.value
-                  ? const Icon(
-                Icons.check,
-                size: 16,
-                color: Colors.white,
-              )
-                  : null,
-            )),
+            ),
           ),
         ],
       ),
@@ -187,31 +229,27 @@ class SharePostView extends GetView<SharePostController> {
                 children: [
                   GestureDetector(
                     onTap: () => Get.back(),
-                    child: SvgPicture.asset('assets/images/community/arrow_left.svg'),
+                    child: SvgPicture.asset(
+                      'assets/images/community/arrow_left.svg',
+                    ),
                   ),
                   Text(
                     'Share Post',
-                    style: h2.copyWith(fontSize: 24, color: AppColors.appColor2),
+                    style: h2.copyWith(
+                      fontSize: 24,
+                      color: AppColors.appColor2,
+                    ),
                   ),
                   GestureDetector(
                     onTap: () {
-                      List<User> selected = controller.users.where((u) => u.isChecked.value).toList();
-                      if (selected.isEmpty) {
-                        Get.snackbar(
-                          'Error',
-                          'Select at least one user to share with',
-                          backgroundColor: AppColors.snackBarWarning,
-                        );
-                        return;
-                      }
-                      Get.snackbar(
-                        'Post Shared',
-                        'Shared with ${selected.map((u) => u.name).join(', ')}',
-                      );
+                      controller.sharePost(postId);
                     },
                     child: Text(
                       'Send',
-                      style: h2.copyWith(fontSize: 24, color: AppColors.appColor2),
+                      style: h2.copyWith(
+                        fontSize: 24,
+                        color: AppColors.appColor2,
+                      ),
                     ),
                   ),
                 ],
@@ -223,21 +261,27 @@ class SharePostView extends GetView<SharePostController> {
               ),
               const SizedBox(height: 8),
               Expanded(
-                child: Obx(() => controller.filteredUsers.isEmpty
-                    ? const Center(child: CircularProgressIndicator())
-                    : ListView(
-                  children: List.generate(
-                    controller.filteredUsers.length,
-                        (index) => GroupHeaderWidget(
-                      imageUrl: controller.filteredUsers[index].imageUrl,
-                      title: controller.filteredUsers[index].name,
-                      isChecked: controller.filteredUsers[index].isChecked,
-                      onCheckTap: () => controller.toggleCheck(
-                        controller.users.indexOf(controller.filteredUsers[index]),
-                      ),
-                    ),
-                  ),
-                )),
+                child: Obx(
+                  () => controller.filteredUsers.isEmpty
+                      ? const Center(child: CircularProgressIndicator())
+                      : ListView(
+                          children: List.generate(
+                            controller.filteredUsers.length,
+                            (index) => GroupHeaderWidget(
+                              imageUrl:
+                                  controller.filteredUsers[index].imageUrl,
+                              title: controller.filteredUsers[index].name,
+                              isChecked:
+                                  controller.filteredUsers[index].isChecked,
+                              onCheckTap: () => controller.toggleCheck(
+                                controller.users.indexOf(
+                                  controller.filteredUsers[index],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                ),
               ),
             ],
           ),

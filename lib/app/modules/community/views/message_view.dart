@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:get/Get.dart';
 import 'package:intl/intl.dart';
 import '../../../../common/appColors.dart';
 import '../../../../common/customFont.dart';
@@ -76,7 +76,6 @@ class MessageView extends GetView<MessageController> {
                       border: InputBorder.none,
                     ),
                     onChanged: (value) {
-                      // Trigger UI rebuild by updating an observable
                       controller.selectedTabIndex.refresh();
                     },
                   ),
@@ -87,8 +86,7 @@ class MessageView extends GetView<MessageController> {
 
           // Messages List
           Expanded(
-            child: Obx(() => _buildMessagesForTab(
-                _getTabName(controller.selectedTabIndex.value), searchController.text)),
+            child: Obx(() => _buildMessagesForTab(_getTabName(controller.selectedTabIndex.value), searchController.text)),
           ),
         ],
       ),
