@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/Get.dart';
 import 'package:loan_site/common/appColors.dart';
 import 'package:loan_site/common/customFont.dart';
@@ -10,15 +10,15 @@ import '../controllers/message_controller.dart';
 import 'create_group_view.dart';
 import 'message_view.dart';
 
-// Model to represent a user
-class User {
-  final int? id; // Added for API compatibility
+// Model to represent a room
+class Room {
+  final int id;
   final String imageUrl;
   final String name;
   RxBool isChecked;
 
-  User({
-    this.id,
+  Room({
+    required this.id,
     required this.imageUrl,
     required this.name,
     bool isChecked = false,
@@ -26,27 +26,25 @@ class User {
 }
 
 class SharePostController extends GetxController {
-  // List of users with their checkbox states
-  RxList<User> users = <User>[].obs;
-
+  // List of rooms with their checkbox states
+  RxList<Room> rooms = <Room>[].obs;
   // Filtered list for search functionality
-  RxList<User> filteredUsers = <User>[].obs;
-
+  RxList<Room> filteredRooms = <Room>[].obs;
   // Search controller for the text field
   final TextEditingController searchController = TextEditingController();
 
-  // Initialize users and set up search listener
+  // Initialize rooms and set up search listener
   @override
   void onInit() {
     super.onInit();
-    fetchUsers();
-    // Initialize filteredUsers with all users
-    filteredUsers.assignAll(users);
-    // Update filteredUsers when search input changes
+    fetchRooms();
+    // Initialize filteredRooms with all rooms
+    filteredRooms.assignAll(rooms);
+    // Update filteredRooms when search input changes
     searchController.addListener(() {
       final query = searchController.text.toLowerCase();
-      filteredUsers.assignAll(
-        users.where((u) => u.name.toLowerCase().contains(query)).toList(),
+      filteredRooms.assignAll(
+        rooms.where((r) => r.name.toLowerCase().contains(query)).toList(),
       );
     });
   }
@@ -57,81 +55,80 @@ class SharePostController extends GetxController {
     super.onClose();
   }
 
-  // Fetch users from API (similar to CreateGroupView)
-  Future<void> fetchUsers() async {
-    try {
-      final response = await BaseClient.getRequest(
-        api: Api.getAllUsers,
-        headers: BaseClient.authHeaders(),
-      );
-      final List result = await BaseClient.handleResponse(
-        response,
-        retryRequest: () => BaseClient.getRequest(
-          api: Api.getAllUsers,
-          headers: BaseClient.authHeaders(),
-        ),
-      );
-      users.value = result
-          .map(
-            (u) => User(
-              id: u['id'],
-              name: u['name']?.toString().isNotEmpty == true
-                  ? u['name'].toString()
-                  : (u['email']?.toString() ?? 'Unknown'),
-              imageUrl: u['image'] != null && u['image'].toString().isNotEmpty
-                  ? '$mediaBaseUrl${u['image']}'
-                  : '',
-            ),
-          )
-          .toList();
-      filteredUsers.assignAll(users); // Update filtered list after fetching
-    } catch (e) {
+  // Fetch rooms from MessageController
+  Future<void> fetchRooms() async {
+    final messageController = Get.find<MessageController>();
+    await messageController.fetchChatRooms();
+    final currentUserId = messageController.getCurrentUserId();
+    if (currentUserId == null) {
       Get.snackbar(
         'Error',
-        'Failed to fetch users: $e',
+        'Failed to get current user ID',
         backgroundColor: AppColors.snackBarWarning,
       );
-      users.clear();
-      filteredUsers.clear();
+      return;
     }
+    rooms.value = messageController.allChatRooms.map((room) {
+      final roomType = room['room_type'] as String;
+      final roomId = room['id'] as int;
+      String name = '';
+      String imageUrl = '';
+      if (roomType == 'direct') {
+        final participants = room['participants'] as List? ?? [];
+        final otherParticipant = participants.firstWhere(
+              (p) => p['id'] != currentUserId,
+          orElse: () => <String, dynamic>{},
+        );
+        name = otherParticipant['name'] as String? ?? 'Unknown';
+        imageUrl = otherParticipant['image'] != null && otherParticipant['image'].toString().isNotEmpty
+            ? '${otherParticipant['image']}'
+            : '';
+      } else if (roomType == 'group') {
+        name = room['name'] as String? ?? 'Unnamed Group';
+        imageUrl = room['image'] != null && room['image'].toString().isNotEmpty
+            ? '$baseUrl${room['image']}'
+            : '';
+      }
+      return Room(
+        id: roomId,
+        name: name,
+        imageUrl: imageUrl,
+      );
+    }).toList();
+    filteredRooms.assignAll(rooms); // Update filtered list after fetching
   }
 
-  // Method to toggle the checkbox state for a specific user
+  // Method to toggle the checkbox state for a specific room
   void toggleCheck(int index) {
-    users[index].isChecked.value = !users[index].isChecked.value;
-    // Update filteredUsers to reflect the change
-    filteredUsers.assignAll(
-      users
-          .where(
-            (u) => u.name.toLowerCase().contains(
-              searchController.text.toLowerCase(),
-            ),
-          )
-          .toList(),
+    rooms[index].isChecked.value = !rooms[index].isChecked.value;
+    // Update filteredRooms to reflect the change
+    filteredRooms.assignAll(
+      rooms.where((r) => r.name.toLowerCase().contains(searchController.text.toLowerCase())).toList(),
     );
   }
 
   Future<void> sharePost(int postId) async {
-    final selected = users.where((u) => u.isChecked.value).toList();
+    final selected = rooms.where((r) => r.isChecked.value).toList();
     if (selected.isEmpty) {
       Get.snackbar(
         'Error',
-        'Select at least one user to share with',
+        'Select at least one room to share with',
         backgroundColor: AppColors.snackBarWarning,
       );
       return;
     }
     final messageController = Get.find<MessageController>();
-    for (var user in selected) {
-      final roomId = await messageController.createChatRoom(user.id!);
-      if (roomId != null) {
-        messageController.sendMessage('postShareUniqueKey001 $postId', 'text');
-      }
+    for (var room in selected) {
+      messageController.currentRoomId.value = room.id;
+      messageController.sendMessage('postShareUniqueKey001 $postId', 'text');
     }
-    Get.snackbar('Success', 'Post shared with selected users');
+    Get.snackbar(
+      'Success',
+      'Post shared with selected rooms',
+    );
     // Reset checks
-    for (var u in selected) {
-      u.isChecked.value = false;
+    for (var r in selected) {
+      r.isChecked.value = false;
     }
   }
 }
@@ -161,12 +158,8 @@ class GroupHeaderWidget extends StatelessWidget {
             children: [
               CircleAvatar(
                 radius: 24,
-                backgroundImage: imageUrl.isNotEmpty
-                    ? NetworkImage(imageUrl)
-                    : null,
-                backgroundColor: imageUrl.isEmpty
-                    ? AppColors.appColor2.withOpacity(0.2)
-                    : null,
+                backgroundImage: imageUrl.isNotEmpty ? NetworkImage(imageUrl) : null,
+                backgroundColor: imageUrl.isEmpty ? AppColors.appColor2.withOpacity(0.2) : null,
                 child: imageUrl.isEmpty
                     ? Icon(Icons.person, size: 32, color: AppColors.appColor2)
                     : null,
@@ -174,33 +167,34 @@ class GroupHeaderWidget extends StatelessWidget {
               const SizedBox(width: 12),
               Text(
                 title,
-                style: h2.copyWith(fontSize: 20, color: AppColors.textColor),
+                style: h2.copyWith(
+                  fontSize: 20,
+                  color: AppColors.textColor,
+                ),
               ),
             ],
           ),
           GestureDetector(
             onTap: onCheckTap,
-            child: Obx(
-              () => Container(
-                width: 24,
-                height: 24,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: isChecked.value
-                        ? AppColors.appColor2
-                        : AppColors.gray11,
-                    width: 1,
-                  ),
-                  color: isChecked.value
-                      ? AppColors.appColor2
-                      : Colors.transparent,
+            child: Obx(() => Container(
+              width: 24,
+              height: 24,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: isChecked.value ? AppColors.appColor2 : AppColors.gray11,
+                  width: 1,
                 ),
-                child: isChecked.value
-                    ? const Icon(Icons.check, size: 16, color: Colors.white)
-                    : null,
+                color: isChecked.value ? AppColors.appColor2 : Colors.transparent,
               ),
-            ),
+              child: isChecked.value
+                  ? const Icon(
+                Icons.check,
+                size: 16,
+                color: Colors.white,
+              )
+                  : null,
+            )),
           ),
         ],
       ),
@@ -229,16 +223,11 @@ class SharePostView extends GetView<SharePostController> {
                 children: [
                   GestureDetector(
                     onTap: () => Get.back(),
-                    child: SvgPicture.asset(
-                      'assets/images/community/arrow_left.svg',
-                    ),
+                    child: SvgPicture.asset('assets/images/community/arrow_left.svg'),
                   ),
                   Text(
                     'Share Post',
-                    style: h2.copyWith(
-                      fontSize: 24,
-                      color: AppColors.appColor2,
-                    ),
+                    style: h2.copyWith(fontSize: 24, color: AppColors.appColor2),
                   ),
                   GestureDetector(
                     onTap: () {
@@ -246,42 +235,33 @@ class SharePostView extends GetView<SharePostController> {
                     },
                     child: Text(
                       'Send',
-                      style: h2.copyWith(
-                        fontSize: 24,
-                        color: AppColors.appColor2,
-                      ),
+                      style: h2.copyWith(fontSize: 24, color: AppColors.appColor2),
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 16),
               CustomTextField(
-                labelText: 'Search users',
+                labelText: 'Search rooms',
                 controller: controller.searchController,
               ),
               const SizedBox(height: 8),
               Expanded(
-                child: Obx(
-                  () => controller.filteredUsers.isEmpty
-                      ? const Center(child: CircularProgressIndicator())
-                      : ListView(
-                          children: List.generate(
-                            controller.filteredUsers.length,
-                            (index) => GroupHeaderWidget(
-                              imageUrl:
-                                  controller.filteredUsers[index].imageUrl,
-                              title: controller.filteredUsers[index].name,
-                              isChecked:
-                                  controller.filteredUsers[index].isChecked,
-                              onCheckTap: () => controller.toggleCheck(
-                                controller.users.indexOf(
-                                  controller.filteredUsers[index],
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                ),
+                child: Obx(() => controller.filteredRooms.isEmpty
+                    ? const Center(child: CircularProgressIndicator())
+                    : ListView(
+                  children: List.generate(
+                    controller.filteredRooms.length,
+                        (index) => GroupHeaderWidget(
+                      imageUrl: controller.filteredRooms[index].imageUrl,
+                      title: controller.filteredRooms[index].name,
+                      isChecked: controller.filteredRooms[index].isChecked,
+                      onCheckTap: () => controller.toggleCheck(
+                        controller.rooms.indexOf(controller.filteredRooms[index]),
+                      ),
+                    ),
+                  ),
+                )),
               ),
             ],
           ),
