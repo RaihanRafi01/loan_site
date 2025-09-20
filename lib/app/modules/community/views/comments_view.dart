@@ -36,7 +36,7 @@ class CommentsView extends GetView<CommunityController> {
         centerTitle: true,
       ),
       body: Obx(() {
-        final post = controller.myPosts.firstWhereOrNull((p) => p.id == postId);
+        final post = controller.allPosts.firstWhereOrNull((p) => p.id == postId);
         if (post == null) {
           return const Center(child: Text('Post not found'));
         }
