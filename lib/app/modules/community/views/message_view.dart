@@ -5,6 +5,7 @@ import '../../../../common/appColors.dart';
 import '../../../../common/customFont.dart';
 import '../../../core/constants/api.dart';
 import '../controllers/message_controller.dart';
+import 'groupChat_view.dart';
 import 'message_individual_view.dart';
 
 // Define baseUrl for images
@@ -15,8 +16,6 @@ class MessageView extends GetView<MessageController> {
 
   @override
   Widget build(BuildContext context) {
-    Get.put(MessageController());
-
     return Scaffold(
       backgroundColor: AppColors.appBc,
       appBar: AppBar(
@@ -93,6 +92,7 @@ class MessageView extends GetView<MessageController> {
       child: Obx(() => GestureDetector(
         onTap: () => controller.selectTab(index),
         child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 8),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(8.0),
           ),
@@ -148,34 +148,56 @@ class MessageView extends GetView<MessageController> {
   }
 
   Widget _buildMessagesForTab(String tab) {
-    return ListView(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      children: _getMessagesForTab(tab),
-    );
+    return Obx(() {
+      final int? currentUserId = controller.getCurrentUserId();
+      if (currentUserId == null) {
+        return const Center(child: Text('Unable to load user ID'));
+      }
+
+      List<Widget> items = _getMessagesForTab(tab);
+      if (items.isEmpty) {
+        return const Center(child: Text('No chats available'));
+      }
+
+      return ListView.builder(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        itemCount: items.length,
+        itemBuilder: (context, index) => items[index],
+      );
+    });
   }
 
   List<Widget> _getMessagesForTab(String tab) {
+    final int? currentUserId = controller.getCurrentUserId();
+    if (currentUserId == null) {
+      return [const Text('Unable to load user ID')];
+    }
+
     switch (tab) {
       case 'All':
-        return [];
+        return controller.allChatRooms.map<Widget>((room) {
+          return _buildMessageItem(room, currentUserId);
+        }).toList();
       case 'Group':
-        return [];
+        return controller.allChatRooms.where((room) => room['room_type'] == 'group').map<Widget>((room) {
+          return _buildMessageItem(room, currentUserId);
+        }).toList();
       case 'Active':
         return controller.activeUsers.map<Widget>((userData) {
           final user = userData['user'];
-          final name = user['name'] as String;
-          final userId = user['id'];
-          final avatar = '$baseUrl${user['image']}' as String;
+          final name = user['name'] as String? ?? 'Unknown';
+          final userId = user['id'] as int;
+          final avatar = _resolveImageUrl(user['image'] as String?);
           final lastSeen = userData['last_seen'] as String;
           final time = _formatTime(lastSeen);
           final message = 'Active now';
-          return _buildMessageItem(
+          return _buildMessageItemForActive(
             name: name,
             message: message,
             time: time,
             avatar: avatar,
-            userId: userId,
             type: 'active',
+            userId: userId,
           );
         }).toList();
       default:
@@ -183,52 +205,69 @@ class MessageView extends GetView<MessageController> {
     }
   }
 
-  String _formatTime(String isoString) {
-    try {
-      final dateTime = DateTime.parse(isoString);
-      return DateFormat('h:mm a').format(dateTime);
-    } catch (e) {
-      return 'Unknown';
+  String _resolveImageUrl(String? image) {
+    if (image == null || image.isEmpty) {
+      return '';
     }
+    // Check if the image is already a complete URL
+    if (image.startsWith('http://') || image.startsWith('https://')) {
+      return image;
+    }
+    return '$baseUrl$image';
   }
 
-  Widget _buildMessageItem({
-    required String name,
-    required String message,
-    required String time,
-    required String avatar,
-    required String type,
-    required int userId,
-    List<String>? groupAvatars,
-  }) {
+  Widget _buildMessageItem(Map<String, dynamic> room, int currentUserId) {
+    final String roomType = room['room_type'] as String;
+    final int roomId = room['id'] as int;
+    final List participants = room['participants'] as List? ?? [];
+    final int unreadCount = room['unread_count'] as int? ?? 0;
+    String name = '';
+    String avatar = '';
+    List<String>? groupAvatars;
+    String message = unreadCount > 0 ? '$unreadCount unread messages' : (room['description'] as String? ?? 'No messages yet');
+    String time = _formatTime(room['updated_at'] as String? ?? '');
+    int recipientId = 0;
+
+    if (roomType == 'direct') {
+      final otherParticipant = participants.firstWhere(
+            (p) => p['id'] != currentUserId,
+        orElse: () => <String, dynamic>{},
+      );
+      name = otherParticipant['name'] as String? ?? 'Unknown';
+      avatar = _resolveImageUrl(otherParticipant['image'] as String?);
+      recipientId = otherParticipant['id'] as int? ?? 0;
+    } else if (roomType == 'group') {
+      name = room['name'] as String? ?? 'Unnamed Group';
+      avatar = _resolveImageUrl(room['image'] as String?);
+      groupAvatars = participants.take(2).map<String>((p) {
+        return _resolveImageUrl(p['image'] as String?);
+      }).toList();
+    }
+
     return GestureDetector(
       onTap: () async {
-        if (type == 'active') {
-          final roomId = await controller.createChatRoom(userId);
-          if (roomId != null) {
-            Get.to(() => MessageIndividualView(
-              name: name,
-              message: message,
-              avatar: avatar,
-              roomId: roomId,
-              recipientId: userId,
-            ));
-          }
+        if (roomType == 'group') {
+          Get.to(() => GroupChatView(
+            groupName: name,
+            roomId: roomId,
+            participants: List<Map<String, dynamic>>.from(participants),
+          ));
         } else {
           Get.to(() => MessageIndividualView(
             name: name,
             message: message,
             avatar: avatar,
-            roomId: 0,
-            recipientId: 0,
+            roomId: roomId,
+            recipientId: recipientId,
           ));
         }
       },
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12),
         child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            buildAvatar(type, avatar, groupAvatars),
+            buildAvatar(roomType, avatar, groupAvatars),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
@@ -260,6 +299,78 @@ class MessageView extends GetView<MessageController> {
                       fontSize: 16,
                       color: AppColors.textColor8,
                     ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMessageItemForActive({
+    required String name,
+    required String message,
+    required String time,
+    required String avatar,
+    required String type,
+    required int userId,
+  }) {
+    return GestureDetector(
+      onTap: () async {
+        final createdRoomId = await controller.createChatRoom(userId);
+        if (createdRoomId != null) {
+          Get.to(() => MessageIndividualView(
+            name: name,
+            message: message,
+            avatar: avatar,
+            roomId: createdRoomId,
+            recipientId: userId,
+          ));
+        }
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            buildAvatar(type, avatar, null),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        name,
+                        style: h2.copyWith(
+                          fontSize: 20,
+                          color: AppColors.textColor,
+                        ),
+                      ),
+                      Text(
+                        time,
+                        style: h4.copyWith(
+                          fontSize: 14,
+                          color: AppColors.textColor8,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    message,
+                    style: h3.copyWith(
+                      fontSize: 16,
+                      color: AppColors.textColor8,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ),
@@ -281,7 +392,7 @@ class MessageView extends GetView<MessageController> {
               CircleAvatar(
                 radius: 25,
                 backgroundColor: Colors.grey[300],
-                backgroundImage: NetworkImage(avatar),
+                backgroundImage: avatar.isNotEmpty ? NetworkImage(avatar) : null,
               ),
               const Positioned(
                 bottom: -3,
@@ -312,7 +423,9 @@ class MessageView extends GetView<MessageController> {
                 child: CircleAvatar(
                   radius: 18,
                   backgroundColor: Colors.grey[300],
-                  backgroundImage: NetworkImage(groupAvatars?[0] ?? avatar),
+                  backgroundImage: (groupAvatars?.isNotEmpty ?? false) && groupAvatars![0].isNotEmpty
+                      ? NetworkImage(groupAvatars![0])
+                      : null,
                 ),
               ),
               Positioned(
@@ -321,7 +434,9 @@ class MessageView extends GetView<MessageController> {
                 child: CircleAvatar(
                   radius: 18,
                   backgroundColor: Colors.grey[300],
-                  backgroundImage: NetworkImage(groupAvatars?[1] ?? avatar),
+                  backgroundImage: (groupAvatars?.length ?? 0) > 1 && groupAvatars![1].isNotEmpty
+                      ? NetworkImage(groupAvatars![1])
+                      : null,
                 ),
               ),
             ],
@@ -331,8 +446,17 @@ class MessageView extends GetView<MessageController> {
         return CircleAvatar(
           radius: 25,
           backgroundColor: Colors.grey[300],
-          backgroundImage: NetworkImage(avatar),
+          backgroundImage: avatar.isNotEmpty ? NetworkImage(avatar) : null,
         );
+    }
+  }
+
+  String _formatTime(String isoString) {
+    try {
+      final dateTime = DateTime.parse(isoString);
+      return DateFormat('h:mm a').format(dateTime);
+    } catch (e) {
+      return 'Unknown';
     }
   }
 }

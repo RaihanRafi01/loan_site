@@ -12,6 +12,7 @@ import '../../dashboard/controllers/dashboard_controller.dart';
 class MessageController extends GetxController {
   RxInt selectedTabIndex = 0.obs;
   RxList<Map<String, dynamic>> activeUsers = <Map<String, dynamic>>[].obs;
+  RxList<Map<String, dynamic>> allChatRooms = <Map<String, dynamic>>[].obs;
   RxList<Map<String, dynamic>> messages = <Map<String, dynamic>>[].obs;
   RxInt currentRoomId = 0.obs;
   WebSocketChannel? _channel;
@@ -30,6 +31,8 @@ class MessageController extends GetxController {
   void onInit() {
     super.onInit();
     fetchActiveUsers();
+    fetchChatRooms();
+    connectWebSocket();
   }
 
   @override
@@ -66,6 +69,48 @@ class MessageController extends GetxController {
         error: e,
       );
       activeUsers.value = [];
+    }
+  }
+
+  Future<void> fetchChatRooms() async {
+    try {
+      developer.log('Fetching chat rooms...', name: 'MessageController');
+      final response = await BaseClient.getRequest(
+        api: Api.getChatRooms, // Assuming Api.getChatRooms is defined in api.dart; add if needed (e.g., static String getChatRooms = '/chat/rooms/';)
+        headers: BaseClient.authHeaders(),
+      );
+      final List result = await BaseClient.handleResponse(
+        response,
+        retryRequest: () => BaseClient.getRequest(
+          api: Api.getChatRooms,
+          headers: BaseClient.authHeaders(),
+        ),
+      );
+      final int? currentUserId = getCurrentUserId();
+      if (currentUserId == null) {
+        developer.log('Current user ID not found', name: 'MessageController');
+        return;
+      }
+      // Filter rooms where current user is a participant
+      allChatRooms.value = result
+          .where((room) {
+        if (room is! Map) return false;
+        final List participants = room['participants'] as List? ?? [];
+        return participants.any((p) => p is Map && p['id'] is int && p['id'] == currentUserId);
+      })
+          .map((room) => Map<String, dynamic>.from(room as Map))
+          .toList();
+      developer.log(
+        'Filtered chat rooms fetched: ${allChatRooms.length} rooms',
+        name: 'MessageController',
+      );
+    } catch (e) {
+      developer.log(
+        'Failed to fetch chat rooms: $e',
+        name: 'MessageController',
+        error: e,
+      );
+      allChatRooms.value = [];
     }
   }
 
@@ -174,7 +219,9 @@ class MessageController extends GetxController {
         'Chat room created with ID: $roomId',
         name: 'MessageController',
       );
-      await connectWebSocket();
+
+      // Refresh chat rooms after creating a new one
+      await fetchChatRooms();
       return roomId;
     } catch (e) {
       developer.log(
@@ -337,6 +384,7 @@ class MessageController extends GetxController {
     developer.log(' ❄️❄️❄️ Sending message: $messageData', name: 'MessageController');
     _channel!.sink.add(jsonEncode(messageData));
   }
+
 
   int? getCurrentUserId() {
     final DashboardController dashboardController = Get.find<DashboardController>();

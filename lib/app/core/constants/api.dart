@@ -64,6 +64,8 @@ class Api {
   static const getAllUsers = '$baseUrl/chat/all-users/';
   static const createGroup = '$baseUrl/chat/rooms/';
 
+  static const getChatRooms = '$baseUrl/chat/rooms/';
+
   /// notification
 
   static const registerDeviceToken = '$baseUrl/notification/register_unregister_device_token/';

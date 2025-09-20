@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import 'package:loan_site/app/modules/community/controllers/message_controller.dart';
 import 'package:loan_site/common/widgets/custom_snackbar.dart';
 import 'package:loan_site/common/appColors.dart';
 
@@ -15,7 +16,13 @@ class DashboardController extends GetxController {
   final phone = RxString('');
   final profileImageUrl = RxString('');
 
-
+  @override
+  void onInit() {
+    super.onInit();
+    final MessageController messageController =
+    Get.find<MessageController>();
+    messageController.connectWebSocket();
+  }
   // Fetch user profile data from API
   Future<void> fetchProfile() async {
     try {
