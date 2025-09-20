@@ -52,6 +52,8 @@ class Api {
   static createComment(post_id) => "$baseUrl/community/posts/$post_id/comments/";  // done
   static commentReplies(comment_id) => "$baseUrl/community/comments/$comment_id/reply/"; // done
 
+  static fetchPost(post_id) => "$baseUrl/community/posts/$post_id/"; // done
+
   /// chat
 
   static const chatAssistant = '$baseUrl/project/ai-assistant/';

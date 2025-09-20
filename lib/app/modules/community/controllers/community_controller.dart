@@ -189,6 +189,37 @@ class CommunityController extends GetxController {
     fetchMyPosts();
   }
 
+
+  Future<Post?> fetchPostIfNeeded(int postId) async {
+    // Check if post exists in allPosts
+    final post = allPosts.firstWhereOrNull((p) => p.id == postId);
+    if (post != null) {
+      return post;
+    }
+
+    // Fetch from API if not found
+    try {
+      final apiUrl = Api.fetchPost(postId);
+      final response = await BaseClient.getRequest(
+        api: apiUrl,
+        headers: BaseClient.authHeaders(),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final fetchedPost = Post.fromJson(data);
+        // Optionally add to allPosts to avoid refetching
+        allPosts.add(fetchedPost);
+        return fetchedPost;
+      } else {
+        throw Exception('Failed to fetch post: ${response.reasonPhrase}');
+      }
+    } catch (e) {
+      print('Fetch post error: $e');
+      return null;
+    }
+  }
+
   Future<void> fetchAllPosts({bool isLoadMore = false}) async {
     if (isLoadMore && (!hasMoreAllPosts.value || isLoadingMoreAllPosts.value)) return;
 

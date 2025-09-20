@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
+import 'package:http/http.dart' as http;
 import 'package:loan_site/app/modules/community/views/reply_view.dart';
 import 'package:loan_site/app/modules/community/views/share_post_view.dart';
+import 'dart:convert';
 import '../../../../common/appColors.dart';
 import '../../../../common/customFont.dart';
 import '../../../../common/widgets/community/communityWidgets.dart';
 import '../controllers/community_controller.dart';
+import '../../../core/constants/api.dart';
+import '../../../core/services/base_client.dart';
 
 class CommentsView extends GetView<CommunityController> {
   final int postId;
@@ -35,44 +39,52 @@ class CommentsView extends GetView<CommunityController> {
         ),
         centerTitle: true,
       ),
-      body: Obx(() {
-        final post = controller.allPosts.firstWhereOrNull((p) => p.id == postId);
-        if (post == null) {
-          return const Center(child: Text('Post not found'));
-        }
-        final username = post.user.name ?? 'Anonymous';
-        final userAvatar = post.user.image ?? 'https://via.placeholder.com/100';
-        final timeAgo = getTimeAgo(DateTime.parse(post.createdAt));
-        final likes = post.likeCount;
-        final comments = post.commentCount;
-        final content = post.content;
+      body: FutureBuilder<Post?>(
+        future: controller.fetchPostIfNeeded(postId),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError || !snapshot.hasData) {
+            return const Center(child: Text('Failed to load post'));
+          }
 
-        final images = post.images
-            .where((imageData) => imageData.image != null && imageData.image.isNotEmpty)
-            .map((imageData) => {'image': imageData.image}) // Convert each image URL to a Map
-            .toList();
+          final post = snapshot.data!;
+          final username = post.user.name ?? 'Anonymous';
+          final userAvatar = post.user.image ?? 'https://via.placeholder.com/100';
+          final timeAgo = getTimeAgo(DateTime.parse(post.createdAt));
+          final likes = post.likeCount;
+          final comments = post.commentCount;
+          final content = post.content;
 
-        return Column(
-          children: [
-            // Original Post
-            Container(color: AppColors.appBc, child: _buildOriginalPost(post, username, userAvatar, timeAgo, content, images, likes, comments)),
+          final images = post.images
+              .where((imageData) => imageData.image != null && imageData.image.isNotEmpty)
+              .map((imageData) => {'image': imageData.image})
+              .toList();
 
-            // Comments Section Header
-            Container(
-              color: AppColors.appBc,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-              child: Row(
-                children: [
-                  Text(
-                    'Comments',
-                    style: h4.copyWith(
-                      fontSize: 20,
-                      color: AppColors.textColor,
-                    ),
-                  ),
-                ],
+          return Column(
+            children: [
+              // Original Post
+              Container(
+                color: AppColors.appBc,
+                child: _buildOriginalPost(post, username, userAvatar, timeAgo, content, images, likes, comments),
               ),
-            ),
+
+              // Comments Section Header
+              Container(
+                color: AppColors.appBc,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                child: Row(
+                  children: [
+                    Text(
+                      'Comments',
+                      style: h4.copyWith(
+                        fontSize: 20,
+                        color: AppColors.textColor,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
 
             // Comments List
             Expanded(
@@ -88,14 +100,15 @@ class CommentsView extends GetView<CommunityController> {
               ),
             ),
 
-            // Comment Input
-            Padding(
-              padding: const EdgeInsets.only(left: 16,right: 16,bottom: 6),
-              child: _buildCommentInput(),
-            ),
-          ],
-        );
-      }),
+              // Comment Input
+              Padding(
+                padding: const EdgeInsets.only(left: 16, right: 16, bottom: 6),
+                child: _buildCommentInput(),
+              ),
+            ],
+          );
+        },
+      ),
     );
   }
 
