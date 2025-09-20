@@ -181,10 +181,15 @@ class CommentsView extends GetView<CommunityController> {
                 'assets/images/community/comment_icon.svg',
                 comments.toString(),
               ),
-              _buildActionButton('assets/images/community/typing_icon.svg', ''),
               GestureDetector(
                 onTap: () {
                   Get.to(() => SharePostView(postId: post.id));
+                },
+                child: _buildActionButton('assets/images/community/typing_icon.svg', ''),
+              ),
+              GestureDetector(
+                onTap: () {
+                  //Get.to(() => SharePostView(postId: post.id));
                 },
                 child: _buildActionButton('assets/images/community/share_icon.svg', ''),
               ),
