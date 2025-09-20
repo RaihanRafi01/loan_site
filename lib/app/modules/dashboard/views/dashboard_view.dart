@@ -10,6 +10,7 @@ import 'package:loan_site/app/modules/settings/views/settings_view.dart';
 import '../../../../common/appColors.dart';
 import '../../../../common/customFont.dart';
 import '../../../core/services/base_client.dart';
+import '../../community/controllers/message_controller.dart';
 import '../controllers/dashboard_controller.dart';
 
 class DashboardView extends GetView<DashboardController> {
@@ -17,6 +18,7 @@ class DashboardView extends GetView<DashboardController> {
 
   @override
   Widget build(BuildContext context) {
+    Get.put(MessageController());
     // Initialize the controller
     //final DashboardController controller = Get.put(DashboardController());
     // List of pages to navigate

@@ -9,11 +9,10 @@ import '../modules/home/controllers/home_controller.dart';
 
 // Sets up dependency injection using GetX for the app's dependencies.
 void setupDependencies() {
+  Get.put(DashboardController());
   Get.put(AuthController());
   // Controllers
   Get.put(HomeController());
-  Get.put(MessageController());
   Get.put(ProjectController());
-  Get.put(DashboardController());
   Get.put(DashboardLenderController());
 }

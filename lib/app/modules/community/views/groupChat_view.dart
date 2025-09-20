@@ -41,6 +41,7 @@ class GroupChatView extends GetView<MessageController> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       controller.currentRoomId.value = roomId;
       controller.fetchChatHistory(roomId);
+      controller.markMessagesAsRead(roomId);
     });
 
     // Listen for scroll triggers to bottom

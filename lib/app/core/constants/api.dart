@@ -65,6 +65,7 @@ class Api {
   static const createGroup = '$baseUrl/chat/rooms/';
 
   static const getChatRooms = '$baseUrl/chat/rooms/';
+  static setChatRoomRead(room_id) => '$baseUrl/chat/rooms/$room_id/mark-read/';
 
   /// notification
 

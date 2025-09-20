@@ -190,10 +190,10 @@ class MessageView extends GetView<MessageController> {
           final avatar = _resolveImageUrl(user['image'] as String?);
           final lastSeen = userData['last_seen'] as String;
           final time = _formatTime(lastSeen);
-          final message = 'Active now';
+          final unreadCount = _getUnreadCountForUser(userId);
           return _buildMessageItemForActive(
             name: name,
-            message: message,
+            unreadCount: unreadCount,
             time: time,
             avatar: avatar,
             type: 'active',
@@ -205,11 +205,23 @@ class MessageView extends GetView<MessageController> {
     }
   }
 
+  int _getUnreadCountForUser(int userId) {
+    final room = controller.allChatRooms.firstWhere(
+          (room) {
+        final participants = room['participants'] as List? ?? [];
+        return room['room_type'] == 'direct' &&
+            participants.any((p) => p['id'] == userId);
+      },
+      orElse: () => {},
+    );
+    if (room.isEmpty) return 0;
+    return room['unread_count'] as int? ?? 0;
+  }
+
   String _resolveImageUrl(String? image) {
     if (image == null || image.isEmpty) {
       return '';
     }
-    // Check if the image is already a complete URL
     if (image.startsWith('http://') || image.startsWith('https://')) {
       return image;
     }
@@ -224,7 +236,7 @@ class MessageView extends GetView<MessageController> {
     String name = '';
     String avatar = '';
     List<String>? groupAvatars;
-    String message = unreadCount > 0 ? '$unreadCount unread messages' : (room['description'] as String? ?? 'No messages yet');
+    String message = unreadCount > 0 ? '$unreadCount unread messages' : 'No unread messages';
     String time = _formatTime(room['updated_at'] as String? ?? '');
     int recipientId = 0;
 
@@ -313,7 +325,7 @@ class MessageView extends GetView<MessageController> {
 
   Widget _buildMessageItemForActive({
     required String name,
-    required String message,
+    required int unreadCount,
     required String time,
     required String avatar,
     required String type,
@@ -325,7 +337,7 @@ class MessageView extends GetView<MessageController> {
         if (createdRoomId != null) {
           Get.to(() => MessageIndividualView(
             name: name,
-            message: message,
+            message: unreadCount > 0 ? '$unreadCount unread messages' : 'No unread messages',
             avatar: avatar,
             roomId: createdRoomId,
             recipientId: userId,
@@ -364,7 +376,7 @@ class MessageView extends GetView<MessageController> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    message,
+                    unreadCount > 0 ? '$unreadCount unread messages' : 'No unread messages',
                     style: h3.copyWith(
                       fontSize: 16,
                       color: AppColors.textColor8,

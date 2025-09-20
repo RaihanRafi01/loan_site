@@ -16,13 +16,6 @@ class DashboardController extends GetxController {
   final phone = RxString('');
   final profileImageUrl = RxString('');
 
-  @override
-  void onInit() {
-    super.onInit();
-    final MessageController messageController =
-    Get.find<MessageController>();
-    messageController.connectWebSocket();
-  }
   // Fetch user profile data from API
   Future<void> fetchProfile() async {
     try {

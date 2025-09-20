@@ -24,7 +24,7 @@ class MessageIndividualView extends GetView<MessageController> {
   final int roomId;
   final int recipientId;
 
-  const MessageIndividualView({
+  MessageIndividualView({
     super.key,
     required this.name,
     required this.message,
@@ -39,10 +39,11 @@ class MessageIndividualView extends GetView<MessageController> {
     Get.put(scrollController); // Register ScrollController for MessageController
     final TextEditingController textController = TextEditingController();
 
-    // Set room ID and fetch chat history
+    // Set room ID, fetch chat history, and mark messages as read
     WidgetsBinding.instance.addPostFrameCallback((_) {
       controller.currentRoomId.value = roomId;
       controller.fetchChatHistory(roomId);
+      controller.markMessagesAsRead(roomId); // Mark messages as read
     });
 
     // Listen for scroll triggers to bottom
@@ -63,7 +64,7 @@ class MessageIndividualView extends GetView<MessageController> {
     // Listen for scroll to top to load more messages
     scrollController.addListener(() {
       if (scrollController.hasClients &&
-          scrollController.offset >= scrollController.position.minScrollExtent + 200 &&
+          scrollController.offset <= scrollController.position.minScrollExtent + 200 &&
           !scrollController.position.outOfRange &&
           !controller.isLoadingMoreMessages.value &&
           controller.hasMoreMessages.value) {
@@ -98,15 +99,28 @@ class MessageIndividualView extends GetView<MessageController> {
                       const SizedBox(width: 16),
                       CircleAvatar(
                         radius: 25,
-                        backgroundImage: NetworkImage(avatar),
+                        backgroundColor: Colors.grey[300],
+                        backgroundImage: avatar.isNotEmpty ? NetworkImage(avatar) : null,
                       ),
                       const SizedBox(width: 16),
-                      Text(
-                        name,
-                        style: const TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.w600,
-                        ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            name,
+                            style: const TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          Text(
+                            'Active', // You might want to fetch actual status
+                            style: h4.copyWith(
+                              fontSize: 14,
+                              color: AppColors.textColor8,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -182,9 +196,14 @@ class MessageIndividualView extends GetView<MessageController> {
                     final createdAt = msg['created_at'] ?? '';
                     final time = _formatTime(createdAt);
                     final type = (msg['message_type'] ?? '').toString();
+                    final senderId = msg['sender']['id'] as int;
+                    final senderName = senderId == controller.getCurrentUserId() ? 'You' : name;
+                    final senderAvatar = senderId == controller.getCurrentUserId()
+                        ? (controller.getCurrentUserId() == recipientId ? avatar : '') // Adjust based on your user data
+                        : avatar;
 
                     if (type == 'post') {
-                      return _buildSharedPostBubble(msg['post_id'] ?? 0);
+                      return _buildSharedPostBubble(msg['post_id'] ?? 0, senderName, senderAvatar);
                     }
 
                     if (type == 'file' || type == 'image') {
@@ -199,6 +218,8 @@ class MessageIndividualView extends GetView<MessageController> {
                             : (msg['content'] ?? 'File Attachment'),
                         isMe: isMe,
                         time: time,
+                        senderName: senderName,
+                        senderAvatar: senderAvatar,
                       );
                     }
 
@@ -206,6 +227,8 @@ class MessageIndividualView extends GetView<MessageController> {
                       msg['content'] ?? '',
                       isMe,
                       time,
+                      senderName,
+                      senderAvatar,
                     );
                   },
                 );
@@ -376,12 +399,18 @@ class MessageIndividualView extends GetView<MessageController> {
     );
   }
 
-  Widget _buildChatBubble(String msg, bool isMe, String time) {
+  Widget _buildChatBubble(
+      String msg,
+      bool isMe,
+      String time,
+      String senderName,
+      String senderAvatar,
+      ) {
     return Align(
       alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
         padding: const EdgeInsets.all(12),
-        margin: const EdgeInsets.symmetric(vertical: 4),
+        margin: const EdgeInsets.symmetric(vertical: 5),
         decoration: BoxDecoration(
           color: isMe ? AppColors.appColor2 : Colors.grey[300],
           borderRadius: BorderRadius.circular(12),
@@ -389,6 +418,28 @@ class MessageIndividualView extends GetView<MessageController> {
         child: Column(
           crossAxisAlignment: isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
           children: [
+            if (!isMe) ...[
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CircleAvatar(
+                    radius: 12,
+                    backgroundColor: Colors.grey[300],
+                    backgroundImage: senderAvatar.isNotEmpty ? NetworkImage(senderAvatar) : null,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    senderName,
+                    style: h4.copyWith(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textColor,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 6),
+            ],
             Text(
               msg,
               style: h4.copyWith(
@@ -415,6 +466,8 @@ class MessageIndividualView extends GetView<MessageController> {
     required String label,
     required bool isMe,
     required String time,
+    required String senderName,
+    required String senderAvatar,
   }) {
     final isDataUri = payload.startsWith('data:');
     final isImageData = payload.startsWith('data:image');
@@ -485,7 +538,29 @@ class MessageIndividualView extends GetView<MessageController> {
           borderRadius: BorderRadius.circular(12),
         ),
         child: Column(
+          crossAxisAlignment: isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
           children: [
+            if (!isMe) ...[
+              Row(
+                children: [
+                  CircleAvatar(
+                    radius: 12,
+                    backgroundColor: Colors.grey[300],
+                    backgroundImage: senderAvatar.isNotEmpty ? NetworkImage(senderAvatar) : null,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    senderName,
+                    style: h4.copyWith(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textColor,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 4),
+            ],
             Text(
               label,
               style: h4.copyWith(
@@ -509,34 +584,61 @@ class MessageIndividualView extends GetView<MessageController> {
     );
   }
 
-  String _resolveMediaUrl(String input) {
+  Widget _buildSharedPostBubble(int postId, String senderName, String senderAvatar) {
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        margin: const EdgeInsets.symmetric(vertical: 4),
+        decoration: BoxDecoration(
+          color: Colors.blue[100],
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                CircleAvatar(
+                  radius: 12,
+                  backgroundColor: Colors.grey[300],
+                  backgroundImage: senderAvatar.isNotEmpty ? NetworkImage(senderAvatar) : null,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  senderName,
+                  style: h4.copyWith(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textColor,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            GestureDetector(
+              onTap: () {
+                Get.to(() => CommentsView(postId: postId));
+              },
+              child: Text(
+                'Shared Post: Click to view',
+                style: h4.copyWith(fontSize: 16, color: AppColors.textColor),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _resolveMediaUrl(String? input) {
+    if (input == null || input.isEmpty) {
+      return '';
+    }
     if (input.startsWith('http://') || input.startsWith('https://') || input.startsWith('data:')) {
       return input;
     }
     return '$mediaBaseUrl$input';
-  }
-
-  Widget _buildSharedPostBubble(int postId) {
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: GestureDetector(
-        onTap: () {
-          Get.to(() => CommentsView(postId: postId));
-        },
-        child: Container(
-          padding: const EdgeInsets.all(12),
-          margin: const EdgeInsets.symmetric(vertical: 4),
-          decoration: BoxDecoration(
-            color: Colors.blue[100],
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Text(
-            'Shared Post: Click to view',
-            style: h4.copyWith(fontSize: 16, color: AppColors.textColor),
-          ),
-        ),
-      ),
-    );
   }
 
   String _formatTime(String isoString) {
