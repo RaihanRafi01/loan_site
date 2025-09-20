@@ -264,10 +264,12 @@ class CommunityView extends GetView<CommunityController> {
               buildActionButton(
                 'assets/images/community/typing_icon.svg',
                 '',
+                postId: post.id,
               ),
               buildActionButton(
                 'assets/images/community/share_icon.svg',
                 '',
+                postId: post.id,
               ),
             ],
           ),

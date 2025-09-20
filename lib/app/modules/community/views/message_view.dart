@@ -16,6 +16,8 @@ class MessageView extends GetView<MessageController> {
 
   @override
   Widget build(BuildContext context) {
+    final TextEditingController searchController = TextEditingController();
+
     return Scaffold(
       backgroundColor: AppColors.appBc,
       appBar: AppBar(
@@ -64,6 +66,7 @@ class MessageView extends GetView<MessageController> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: TextField(
+                    controller: searchController,
                     decoration: InputDecoration(
                       hintText: 'Search here',
                       hintStyle: TextStyle(
@@ -72,6 +75,10 @@ class MessageView extends GetView<MessageController> {
                       ),
                       border: InputBorder.none,
                     ),
+                    onChanged: (value) {
+                      // Trigger UI rebuild by updating an observable
+                      controller.selectedTabIndex.refresh();
+                    },
                   ),
                 ),
               ],
@@ -80,7 +87,8 @@ class MessageView extends GetView<MessageController> {
 
           // Messages List
           Expanded(
-            child: Obx(() => _buildMessagesForTab(_getTabName(controller.selectedTabIndex.value))),
+            child: Obx(() => _buildMessagesForTab(
+                _getTabName(controller.selectedTabIndex.value), searchController.text)),
           ),
         ],
       ),
@@ -147,14 +155,14 @@ class MessageView extends GetView<MessageController> {
     }
   }
 
-  Widget _buildMessagesForTab(String tab) {
+  Widget _buildMessagesForTab(String tab, String searchQuery) {
     return Obx(() {
       final int? currentUserId = controller.getCurrentUserId();
       if (currentUserId == null) {
         return const Center(child: Text('Unable to load user ID'));
       }
 
-      List<Widget> items = _getMessagesForTab(tab);
+      List<Widget> items = _getMessagesForTab(tab, searchQuery);
       if (items.isEmpty) {
         return const Center(child: Text('No chats available'));
       }
@@ -167,23 +175,42 @@ class MessageView extends GetView<MessageController> {
     });
   }
 
-  List<Widget> _getMessagesForTab(String tab) {
+  List<Widget> _getMessagesForTab(String tab, String searchQuery) {
     final int? currentUserId = controller.getCurrentUserId();
     if (currentUserId == null) {
       return [const Text('Unable to load user ID')];
     }
 
+    final query = searchQuery.toLowerCase().trim();
+
     switch (tab) {
       case 'All':
-        return controller.allChatRooms.map<Widget>((room) {
-          return _buildMessageItem(room, currentUserId);
-        }).toList();
+        return controller.allChatRooms
+            .where((room) {
+          if (query.isEmpty) return true;
+          final name = room['room_type'] == 'group'
+              ? (room['name'] as String? ?? '').toLowerCase()
+              : (room['participants'] as List? ?? [])
+              .firstWhere((p) => p['id'] != currentUserId,
+              orElse: () => <String, dynamic>{})['name']
+              ?.toLowerCase() ??
+              '';
+          return name.contains(query);
+        })
+            .map<Widget>((room) => _buildMessageItem(room, currentUserId))
+            .toList();
       case 'Group':
-        return controller.allChatRooms.where((room) => room['room_type'] == 'group').map<Widget>((room) {
-          return _buildMessageItem(room, currentUserId);
-        }).toList();
+        return controller.allChatRooms
+            .where((room) =>
+        room['room_type'] == 'group' &&
+            (query.isEmpty || (room['name'] as String? ?? '').toLowerCase().contains(query)))
+            .map<Widget>((room) => _buildMessageItem(room, currentUserId))
+            .toList();
       case 'Active':
-        return controller.activeUsers.map<Widget>((userData) {
+        return controller.activeUsers
+            .where((userData) => query.isEmpty ||
+            (userData['user']['name'] as String? ?? '').toLowerCase().contains(query))
+            .map<Widget>((userData) {
           final user = userData['user'];
           final name = user['name'] as String? ?? 'Unknown';
           final userId = user['id'] as int;
@@ -199,7 +226,8 @@ class MessageView extends GetView<MessageController> {
             type: 'active',
             userId: userId,
           );
-        }).toList();
+        })
+            .toList();
       default:
         return [];
     }

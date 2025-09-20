@@ -230,10 +230,13 @@ Widget buildActionButton(
     onTap: onPressed ??
             () {
           if (svgPath.contains('comment_icon') && postId != null) {
-            Get.to(() => CommentsView(postId: postId));
+           Get.to(() => CommentsView(postId: postId));
           }
-          if (svgPath == 'assets/images/community/share_icon.svg') {
-            Get.to(() => const SharePostView(postId: 0)); // TODO pass real postId if needed
+          else if (svgPath.contains('typing_icon') && postId != null) {
+            Get.to(() => SharePostView(postId: postId));
+          }
+          else if (svgPath.contains('share_icon') && postId != null) {
+            //Get.to(() => CommentsView(postId: postId));
           }
         },
     child: Container(
