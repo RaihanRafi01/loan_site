@@ -189,15 +189,12 @@ class CommunityController extends GetxController {
     fetchMyPosts();
   }
 
-
   Future<Post?> fetchPostIfNeeded(int postId) async {
-    // Check if post exists in allPosts
     final post = allPosts.firstWhereOrNull((p) => p.id == postId);
     if (post != null) {
       return post;
     }
 
-    // Fetch from API if not found
     try {
       final apiUrl = Api.fetchPost(postId);
       final response = await BaseClient.getRequest(
@@ -208,7 +205,6 @@ class CommunityController extends GetxController {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         final fetchedPost = Post.fromJson(data);
-        // Optionally add to allPosts to avoid refetching
         allPosts.add(fetchedPost);
         return fetchedPost;
       } else {
@@ -441,10 +437,16 @@ class CommunityController extends GetxController {
   }
 
   void updateReplies(Comment comment) {
-    final post = myPosts.firstWhere((p) => p.id == comment.post);
-    final updatedComment = post.comments.firstWhere((c) => c.id == comment.id);
-    updatedComment.replies = comment.replies;
-    myPosts.refresh();
+    final post = myPosts.firstWhereOrNull((p) => p.id == comment.post) ??
+        allPosts.firstWhereOrNull((p) => p.id == comment.post);
+    if (post != null) {
+      final updatedComment = post.comments.firstWhereOrNull((c) => c.id == comment.id);
+      if (updatedComment != null) {
+        updatedComment.replies.assignAll(comment.replies);
+        myPosts.refresh();
+        allPosts.refresh();
+      }
+    }
   }
 
   void _showWarning(String message, {String title = 'Warning'}) {
@@ -547,24 +549,33 @@ class CommunityController extends GetxController {
     try {
       final comment = _findCommentById(commentId);
       if (comment != null) {
+        final oldLiked = comment.isLikedByUser.value;
+        final oldLikes = comment.likesCount.value;
         comment.isLikedByUser.value = !currentlyLiked;
         comment.likesCount.value += currentlyLiked ? -1 : 1;
-      }
 
-      final apiUrl = Api.likeComment(commentId.toString());
-      final response = await BaseClient.postRequest(
-        api: apiUrl,
-        body: jsonEncode({}),
-        headers: BaseClient.authHeaders(),
-      );
-
-      if (response.statusCode == 200 || response.statusCode == 201) {
-      } else {
-        if (comment != null) {
-          comment.isLikedByUser.value = currentlyLiked;
-          comment.likesCount.value += currentlyLiked ? 1 : -1;
+        // Refresh the relevant post to update the UI
+        final post = allPosts.firstWhereOrNull((p) => p.comments.any((c) => c.id == commentId || c.replies.any((r) => r.id == commentId))) ??
+            myPosts.firstWhereOrNull((p) => p.comments.any((c) => c.id == commentId || c.replies.any((r) => r.id == commentId)));
+        if (post != null) {
+          allPosts.refresh();
+          myPosts.refresh();
         }
-        _showWarning('Failed to toggle like: ${response.reasonPhrase}');
+
+        final apiUrl = Api.likeComment(commentId.toString());
+        final response = await BaseClient.postRequest(
+          api: apiUrl,
+          body: jsonEncode({}),
+          headers: BaseClient.authHeaders(),
+        );
+
+        if (!(response.statusCode == 200 || response.statusCode == 201)) {
+          comment.isLikedByUser.value = oldLiked;
+          comment.likesCount.value = oldLikes;
+          allPosts.refresh();
+          myPosts.refresh();
+          _showWarning('Failed to toggle like: ${response.reasonPhrase}');
+        }
       }
     } catch (e) {
       print('Toggle like error: $e');
@@ -578,7 +589,8 @@ class CommunityController extends GetxController {
       return;
     }
 
-    final post = myPosts.firstWhereOrNull((p) => p.id == postId);
+    final post = allPosts.firstWhereOrNull((p) => p.id == postId) ??
+        myPosts.firstWhereOrNull((p) => p.id == postId);
     if (post == null) return;
 
     try {
@@ -595,6 +607,7 @@ class CommunityController extends GetxController {
         final newComment = Comment.fromJson(newCommentData);
         post.comments.add(newComment);
         post.commentCount += 1;
+        allPosts.refresh();
         myPosts.refresh();
         Get.snackbar('Success', 'Comment added successfully!');
       } else {
@@ -628,8 +641,14 @@ class CommunityController extends GetxController {
         final newReplyData = jsonDecode(response.body);
         final newReply = Comment.fromJson(newReplyData);
         parentComment.replies.add(newReply);
-        if (currentComment.value != null &&
-            currentComment.value!.id == commentId) {
+        // Refresh the relevant post to update the UI
+        final post = allPosts.firstWhereOrNull((p) => p.comments.any((c) => c.id == commentId || c.replies.any((r) => r.id == commentId))) ??
+            myPosts.firstWhereOrNull((p) => p.comments.any((c) => c.id == commentId || c.replies.any((r) => r.id == commentId)));
+        if (post != null) {
+          allPosts.refresh();
+          myPosts.refresh();
+        }
+        if (currentComment.value != null && currentComment.value!.id == commentId) {
           currentReplies.add(newReply);
         }
         Get.snackbar('Success', 'Reply added successfully!');
@@ -643,7 +662,7 @@ class CommunityController extends GetxController {
   }
 
   Comment? _findCommentById(int commentId) {
-    for (final post in myPosts) {
+    for (final post in [...allPosts, ...myPosts]) {
       for (final comment in post.comments) {
         if (comment.id == commentId) return comment;
         for (final reply in comment.replies) {

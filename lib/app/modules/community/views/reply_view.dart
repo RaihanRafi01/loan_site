@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
-
 import '../../../../common/appColors.dart';
 import '../../../../common/customFont.dart';
-import '../../../core/constants/api.dart';
+import '../../../core/utils/image_utils.dart';
 import '../controllers/community_controller.dart';
 
 class ReplyView extends GetView<CommunityController> {
@@ -12,16 +11,6 @@ class ReplyView extends GetView<CommunityController> {
   final TextEditingController _replyController = TextEditingController();
 
   ReplyView({super.key, required this.comment});
-
-  String getImageUrl(String? url) {
-    if (url == null) {
-      return 'https://via.placeholder.com/100';
-    }
-    if (url.startsWith('http')) {
-      return url;
-    }
-    return '${Api.baseUrl}$url';
-  }
 
   String getTimeAgo(DateTime dateTime) {
     final now = DateTime.now();
@@ -113,10 +102,7 @@ class ReplyView extends GetView<CommunityController> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CircleAvatar(
-            radius: 18,
-            backgroundImage: NetworkImage(getImageUrl(comment.user.image)),
-          ),
+          ImageUtils.buildAvatar(ImageUtils.getImageUrl(comment.user.image)),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -144,16 +130,19 @@ class ReplyView extends GetView<CommunityController> {
                     const SizedBox(width: 16),
                     Obx(() => GestureDetector(
                       onTap: () {
-                        controller.toggleLikeComment(comment.id, comment.isLikedByUser.value);
+                        controller.toggleLikeComment(
+                            comment.id, comment.isLikedByUser.value);
                       },
                       child: _buildActionButton(
-                        comment.isLikedByUser.value ? 'assets/images/community/love_icon_filled.svg' : 'assets/images/community/love_icon.svg',
-                        comment.likesCount.toString(),
+                        comment.isLikedByUser.value
+                            ? 'assets/images/community/love_icon_filled.svg'
+                            : 'assets/images/community/love_icon.svg',
+                        comment.likesCount.value.toString(),
                       ),
                     )),
                     const SizedBox(width: 16),
                     GestureDetector(
-                      onTap: (){},
+                      onTap: () {},
                       child: Text(
                         'Reply',
                         style: h3.copyWith(
@@ -178,10 +167,7 @@ class ReplyView extends GetView<CommunityController> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CircleAvatar(
-            radius: 18,
-            backgroundImage: NetworkImage(getImageUrl(reply.user.image)),
-          ),
+          ImageUtils.buildAvatar(ImageUtils.getImageUrl(reply.user.image)),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -209,11 +195,14 @@ class ReplyView extends GetView<CommunityController> {
                     const SizedBox(width: 16),
                     Obx(() => GestureDetector(
                       onTap: () {
-                        controller.toggleLikeComment(reply.id, reply.isLikedByUser.value);
+                        controller.toggleLikeComment(
+                            reply.id, reply.isLikedByUser.value);
                       },
                       child: _buildActionButton(
-                        reply.isLikedByUser.value ? 'assets/images/community/love_icon_filled.svg' : 'assets/images/community/love_icon.svg',
-                        reply.likesCount.toString(),
+                        reply.isLikedByUser.value
+                            ? 'assets/images/community/love_icon_filled.svg'
+                            : 'assets/images/community/love_icon.svg',
+                        reply.likesCount.value.toString(),
                       ),
                     )),
                     const SizedBox(width: 16),
@@ -234,7 +223,6 @@ class ReplyView extends GetView<CommunityController> {
     );
   }
 
-
   Widget _buildReplyInput() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -244,13 +232,6 @@ class ReplyView extends GetView<CommunityController> {
       ),
       child: Row(
         children: [
-          // Camera button
-          SvgPicture.asset('assets/images/home/cam_icon.svg'),
-          const SizedBox(width: 8),
-          // Image/Gallery button
-          SvgPicture.asset('assets/images/home/image_icon.svg'),
-          const SizedBox(width: 12),
-          // Text input field with mic icon
           Expanded(
             child: Container(
               height: 40,
@@ -284,7 +265,6 @@ class ReplyView extends GetView<CommunityController> {
             ),
           ),
           const SizedBox(width: 12),
-          // Send button
           GestureDetector(
             onTap: _addReply,
             child: SvgPicture.asset('assets/images/home/send_icon.svg'),
@@ -295,26 +275,16 @@ class ReplyView extends GetView<CommunityController> {
   }
 
   void _addReply() async {
-    // Ensure that the reply text is not empty
     if (_replyController.text.trim().isEmpty) {
-      /* _showWarning('Please enter a reply.');*/
-      return; // Do not proceed if the reply is empty
+      Get.snackbar('Warning', 'Please enter a reply.',
+          backgroundColor: AppColors.snackBarWarning);
+      return;
     }
 
-    // Get the content of the reply
     final replyContent = _replyController.text.trim();
-
-    // Posting the reply to the server
     await controller.postReply(comment.id, replyContent);
-
-    // Clear the input field after adding the reply
     _replyController.clear();
-
-    // Since GetX is reactive, this should automatically update the UI
-    controller.updateReplies(comment); // This triggers reactivity to update the UI
-
-    // Optionally, you can also fetch updated posts if needed
-    // await controller.fetchMyPosts();
+    // No need to call updateReplies, as postReply already refreshes the UI
   }
 
   Widget _buildActionButton(String svgPath, String count) {
@@ -346,6 +316,4 @@ class ReplyView extends GetView<CommunityController> {
       ),
     );
   }
-
-
 }

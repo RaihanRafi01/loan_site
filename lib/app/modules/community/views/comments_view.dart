@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
-import 'package:http/http.dart' as http;
 import 'package:loan_site/app/modules/community/views/reply_view.dart';
 import 'package:loan_site/app/modules/community/views/share_post_view.dart';
 import 'dart:convert';
 import '../../../../common/appColors.dart';
 import '../../../../common/customFont.dart';
 import '../../../../common/widgets/community/communityWidgets.dart';
+import '../../../core/utils/image_utils.dart';
 import '../controllers/community_controller.dart';
 import '../../../core/constants/api.dart';
 import '../../../core/services/base_client.dart';
@@ -20,6 +20,20 @@ class CommentsView extends GetView<CommunityController> {
     super.key,
     required this.postId,
   });
+
+  String getTimeAgo(DateTime dateTime) {
+    final now = DateTime.now();
+    final difference = now.difference(dateTime).abs();
+    if (difference.inDays > 0) {
+      return '${difference.inDays}d';
+    } else if (difference.inHours > 0) {
+      return '${difference.inHours}h';
+    } else if (difference.inMinutes > 0) {
+      return '${difference.inMinutes}m';
+    } else {
+      return 'Just now';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -50,7 +64,7 @@ class CommentsView extends GetView<CommunityController> {
 
           final post = snapshot.data!;
           final username = post.user.name ?? 'Anonymous';
-          final userAvatar = post.user.image ?? 'https://via.placeholder.com/100';
+          final userAvatar = ImageUtils.getImageUrl(post.user.image);
           final timeAgo = getTimeAgo(DateTime.parse(post.createdAt));
           final content = post.content;
 
@@ -87,14 +101,14 @@ class CommentsView extends GetView<CommunityController> {
               // Comments List
               Expanded(
                 child: Obx(() {
-                  final updatedPost = controller.allPosts.firstWhereOrNull((p) => p.id == postId);
+                  final updatedPost = controller.allPosts.firstWhereOrNull((p) => p.id == postId) ?? post;
                   return Container(
                     color: AppColors.appBc,
                     child: ListView.builder(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
-                      itemCount: updatedPost?.comments.length ?? post.comments.length,
+                      itemCount: updatedPost.comments.length,
                       itemBuilder: (context, index) {
-                        final comment = (updatedPost?.comments[index] ?? post.comments[index]);
+                        final comment = updatedPost.comments[index];
                         return _buildCommentItem(comment);
                       },
                     ),
@@ -114,20 +128,6 @@ class CommentsView extends GetView<CommunityController> {
     );
   }
 
-  String getTimeAgo(DateTime dateTime) {
-    final now = DateTime.now();
-    final difference = now.difference(dateTime).abs();
-    if (difference.inDays > 0) {
-      return '${difference.inDays}d';
-    } else if (difference.inHours > 0) {
-      return '${difference.inHours}h';
-    } else if (difference.inMinutes > 0) {
-      return '${difference.inMinutes}m';
-    } else {
-      return 'Just now';
-    }
-  }
-
   Widget _buildOriginalPost(Post post, String username, String userAvatar, String timeAgo, String content, List<Map<String, dynamic>> images) {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -137,10 +137,7 @@ class CommentsView extends GetView<CommunityController> {
           // User Info
           Row(
             children: [
-              CircleAvatar(
-                radius: 20,
-                backgroundImage: NetworkImage(userAvatar),
-              ),
+              ImageUtils.buildAvatar(userAvatar),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
@@ -226,67 +223,85 @@ class CommentsView extends GetView<CommunityController> {
   Widget _buildCommentItem(Comment comment) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 12),
-      child: Row(
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CircleAvatar(
-            radius: 18,
-            backgroundImage: NetworkImage(comment.user.image ?? 'https://via.placeholder.com/100'),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  comment.user.name ?? 'Anonymous',
-                  style: h2.copyWith(
-                    fontSize: 20,
-                    color: AppColors.textColor,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  comment.content,
-                  style: h4.copyWith(fontSize: 16, color: AppColors.textColor11),
-                ),
-                const SizedBox(height: 8),
-                Row(
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ImageUtils.buildAvatar(ImageUtils.getImageUrl(comment.user.image)),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      getTimeAgo(DateTime.parse(comment.createdAt)),
-                      style: h3.copyWith(fontSize: 12, color: AppColors.gray10),
+                      comment.user.name ?? 'Anonymous',
+                      style: h2.copyWith(
+                        fontSize: 20,
+                        color: AppColors.textColor,
+                      ),
                     ),
-                    const SizedBox(width: 16),
-                    Obx(() => GestureDetector(
-                      onTap: () {
-                        controller.toggleLikeComment(comment.id, comment.isLikedByUser.value);
-                      },
-                      child: _buildActionButton(
-                        comment.isLikedByUser.value
-                            ? 'assets/images/community/love_icon_filled.svg'
-                            : 'assets/images/community/love_icon.svg',
-                        comment.likesCount.toString(),
-                      ),
-                    )),
-                    const SizedBox(width: 16),
-                    GestureDetector(
-                      onTap: () {
-                        Get.to(() => ReplyView(comment: comment));
-                      },
-                      child: Text(
-                        'Reply',
-                        style: h3.copyWith(
-                          fontSize: 12,
-                          color: AppColors.gray10,
+                    const SizedBox(height: 4),
+                    Text(
+                      comment.content,
+                      style: h4.copyWith(fontSize: 16, color: AppColors.textColor11),
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Text(
+                          getTimeAgo(DateTime.parse(comment.createdAt)),
+                          style: h3.copyWith(fontSize: 12, color: AppColors.gray10),
                         ),
-                      ),
+                        const SizedBox(width: 16),
+                        Obx(() => GestureDetector(
+                          onTap: () {
+                            controller.toggleLikeComment(comment.id, comment.isLikedByUser.value);
+                          },
+                          child: _buildActionButton(
+                            comment.isLikedByUser.value
+                                ? 'assets/images/community/love_icon_filled.svg'
+                                : 'assets/images/community/love_icon.svg',
+                            comment.likesCount.value.toString(),
+                          ),
+                        )),
+                        const SizedBox(width: 16),
+                        GestureDetector(
+                          onTap: () {
+                            Get.to(() => ReplyView(comment: comment));
+                          },
+                          child: Text(
+                            'Reply',
+                            style: h3.copyWith(
+                              fontSize: 12,
+                              color: AppColors.gray10,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
+          // Replies Section
+          Obx(() {
+            if (comment.replies.isEmpty) return const SizedBox.shrink();
+            return Padding(
+              padding: const EdgeInsets.only(left: 40, top: 8),
+              child: ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: comment.replies.length,
+                itemBuilder: (context, index) {
+                  final reply = comment.replies[index];
+                  return _buildCommentItem(reply); // Recursively build replies
+                },
+              ),
+            );
+          }),
         ],
       ),
     );
@@ -301,13 +316,10 @@ class CommentsView extends GetView<CommunityController> {
       ),
       child: Row(
         children: [
-          // Camera button
           SvgPicture.asset('assets/images/home/cam_icon.svg'),
           const SizedBox(width: 8),
-          // Image/Gallery button
           SvgPicture.asset('assets/images/home/image_icon.svg'),
           const SizedBox(width: 12),
-          // Text input field with mic icon
           Expanded(
             child: Container(
               height: 40,
@@ -341,7 +353,6 @@ class CommentsView extends GetView<CommunityController> {
             ),
           ),
           const SizedBox(width: 12),
-          // Send button
           GestureDetector(
             onTap: _addComment,
             child: SvgPicture.asset('assets/images/home/send_icon.svg'),
