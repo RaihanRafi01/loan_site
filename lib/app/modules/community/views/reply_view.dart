@@ -140,17 +140,6 @@ class ReplyView extends GetView<CommunityController> {
                         comment.likesCount.value.toString(),
                       ),
                     )),
-                    const SizedBox(width: 16),
-                    GestureDetector(
-                      onTap: () {},
-                      child: Text(
-                        'Reply',
-                        style: h3.copyWith(
-                          fontSize: 12,
-                          color: AppColors.gray10,
-                        ),
-                      ),
-                    ),
                   ],
                 ),
               ],
@@ -205,14 +194,6 @@ class ReplyView extends GetView<CommunityController> {
                         reply.likesCount.value.toString(),
                       ),
                     )),
-                    const SizedBox(width: 16),
-                    Text(
-                      'Reply',
-                      style: h3.copyWith(
-                        fontSize: 12,
-                        color: AppColors.gray10,
-                      ),
-                    ),
                   ],
                 ),
               ],
@@ -284,7 +265,6 @@ class ReplyView extends GetView<CommunityController> {
     final replyContent = _replyController.text.trim();
     await controller.postReply(comment.id, replyContent);
     _replyController.clear();
-    // No need to call updateReplies, as postReply already refreshes the UI
   }
 
   Widget _buildActionButton(String svgPath, String count) {

@@ -266,19 +266,21 @@ class CommentsView extends GetView<CommunityController> {
                             comment.likesCount.value.toString(),
                           ),
                         )),
-                        const SizedBox(width: 16),
-                        GestureDetector(
-                          onTap: () {
-                            Get.to(() => ReplyView(comment: comment));
-                          },
-                          child: Text(
-                            'Reply',
-                            style: h3.copyWith(
-                              fontSize: 12,
-                              color: AppColors.gray10,
+                        if (comment.replies.length < 2) ...[
+                          const SizedBox(width: 16),
+                          GestureDetector(
+                            onTap: () {
+                              Get.to(() => ReplyView(comment: comment));
+                            },
+                            child: Text(
+                              'Reply',
+                              style: h3.copyWith(
+                                fontSize: 12,
+                                color: AppColors.gray10,
+                              ),
                             ),
                           ),
-                        ),
+                        ],
                       ],
                     ),
                   ],
@@ -297,11 +299,79 @@ class CommentsView extends GetView<CommunityController> {
                 itemCount: comment.replies.length,
                 itemBuilder: (context, index) {
                   final reply = comment.replies[index];
-                  return _buildCommentItem(reply); // Recursively build replies
+                  return _buildReplyItem(reply);
                 },
               ),
             );
           }),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildReplyItem(Comment reply) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ImageUtils.buildAvatar(ImageUtils.getImageUrl(reply.user.image)),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  reply.user.name ?? 'Anonymous',
+                  style: h2.copyWith(
+                    fontSize: 20,
+                    color: AppColors.textColor,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  reply.content,
+                  style: h4.copyWith(fontSize: 16, color: AppColors.textColor11),
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Text(
+                      getTimeAgo(DateTime.parse(reply.createdAt)),
+                      style: h3.copyWith(fontSize: 12, color: AppColors.gray10),
+                    ),
+                    const SizedBox(width: 16),
+                    Obx(() => GestureDetector(
+                      onTap: () {
+                        controller.toggleLikeComment(reply.id, reply.isLikedByUser.value);
+                      },
+                      child: _buildActionButton(
+                        reply.isLikedByUser.value
+                            ? 'assets/images/community/love_icon_filled.svg'
+                            : 'assets/images/community/love_icon.svg',
+                        reply.likesCount.value.toString(),
+                      ),
+                    )),
+                    if (reply.replies.isEmpty) ...[
+                      const SizedBox(width: 16),
+                      GestureDetector(
+                        onTap: () {
+                          Get.to(() => ReplyView(comment: reply));
+                        },
+                        child: Text(
+                          'Reply',
+                          style: h3.copyWith(
+                            fontSize: 12,
+                            color: AppColors.gray10,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );

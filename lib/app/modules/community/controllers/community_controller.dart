@@ -55,6 +55,14 @@ class Comment {
         replies = replies ?? RxList<Comment>();
 
   factory Comment.fromJson(Map<String, dynamic> json) {
+    var replies = (json['replies'] as List? ?? [])
+        .map((e) => Comment.fromJson(e))
+        .toList()
+        .obs;
+
+    // Limit replies to only one level (replies to replies, no deeper)
+    replies = replies.where((reply) => reply.parent != null).toList().obs;
+
     return Comment(
       id: json['id'],
       post: json['post'],
@@ -65,10 +73,7 @@ class Comment {
       createdAt: json['created_at'],
       updatedAt: json['updated_at'],
       parent: json['parent'],
-      replies: (json['replies'] as List? ?? [])
-          .map((e) => Comment.fromJson(e))
-          .toList()
-          .obs,
+      replies: replies,
     );
   }
 }
@@ -436,19 +441,6 @@ class CommunityController extends GetxController {
     myPosts.value = list;
   }
 
-  void updateReplies(Comment comment) {
-    final post = myPosts.firstWhereOrNull((p) => p.id == comment.post) ??
-        allPosts.firstWhereOrNull((p) => p.id == comment.post);
-    if (post != null) {
-      final updatedComment = post.comments.firstWhereOrNull((c) => c.id == comment.id);
-      if (updatedComment != null) {
-        updatedComment.replies.assignAll(comment.replies);
-        myPosts.refresh();
-        allPosts.refresh();
-      }
-    }
-  }
-
   void _showWarning(String message, {String title = 'Warning'}) {
     kSnackBar(
       title: title,
@@ -627,6 +619,14 @@ class CommunityController extends GetxController {
 
     final parentComment = _findCommentById(commentId);
     if (parentComment == null) return;
+
+    // Check if the parent comment is a top-level comment or a reply
+    bool isTopLevelComment = parentComment.parent == null;
+
+    if (!isTopLevelComment && parentComment.replies.isNotEmpty) {
+      _showWarning('Cannot add reply. Maximum reply depth reached.');
+      return;
+    }
 
     try {
       final apiUrl = Api.commentReplies(commentId.toString());
