@@ -14,8 +14,6 @@ import '../../../../common/widgets/custom_snackbar.dart';
 import '../../../core/constants/api.dart';
 import '../../../core/services/base_client.dart';
 
-// Base URL for API
-const String baseUrl = 'http://10.10.13.73:7000';
 
 // Model for Notification
 class NotificationModel {
@@ -88,7 +86,7 @@ class NotificationController extends GetxController {
     try {
       isLoading(true);
       final response = await BaseClient.getRequest(
-        api: Api.getNotifications, // Assume this is the API endpoint
+        api: Api.getNotifications,
         headers: BaseClient.authHeaders(),
       );
       final result = await BaseClient.handleResponse(
@@ -118,8 +116,8 @@ class NotificationController extends GetxController {
     try {
       final response = await BaseClient.putRequest(
         api: Api.markNotificationRead(notificationId),
-        headers: BaseClient.authHeaders(), body: '',
-
+        headers: BaseClient.authHeaders(),
+        body: '',
       );
       await BaseClient.handleResponse(
         response,
@@ -151,8 +149,65 @@ class NotificationController extends GetxController {
       );
     }
   }
-}
 
+  Future<void> deleteNotification(int notificationId) async {
+    try {
+      final response = await BaseClient.deleteRequest(
+        api: Api.deleteNotification(notificationId),
+        headers: BaseClient.authHeaders(),
+      );
+      await BaseClient.handleResponse(
+        response,
+        retryRequest: () => BaseClient.deleteRequest(
+          api: Api.deleteNotification(notificationId),
+          headers: BaseClient.authHeaders(),
+        ),
+      );
+      // Remove notification from local state
+      notifications.removeWhere((n) => n.id == notificationId);
+      notifications.refresh();
+      kSnackBar(
+        title: 'Success',
+        message: 'Notification deleted successfully',
+      );
+    } catch (e) {
+      kSnackBar(
+        title: 'Warning',
+        message: 'Failed to delete notification: $e',
+        bgColor: AppColors.snackBarWarning,
+      );
+    }
+  }
+
+  Future<void> deleteAllNotifications() async {
+    try {
+      final response = await BaseClient.deleteRequest(
+        api: Api.deleteAllNotifications,
+        headers: BaseClient.authHeaders(),
+      );
+      await BaseClient.handleResponse(
+        response,
+        retryRequest: () => BaseClient.deleteRequest(
+          api: Api.deleteAllNotifications,
+          headers: BaseClient.authHeaders(),
+        ),
+      );
+      // Clear all notifications
+      notifications.clear();
+      notifications.refresh();
+      kSnackBar(
+        title: 'Success',
+        message: 'All notifications deleted successfully',
+      );
+    } catch (e) {
+      kSnackBar(
+        title: 'Warning',
+        message: 'Failed to delete all notifications: $e',
+        bgColor: AppColors.snackBarWarning,
+      );
+    }
+  }
+}
 
 class NotificationCommunityView extends GetView<NotificationController> {
   const NotificationCommunityView({super.key});
@@ -175,6 +230,51 @@ class NotificationCommunityView extends GetView<NotificationController> {
           style: h2.copyWith(fontSize: 20, color: AppColors.textColor),
         ),
         centerTitle: true,
+        actions: [
+          GestureDetector(
+            onTap: () {
+              // Show confirmation dialog for deleting all notifications
+              showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    title: Text(
+                      'Delete All Notifications',
+                      style: h2.copyWith(fontSize: 18, color: AppColors.textColor),
+                    ),
+                    content: Text(
+                      'Are you sure you want to delete all notifications? This action cannot be undone.',
+                      style: h4.copyWith(fontSize: 16, color: AppColors.textColor),
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: Text(
+                          'Cancel',
+                          style: h4.copyWith(fontSize: 16, color: AppColors.textColor),
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () async {
+                          Navigator.pop(context);
+                          await controller.deleteAllNotifications();
+                        },
+                        child: Text(
+                          'Delete',
+                          style: h4.copyWith(fontSize: 16, color: Colors.red),
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              );
+            },
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Icon(Icons.delete, color: Colors.black),
+            ),
+          ),
+        ],
       ),
       body: SafeArea(
         child: Padding(
@@ -197,13 +297,13 @@ class NotificationCommunityView extends GetView<NotificationController> {
                   // Navigate to post details
                   Get.to(() => CommentsView(postId: notification.targetId));
                 },
-
                 child: _buildMessageItem(
                   name: notification.userInfo.name,
                   message: _getNotificationMessage(notification.notificationType),
                   time: _formatTime(notification.createdAt),
                   avatar: notification.userInfo.image,
                   isRead: notification.isRead,
+                  onDelete: () => controller.deleteNotification(notification.id),
                 ),
               );
             },
@@ -242,6 +342,7 @@ class NotificationCommunityView extends GetView<NotificationController> {
     required String time,
     required String avatar,
     required bool isRead,
+    required VoidCallback onDelete,
   }) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 12),
@@ -255,7 +356,6 @@ class NotificationCommunityView extends GetView<NotificationController> {
             backgroundImage: NetworkImage(avatar),
           ),
           const SizedBox(width: 12),
-
           // Message Content
           Expanded(
             child: Column(
@@ -304,7 +404,7 @@ class NotificationCommunityView extends GetView<NotificationController> {
                       ],
                       onChanged: (value) {
                         if (value == 'delete_notification') {
-                          // Implement delete functionality
+                          onDelete();
                         }
                       },
                       dropdownStyleData: DropdownStyleData(

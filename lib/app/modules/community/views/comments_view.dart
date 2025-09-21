@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:loan_site/app/modules/community/views/reply_view.dart';
 import 'package:loan_site/app/modules/community/views/share_post_view.dart';
 import 'dart:convert';
+import 'package:speech_to_text/speech_to_text.dart' as stt;
 import '../../../../common/appColors.dart';
 import '../../../../common/customFont.dart';
 import '../../../../common/widgets/community/communityWidgets.dart';
@@ -15,6 +16,8 @@ import '../../../core/services/base_client.dart';
 class CommentsView extends GetView<CommunityController> {
   final int postId;
   final TextEditingController _commentController = TextEditingController();
+  final stt.SpeechToText _speech = stt.SpeechToText(); // Initialize SpeechToText
+  final RxBool _isListening = false.obs; // Track listening state
 
   CommentsView({
     super.key,
@@ -32,6 +35,40 @@ class CommentsView extends GetView<CommunityController> {
       return '${difference.inMinutes}m';
     } else {
       return 'Just now';
+    }
+  }
+
+  // Initialize speech recognition
+  Future<void> _initSpeech() async {
+    bool available = await _speech.initialize(
+      onStatus: (status) {
+        if (status == 'notListening') {
+          _isListening.value = false;
+        }
+      },
+      onError: (error) => print('Speech recognition error: $error'),
+    );
+    if (!available) {
+      Get.snackbar('Error', 'Speech recognition not available');
+    }
+  }
+
+  // Toggle speech recognition
+  void _toggleListening() async {
+    if (!_isListening.value) {
+      await _initSpeech();
+      if (_speech.isAvailable) {
+        _isListening.value = true;
+        _speech.listen(
+          onResult: (result) {
+            _commentController.text = result.recognizedWords;
+          },
+          localeId: 'en_US', // Set desired language
+        );
+      }
+    } else {
+      _isListening.value = false;
+      _speech.stop();
     }
   }
 
@@ -413,11 +450,14 @@ class CommentsView extends GetView<CommunityController> {
                       ),
                     ),
                   ),
-                  GestureDetector(
-                    onTap: (){
-                      // voice to text
-                    },
-                      child: SvgPicture.asset('assets/images/home/mic_icon.svg')),
+                  Obx(() => GestureDetector(
+                    onTap: _toggleListening,
+                    child: SvgPicture.asset(
+                      'assets/images/home/mic_icon.svg',
+                      width: _isListening.value
+                          ? 25 : 20,
+                    ),
+                  )),
                 ],
               ),
             ),
@@ -433,8 +473,10 @@ class CommentsView extends GetView<CommunityController> {
   }
 
   void _addComment() {
-    controller.postComment(postId, _commentController.text);
-    _commentController.clear();
+    if (_commentController.text.trim().isNotEmpty) {
+      controller.postComment(postId, _commentController.text);
+      _commentController.clear();
+    }
   }
 
   Widget _buildActionButton(String svgPath, String count) {

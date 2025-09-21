@@ -76,6 +76,8 @@ class Api {
 
   static const getNotifications = '$baseUrl/notification/get_notification/';
   static markNotificationRead(notification_id) => '$baseUrl/notification/mark_notification_as_read/$notification_id/';
+  static deleteNotification(notification_id) => '$baseUrl/notification/delete_notification/$notification_id/';
+  static const deleteAllNotifications = '$baseUrl/notification/delete_all_notifications/';
   /// chat
 
   static const getActiveUsers = '$baseUrl/chat/active-users/';

@@ -53,6 +53,7 @@ dependencies:
   firebase_messaging: ^16.0.1
   web_socket_channel: ^3.0.3
   file_picker: ^10.3.3
+  speech_to_text: ^7.3.0
 
 dev_dependencies:
   flutter_test:
