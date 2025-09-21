@@ -386,10 +386,6 @@ class CommentsView extends GetView<CommunityController> {
       ),
       child: Row(
         children: [
-          SvgPicture.asset('assets/images/home/cam_icon.svg'),
-          const SizedBox(width: 8),
-          SvgPicture.asset('assets/images/home/image_icon.svg'),
-          const SizedBox(width: 12),
           Expanded(
             child: Container(
               height: 40,
@@ -417,7 +413,11 @@ class CommentsView extends GetView<CommunityController> {
                       ),
                     ),
                   ),
-                  SvgPicture.asset('assets/images/home/mic_icon.svg'),
+                  GestureDetector(
+                    onTap: (){
+                      // voice to text
+                    },
+                      child: SvgPicture.asset('assets/images/home/mic_icon.svg')),
                 ],
               ),
             ),
