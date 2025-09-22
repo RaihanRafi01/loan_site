@@ -216,7 +216,7 @@ class CommunityView extends GetView<CommunityController> {
                     ),
                   ],
                   onChanged: (value) {
-                    // TODO: implement "not interested" API if available
+                    controller.toggleNotInterested(post.id, post.isNotInterestedByUser);
                   },
                   dropdownStyleData: DropdownStyleData(
                     width: 170,

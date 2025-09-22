@@ -55,6 +55,8 @@ class Api {
 
   static fetchPost(post_id) => "$baseUrl/community/posts/$post_id/"; // done
 
+  static notInterestedPost(postId) => '$baseUrl/community/posts/$postId/not-interested/';
+
   /// chat
 
   static const chatAssistant = '$baseUrl/project/ai-assistant/';

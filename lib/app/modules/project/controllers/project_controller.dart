@@ -258,7 +258,7 @@ class ProjectController extends GetxController {
 
 
   // Fetch all projects
-  Future<void> fetchProjects() async {
+  Future<void> fetchProjects({String statusFilter = 'all'}) async {
     try {
       // Make GET request to fetch projects
       final response = await BaseClient.getRequest(
@@ -277,14 +277,22 @@ class ProjectController extends GetxController {
 
       if (data != null) {
         // Map the response to the Project model
-        final List<Project> projectList = (data as List)
+        List<Project> projectList = (data as List)
             .map((json) => Project.fromJson(json))
             .toList();
+
+        // Apply status filter
+        if (statusFilter != 'all') {
+          projectList = projectList
+              .where((project) => project.status.toLowerCase() == statusFilter.toLowerCase())
+              .toList();
+        }
+
         projects.value = projectList; // Update the project list
 
         // Check if the project list is empty
         if (projectList.isEmpty) {
-          Get.snackbar('Info', 'No projects are available');
+          Get.snackbar('Info', 'No $statusFilter projects are available');
         }
       } else {
         // Handle case where data is null

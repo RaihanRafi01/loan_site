@@ -6,7 +6,6 @@ import 'package:loan_site/app/modules/project/views/project_list_view.dart';
 import 'package:loan_site/common/widgets/customButton.dart';
 import 'package:loan_site/common/appColors.dart';
 import 'package:loan_site/common/customFont.dart';
-
 import '../../dashboard/controllers/dashboard_controller.dart';
 
 class OnboardingProjectView extends GetView {
@@ -41,7 +40,7 @@ class OnboardingProjectView extends GetView {
                 CustomButton(
                   label: 'Create a project',
                   svgPath: 'assets/images/project/plus_icon.svg',
-                  onPressed: () => Get.to(CreateProjectView()),
+                  onPressed: () => Get.to(() => const CreateProjectView()),
                 ),
               ],
             )
@@ -58,42 +57,42 @@ class OnboardingProjectView extends GetView {
                   ),
                 ),
                 Padding(
-                  padding: EdgeInsets.symmetric(vertical: 12),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
                   child: CustomButton(
                     bgClr: [AppColors.btnClr1, AppColors.btnClr1],
                     borderColor: AppColors.btnBdr1,
                     label: 'All Projects',
                     svgPath: 'assets/images/project/all_project_icon.svg',
                     txtClr: AppColors.textColor,
-                    onPressed: () => Get.to(ProjectListView()),
+                    onPressed: () => Get.to(() => const ProjectListView(statusFilter: 'all')),
                   ),
                 ),
                 Padding(
-                  padding: EdgeInsets.symmetric(vertical: 12),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
                   child: CustomButton(
                     bgClr: [AppColors.btnClr2, AppColors.btnClr2],
                     borderColor: AppColors.btnBdr2,
                     label: 'Active Projects',
                     svgPath: 'assets/images/project/active_project_icon.svg',
                     txtClr: AppColors.textColor,
-                    onPressed: () => Get.to(ProjectListView()),
+                    onPressed: () => Get.to(() => const ProjectListView(statusFilter: 'active')),
                   ),
                 ),
                 Padding(
-                  padding: EdgeInsets.symmetric(vertical: 12),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
                   child: CustomButton(
                     bgClr: [AppColors.btnClr3, AppColors.btnClr3],
                     borderColor: AppColors.btnBdr3,
                     label: 'Completed Projects',
                     svgPath: 'assets/images/project/tic_image.svg',
                     txtClr: AppColors.textColor,
-                    onPressed: () => Get.to(ProjectListView()),
+                    onPressed: () => Get.to(() => const ProjectListView(statusFilter: 'completed')),
                   ),
                 ),
-                SizedBox(height: 50),
+                const SizedBox(height: 50),
                 CustomButton(
                   label: 'Go Home',
-                  onPressed: () => Get.to(DashboardView()),
+                  onPressed: () => Get.to(() => const DashboardView()),
                 ),
               ],
             ),

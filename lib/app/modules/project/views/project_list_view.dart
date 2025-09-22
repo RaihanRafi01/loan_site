@@ -9,12 +9,13 @@ import '../../../../common/customFont.dart';
 import '../controllers/project_controller.dart';
 
 class ProjectListView extends GetView<ProjectController> {
-  const ProjectListView({super.key});
+  final String statusFilter; // Add statusFilter parameter
+  const ProjectListView({super.key, this.statusFilter = 'all'});
 
   @override
   Widget build(BuildContext context) {
     Get.put(ProjectController());
-    controller.fetchProjects();
+    controller.fetchProjects(statusFilter: statusFilter); // Pass statusFilter
     return Scaffold(
       backgroundColor: AppColors.appBc,
       appBar: AppBar(
@@ -37,7 +38,12 @@ class ProjectListView extends GetView<ProjectController> {
             // Projects List
             Expanded(
               child: Obx(() => controller.projects.isEmpty
-                  ? Center(child: Text('No projects are available',style: h3.copyWith(fontSize: 16)))
+                  ? Center(
+                child: Text(
+                  'No projects are available',
+                  style: h3.copyWith(fontSize: 16),
+                ),
+              )
                   : ListView.builder(
                 itemCount: controller.projects.length,
                 itemBuilder: (context, index) {
@@ -47,7 +53,7 @@ class ProjectListView extends GetView<ProjectController> {
                     child: _buildProjectCard(
                       title: project.name,
                       onTap: () {
-                        Get.to(ProjectView(projectId: project.id,));
+                        Get.to(() => ProjectView(projectId: project.id));
                       },
                     ),
                   );
@@ -61,7 +67,7 @@ class ProjectListView extends GetView<ProjectController> {
               label: 'Create Project',
               svgPath: 'assets/images/project/plus_icon.svg',
               onPressed: () {
-                Get.to(CreateProjectView());
+                Get.to(() => const CreateProjectView());
               },
             ),
             const SizedBox(height: 16),

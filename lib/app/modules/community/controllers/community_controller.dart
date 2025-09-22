@@ -91,7 +91,7 @@ class Post {
   final int sharesCount;
   bool isLikedByUser;
   final bool isSharedByUser;
-  final bool isNotInterestedByUser;
+  bool isNotInterestedByUser;
   final List<Comment> comments;
   final String createdAt;
   final String updatedAt;
@@ -671,6 +671,73 @@ class CommunityController extends GetxController {
       }
     }
     return null;
+  }
+
+
+  Future<void> toggleNotInterested(int postId, bool currentlyNotInterested) async {
+    // Find and update posts optimistically
+    final postInAll = allPosts.firstWhereOrNull((p) => p.id == postId);
+    final postInMy = myPosts.firstWhereOrNull((p) => p.id == postId);
+
+    if (postInAll == null && postInMy == null) return;
+
+    // Backup old values for rollback
+    final oldNotInterestedAll = postInAll?.isNotInterestedByUser ?? false;
+    final oldNotInterestedMy = postInMy?.isNotInterestedByUser ?? false;
+
+    // Optimistically update
+    if (postInAll != null) {
+      postInAll.isNotInterestedByUser = !currentlyNotInterested;
+    }
+    if (postInMy != null) {
+      postInMy.isNotInterestedByUser = !currentlyNotInterested;
+    }
+    allPosts.refresh();
+    myPosts.refresh();
+
+    try {
+      final apiUrl = Api.notInterestedPost(postId.toString());
+      final response = await BaseClient.postRequest(
+        api: apiUrl,
+        body: jsonEncode({}),
+        headers: BaseClient.authHeaders(),
+      );
+
+      final ok = response.statusCode == 200 || response.statusCode == 201;
+      if (!ok) {
+        // Rollback on failure
+        if (postInAll != null) {
+          postInAll.isNotInterestedByUser = oldNotInterestedAll;
+        }
+        if (postInMy != null) {
+          postInMy.isNotInterestedByUser = oldNotInterestedMy;
+        }
+        allPosts.refresh();
+        myPosts.refresh();
+        _showWarning('Failed to toggle not interested: ${response.reasonPhrase}');
+        return;
+      }
+
+      // On success, optionally remove the post if now marked as not interested
+      if (!currentlyNotInterested) {  // Meaning it was false, now true (not interested)
+        allPosts.removeWhere((p) => p.id == postId);
+        myPosts.removeWhere((p) => p.id == postId);
+        allPosts.refresh();
+        myPosts.refresh();
+      }
+    } catch (e) {
+      // Rollback on error
+      if (postInAll != null) {
+        postInAll.isNotInterestedByUser = oldNotInterestedAll;
+      }
+      if (postInMy != null) {
+        postInMy.isNotInterestedByUser = oldNotInterestedMy;
+      }
+      allPosts.refresh();
+      myPosts.refresh();
+      print('Toggle not interested error: $e');
+      _showWarning('Failed to toggle not interested. Please try again.');
+    }
   }
 
   @override
