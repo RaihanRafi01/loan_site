@@ -55,7 +55,10 @@ class Api {
 
   static fetchPost(post_id) => "$baseUrl/community/posts/$post_id/"; // done
 
-  static notInterestedPost(postId) => '$baseUrl/community/posts/$postId/not-interested/';
+  static String notInterestedPost(String postId) => '$baseUrl/community/posts/$postId/not-interested/';
+
+  static String updatePost(String postId) => '$baseUrl/community/posts/$postId/';
+
 
   /// chat
 

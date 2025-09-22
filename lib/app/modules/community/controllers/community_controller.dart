@@ -51,8 +51,8 @@ class Comment {
     this.parent,
     RxList<Comment>? replies,
   }) : likesCount = likesCount.obs,
-        isLikedByUser = isLikedByUser.obs,
-        replies = replies ?? RxList<Comment>();
+       isLikedByUser = isLikedByUser.obs,
+       replies = replies ?? RxList<Comment>();
 
   factory Comment.fromJson(Map<String, dynamic> json) {
     var replies = (json['replies'] as List? ?? [])
@@ -78,13 +78,29 @@ class Comment {
   }
 }
 
+class ImageData {
+  final int id;
+  final int post;
+  final String image;
+
+  ImageData({required this.id, required this.post, required this.image});
+
+  factory ImageData.fromJson(Map<String, dynamic> json) {
+    return ImageData(
+      id: json['id'] ?? 0,
+      post: json['post'] ?? 0,
+      image: json['image'] ?? '',
+    );
+  }
+}
+
 class Post {
   final int id;
   final User user;
-  final String title;
-  final String content;
-  final List<ImageData> images;
-  final String? tags;
+  String title;
+  String content;
+  List<ImageData> images;
+  String? tags;
   int likeCount;
   int commentCount;
   int likesCount;
@@ -116,53 +132,38 @@ class Post {
   });
 
   factory Post.fromJson(Map<String, dynamic> json) {
-    List<dynamic> commentJsons = json['comments'] as List;
+    List<dynamic> commentJsons = json['comments'] as List? ?? [];
     List<Comment> topLevelComments = commentJsons
         .where((cJson) => cJson['parent'] == null)
         .map((cJson) => Comment.fromJson(cJson))
         .toList();
 
-    List<ImageData> images = (json['images'] as List)
-        .map((imageData) => ImageData.fromJson(imageData))
+    List<ImageData> images = (json['images'] as List? ?? [])
+        .where((imageData) => imageData != null && imageData is Map<String, dynamic>)
+        .map((imageData) => ImageData.fromJson(imageData as Map<String, dynamic>))
         .toList();
 
+    final user = json['user'] != null
+        ? User.fromJson(json['user'])
+        : User(id: 0, email: '', name: null, image: null);
+
     return Post(
-      id: json['id'],
-      user: User.fromJson(json['user']),
-      title: json['title'],
-      content: json['content'],
+      id: json['id'] ?? 0,
+      user: user,
+      title: json['title'] ?? '',
+      content: json['content'] ?? '',
       images: images,
       tags: json['tags'],
-      likeCount: json['like_count'],
-      commentCount: json['comment_count'],
-      likesCount: json['likes_count'],
-      sharesCount: json['shares_count'],
-      isLikedByUser: json['is_liked_by_user'],
-      isSharedByUser: json['is_shared_by_user'],
-      isNotInterestedByUser: json['is_not_interested_by_user'],
+      likeCount: json['like_count'] ?? 0,
+      commentCount: json['comment_count'] ?? 0,
+      likesCount: json['likes_count'] ?? 0,
+      sharesCount: json['shares_count'] ?? 0,
+      isLikedByUser: json['is_liked_by_user'] ?? false,
+      isSharedByUser: json['is_shared_by_user'] ?? false,
+      isNotInterestedByUser: json['is_not_interested_by_user'] ?? false,
       comments: topLevelComments,
-      createdAt: json['created_at'],
-      updatedAt: json['updated_at'],
-    );
-  }
-}
-
-class ImageData {
-  final int id;
-  final int post;
-  final String image;
-
-  ImageData({
-    required this.id,
-    required this.post,
-    required this.image,
-  });
-
-  factory ImageData.fromJson(Map<String, dynamic> json) {
-    return ImageData(
-      id: json['id'],
-      post: json['post'],
-      image: json['image'],
+      createdAt: json['created_at'] ?? '',
+      updatedAt: json['updated_at'] ?? '',
     );
   }
 }
@@ -222,7 +223,8 @@ class CommunityController extends GetxController {
   }
 
   Future<void> fetchAllPosts({bool isLoadMore = false}) async {
-    if (isLoadMore && (!hasMoreAllPosts.value || isLoadingMoreAllPosts.value)) return;
+    if (isLoadMore && (!hasMoreAllPosts.value || isLoadingMoreAllPosts.value))
+      return;
 
     try {
       isLoadingMoreAllPosts.value = true;
@@ -236,13 +238,16 @@ class CommunityController extends GetxController {
         final data = jsonDecode(response.body);
         if (data is Map<String, dynamic>) {
           final List<dynamic> list = data['results'] ?? [];
-          final newPosts = list.map((e) {
-            if (e is Map<String, dynamic>) {
-              return Post.fromJson(e);
-            }
-            print('Invalid item found: $e');
-            return null;
-          }).whereType<Post>().toList();
+          final newPosts = list
+              .map((e) {
+                if (e is Map<String, dynamic>) {
+                  return Post.fromJson(e);
+                }
+                print('Invalid item found: $e');
+                return null;
+              })
+              .whereType<Post>()
+              .toList();
 
           if (isLoadMore) {
             allPosts.addAll(newPosts);
@@ -275,7 +280,8 @@ class CommunityController extends GetxController {
   }
 
   Future<void> fetchMyPosts({bool isLoadMore = false}) async {
-    if (isLoadMore && (!hasMoreMyPosts.value || isLoadingMoreMyPosts.value)) return;
+    if (isLoadMore && (!hasMoreMyPosts.value || isLoadingMoreMyPosts.value))
+      return;
 
     try {
       isLoadingMoreMyPosts.value = true;
@@ -288,13 +294,16 @@ class CommunityController extends GetxController {
         final data = jsonDecode(response.body);
         if (data is Map<String, dynamic>) {
           final List<dynamic> list = data['results'] ?? [];
-          final newPosts = list.map((e) {
-            if (e is Map<String, dynamic>) {
-              return Post.fromJson(e);
-            }
-            print('Invalid item found: $e');
-            return null;
-          }).whereType<Post>().toList();
+          final newPosts = list
+              .map((e) {
+                if (e is Map<String, dynamic>) {
+                  return Post.fromJson(e);
+                }
+                print('Invalid item found: $e');
+                return null;
+              })
+              .whereType<Post>()
+              .toList();
 
           if (isLoadMore) {
             myPosts.addAll(newPosts);
@@ -415,9 +424,74 @@ class CommunityController extends GetxController {
     }
   }
 
-  void applyMyPostSort(String filter) {
+  Future<void> toggleNotInterested(
+    int postId,
+    bool currentlyNotInterested,
+  ) async {
+    final postInAll = allPosts.firstWhereOrNull((p) => p.id == postId);
+    final postInMy = myPosts.firstWhereOrNull((p) => p.id == postId);
+
+    if (postInAll == null && postInMy == null) return;
+
+    final oldNotInterestedAll = postInAll?.isNotInterestedByUser ?? false;
+    final oldNotInterestedMy = postInMy?.isNotInterestedByUser ?? false;
+
+    if (postInAll != null) {
+      postInAll.isNotInterestedByUser = !currentlyNotInterested;
+    }
+    if (postInMy != null) {
+      postInMy.isNotInterestedByUser = !currentlyNotInterested;
+    }
+    allPosts.refresh();
+    myPosts.refresh();
+
+    try {
+      final apiUrl = Api.notInterestedPost(postId.toString());
+      final response = await BaseClient.postRequest(
+        api: apiUrl,
+        body: jsonEncode({}),
+        headers: BaseClient.authHeaders(),
+      );
+
+      final ok = response.statusCode == 200 || response.statusCode == 201;
+      if (!ok) {
+        if (postInAll != null) {
+          postInAll.isNotInterestedByUser = oldNotInterestedAll;
+        }
+        if (postInMy != null) {
+          postInMy.isNotInterestedByUser = oldNotInterestedMy;
+        }
+        allPosts.refresh();
+        myPosts.refresh();
+        _showWarning(
+          'Failed to toggle not interested: ${response.reasonPhrase}',
+        );
+        return;
+      }
+
+      if (!currentlyNotInterested) {
+        allPosts.removeWhere((p) => p.id == postId);
+        myPosts.removeWhere((p) => p.id == postId);
+        allPosts.refresh();
+        myPosts.refresh();
+      }
+    } catch (e) {
+      if (postInAll != null) {
+        postInAll.isNotInterestedByUser = oldNotInterestedAll;
+      }
+      if (postInMy != null) {
+        postInMy.isNotInterestedByUser = oldNotInterestedMy;
+      }
+      allPosts.refresh();
+      myPosts.refresh();
+      print('Toggle not interested error: $e');
+      _showWarning('Failed to toggle not interested. Please try again.');
+    }
+  }
+
+  Future<void> applyMyPostSort(String filter) async {
     selectedMyPostFilter.value = filter;
-    if (myPosts.isEmpty) return;
+    if (myPosts.isEmpty) return Future.value();
 
     int _safeCompare(String a, String b) {
       final da = DateTime.tryParse(a);
@@ -439,6 +513,7 @@ class CommunityController extends GetxController {
         break;
     }
     myPosts.value = list;
+    return Future.value(); // Explicit return for Future<void>
   }
 
   void _showWarning(String message, {String title = 'Warning'}) {
@@ -501,6 +576,125 @@ class CommunityController extends GetxController {
     }
   }
 
+  Future<void> updatePost(
+      int postId,
+      String title,
+      String content,
+      List<ImageData> existingImages,
+      List<File> newImages,
+      List<int> removedImageIds,
+      ) async {
+    if (title.isEmpty && content.isEmpty && existingImages.isEmpty && newImages.isEmpty) {
+      _showWarning('Please provide some content or images to update.');
+      return;
+    }
+
+    isLoading.value = true;
+    try {
+      var uri = Uri.parse('${Api.baseUrl}/community/posts/$postId/');
+      var request = http.MultipartRequest('PATCH', uri);
+      request.headers.addAll(await BaseClient.authHeaders());
+
+      // Add title and content
+      request.fields['title'] = title;
+      request.fields['content'] = content;
+
+      // Add new images
+      for (var file in newImages) {
+        debugPrint('Uploading image: ${file.path}');
+        var multipartFile = await http.MultipartFile.fromPath('images', file.path);
+        request.files.add(multipartFile);
+      }
+
+      // Send removed image IDs if any
+      if (removedImageIds.isNotEmpty) {
+        debugPrint('Removed image IDs: $removedImageIds');
+        request.fields['removed_images'] = jsonEncode(removedImageIds);
+      }
+
+      var streamedResponse = await request.send();
+      var response = await http.Response.fromStream(streamedResponse);
+
+      debugPrint("API Hit: $uri");
+      debugPrint('💥💥💥💥💥💥💥💥💥💥 🚀 ➤➤➤ Code: ${response.statusCode}');
+      debugPrint('💥💥💥💥💥💥💥💥💥💥 🚀 ➤➤➤ Response: ${response.body}');
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        // Parse the response
+        final responseData = jsonDecode(response.body);
+
+        // Find the post in local lists
+        final postInAll = allPosts.firstWhereOrNull((p) => p.id == postId);
+        final postInMy = myPosts.firstWhereOrNull((p) => p.id == postId);
+
+        // Optimistic update: Append new images if response images are invalid
+        List<ImageData> newImageData = [];
+        if (newImages.isNotEmpty && (responseData['images'] == null || (responseData['images'] as List).every((img) => img == null))) {
+          newImageData = newImages.asMap().entries.map((entry) {
+            final index = entry.key;
+            final file = entry.value;
+            // Placeholder URL (replace with actual backend URL when fixed)
+            return ImageData(
+              id: DateTime.now().millisecondsSinceEpoch + index,
+              post: postId,
+              image: 'pending_upload_${file.path.split('/').last}', // Temporary placeholder
+            );
+          }).toList();
+          debugPrint('Optimistic append: Added ${newImageData.length} new images');
+        }
+
+        // Update posts
+        if (postInAll != null) {
+          postInAll.title = responseData['title'] ?? postInAll.title;
+          postInAll.content = responseData['content'] ?? postInAll.content;
+          postInAll.tags = responseData['tags'] ?? postInAll.tags;
+          if (responseData['images'] != null && !(responseData['images'] as List).every((img) => img == null)) {
+            final imageList = (responseData['images'] as List)
+                .where((imageData) => imageData != null && imageData is Map<String, dynamic>)
+                .map((imageData) => ImageData.fromJson(imageData as Map<String, dynamic>))
+                .toList();
+            postInAll.images = imageList;
+            debugPrint('Updated images for postInAll: ${imageList.map((img) => img.image).toList()}');
+          } else if (newImageData.isNotEmpty) {
+            postInAll.images.addAll(newImageData);
+            debugPrint('Applied optimistic images for postInAll: ${postInAll.images.map((img) => img.image).toList()}');
+          }
+        }
+        if (postInMy != null) {
+          postInMy.title = responseData['title'] ?? postInMy.title;
+          postInMy.content = responseData['content'] ?? postInMy.content;
+          postInMy.tags = responseData['tags'] ?? postInMy.tags;
+          if (responseData['images'] != null && !(responseData['images'] as List).every((img) => img == null)) {
+            final imageList = (responseData['images'] as List)
+                .where((imageData) => imageData != null && imageData is Map<String, dynamic>)
+                .map((imageData) => ImageData.fromJson(imageData as Map<String, dynamic>))
+                .toList();
+            postInMy.images = imageList;
+            debugPrint('Updated images for postInMy: ${imageList.map((img) => img.image).toList()}');
+          } else if (newImageData.isNotEmpty) {
+            postInMy.images.addAll(newImageData);
+            debugPrint('Applied optimistic images for postInMy: ${postInMy.images.map((img) => img.image).toList()}');
+          }
+        }
+
+        // Refresh posts from server to sync with actual data
+        await fetchMyPosts();
+        allPosts.refresh();
+        myPosts.refresh();
+        Get.snackbar('Success', 'Post updated successfully!');
+        Get.back();
+        pickedMedia.clear();
+      } else {
+        _showWarning('Failed to update post: ${response.reasonPhrase}');
+      }
+    } catch (e) {
+      print('Update post error: $e');
+      _showWarning('Failed to update post. Please try again.');
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
   Future<void> toggleLike(int postId, bool currentlyLiked) async {
     final post = myPosts.firstWhereOrNull((p) => p.id == postId);
     if (post == null) return;
@@ -546,9 +740,21 @@ class CommunityController extends GetxController {
         comment.isLikedByUser.value = !currentlyLiked;
         comment.likesCount.value += currentlyLiked ? -1 : 1;
 
-        // Refresh the relevant post to update the UI
-        final post = allPosts.firstWhereOrNull((p) => p.comments.any((c) => c.id == commentId || c.replies.any((r) => r.id == commentId))) ??
-            myPosts.firstWhereOrNull((p) => p.comments.any((c) => c.id == commentId || c.replies.any((r) => r.id == commentId)));
+        final post =
+            allPosts.firstWhereOrNull(
+              (p) => p.comments.any(
+                (c) =>
+                    c.id == commentId ||
+                    c.replies.any((r) => r.id == commentId),
+              ),
+            ) ??
+            myPosts.firstWhereOrNull(
+              (p) => p.comments.any(
+                (c) =>
+                    c.id == commentId ||
+                    c.replies.any((r) => r.id == commentId),
+              ),
+            );
         if (post != null) {
           allPosts.refresh();
           myPosts.refresh();
@@ -581,7 +787,8 @@ class CommunityController extends GetxController {
       return;
     }
 
-    final post = allPosts.firstWhereOrNull((p) => p.id == postId) ??
+    final post =
+        allPosts.firstWhereOrNull((p) => p.id == postId) ??
         myPosts.firstWhereOrNull((p) => p.id == postId);
     if (post == null) return;
 
@@ -620,7 +827,6 @@ class CommunityController extends GetxController {
     final parentComment = _findCommentById(commentId);
     if (parentComment == null) return;
 
-    // Check if the parent comment is a top-level comment or a reply
     bool isTopLevelComment = parentComment.parent == null;
 
     if (!isTopLevelComment && parentComment.replies.isNotEmpty) {
@@ -641,14 +847,27 @@ class CommunityController extends GetxController {
         final newReplyData = jsonDecode(response.body);
         final newReply = Comment.fromJson(newReplyData);
         parentComment.replies.add(newReply);
-        // Refresh the relevant post to update the UI
-        final post = allPosts.firstWhereOrNull((p) => p.comments.any((c) => c.id == commentId || c.replies.any((r) => r.id == commentId))) ??
-            myPosts.firstWhereOrNull((p) => p.comments.any((c) => c.id == commentId || c.replies.any((r) => r.id == commentId)));
+        final post =
+            allPosts.firstWhereOrNull(
+              (p) => p.comments.any(
+                (c) =>
+                    c.id == commentId ||
+                    c.replies.any((r) => r.id == commentId),
+              ),
+            ) ??
+            myPosts.firstWhereOrNull(
+              (p) => p.comments.any(
+                (c) =>
+                    c.id == commentId ||
+                    c.replies.any((r) => r.id == commentId),
+              ),
+            );
         if (post != null) {
           allPosts.refresh();
           myPosts.refresh();
         }
-        if (currentComment.value != null && currentComment.value!.id == commentId) {
+        if (currentComment.value != null &&
+            currentComment.value!.id == commentId) {
           currentReplies.add(newReply);
         }
         Get.snackbar('Success', 'Reply added successfully!');
@@ -671,73 +890,6 @@ class CommunityController extends GetxController {
       }
     }
     return null;
-  }
-
-
-  Future<void> toggleNotInterested(int postId, bool currentlyNotInterested) async {
-    // Find and update posts optimistically
-    final postInAll = allPosts.firstWhereOrNull((p) => p.id == postId);
-    final postInMy = myPosts.firstWhereOrNull((p) => p.id == postId);
-
-    if (postInAll == null && postInMy == null) return;
-
-    // Backup old values for rollback
-    final oldNotInterestedAll = postInAll?.isNotInterestedByUser ?? false;
-    final oldNotInterestedMy = postInMy?.isNotInterestedByUser ?? false;
-
-    // Optimistically update
-    if (postInAll != null) {
-      postInAll.isNotInterestedByUser = !currentlyNotInterested;
-    }
-    if (postInMy != null) {
-      postInMy.isNotInterestedByUser = !currentlyNotInterested;
-    }
-    allPosts.refresh();
-    myPosts.refresh();
-
-    try {
-      final apiUrl = Api.notInterestedPost(postId.toString());
-      final response = await BaseClient.postRequest(
-        api: apiUrl,
-        body: jsonEncode({}),
-        headers: BaseClient.authHeaders(),
-      );
-
-      final ok = response.statusCode == 200 || response.statusCode == 201;
-      if (!ok) {
-        // Rollback on failure
-        if (postInAll != null) {
-          postInAll.isNotInterestedByUser = oldNotInterestedAll;
-        }
-        if (postInMy != null) {
-          postInMy.isNotInterestedByUser = oldNotInterestedMy;
-        }
-        allPosts.refresh();
-        myPosts.refresh();
-        _showWarning('Failed to toggle not interested: ${response.reasonPhrase}');
-        return;
-      }
-
-      // On success, optionally remove the post if now marked as not interested
-      if (!currentlyNotInterested) {  // Meaning it was false, now true (not interested)
-        allPosts.removeWhere((p) => p.id == postId);
-        myPosts.removeWhere((p) => p.id == postId);
-        allPosts.refresh();
-        myPosts.refresh();
-      }
-    } catch (e) {
-      // Rollback on error
-      if (postInAll != null) {
-        postInAll.isNotInterestedByUser = oldNotInterestedAll;
-      }
-      if (postInMy != null) {
-        postInMy.isNotInterestedByUser = oldNotInterestedMy;
-      }
-      allPosts.refresh();
-      myPosts.refresh();
-      print('Toggle not interested error: $e');
-      _showWarning('Failed to toggle not interested. Please try again.');
-    }
   }
 
   @override

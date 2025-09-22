@@ -360,8 +360,8 @@ class HomeView extends GetView<HomeController> {
                                     if (ongoingMilestone != null) {
                                       // Assuming a method exists in the controller to handle completion
                                       // controller.completeCurrentMilestone();
-                                      Get.to(StartMilestoneView());
-                                      //Get.to(UploadPhotoView());
+                                      //Get.to(StartMilestoneView());
+                                      Get.to(UploadPhotoView());
                                     } else {
                                       Get.to(StartMilestoneView());
                                     }

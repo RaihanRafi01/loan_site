@@ -9,6 +9,7 @@ import '../../../../common/customFont.dart';
 import '../../../../common/widgets/community/communityWidgets.dart';
 import '../../dashboard/controllers/dashboard_controller.dart';
 import '../controllers/community_controller.dart';
+import 'editPost_view.dart';
 
 class OwnProfileView extends GetView<CommunityController> {
   const OwnProfileView({super.key});
@@ -17,11 +18,12 @@ class OwnProfileView extends GetView<CommunityController> {
   Widget build(BuildContext context) {
     Get.put(CommunityController());
     final ScrollController scrollController = ScrollController();
-    final DashboardController dashboardController = Get.find<DashboardController>();
+    final DashboardController dashboardController =
+        Get.find<DashboardController>();
 
     scrollController.addListener(() {
       if (scrollController.position.pixels >=
-          scrollController.position.maxScrollExtent - 200 &&
+              scrollController.position.maxScrollExtent - 200 &&
           !controller.isLoadingMoreMyPosts.value &&
           controller.hasMoreMyPosts.value) {
         controller.fetchMyPosts(isLoadMore: true);
@@ -33,57 +35,69 @@ class OwnProfileView extends GetView<CommunityController> {
       body: SafeArea(
         child: Column(
           children: [
-            Obx(() => Padding(
-              padding: const EdgeInsets.all(12),
-              child: Row(
-                children: [
-                  CircleAvatar(
-                    radius: 40,
-                    backgroundImage: dashboardController.profileImageUrl.value != null &&
-                        dashboardController.profileImageUrl.value.isNotEmpty
-                        ? NetworkImage(dashboardController.profileImageUrl.value)
-                        : const AssetImage('assets/images/community/default_user.png') as ImageProvider,
-                    onBackgroundImageError: (_, __) =>
-                    const AssetImage('assets/images/community/default_user.png'),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Hello ${dashboardController.name ?? 'User'}!',
-                          style: h2.copyWith(
-                            fontSize: 24,
-                            color: AppColors.textColor,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          controller.currentUser.value?.email ?? '',
-                          style: h4.copyWith(
-                            fontSize: 16,
-                            color: AppColors.blurtext4,
-                          ),
-                        ),
-                      ],
+            Obx(
+              () => Padding(
+                padding: const EdgeInsets.all(12),
+                child: Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 40,
+                      backgroundImage:
+                          dashboardController.profileImageUrl.value != null &&
+                              dashboardController
+                                  .profileImageUrl
+                                  .value
+                                  .isNotEmpty
+                          ? NetworkImage(
+                              dashboardController.profileImageUrl.value,
+                            )
+                          : const AssetImage(
+                                  'assets/images/community/default_user.png',
+                                )
+                                as ImageProvider,
+                      onBackgroundImageError: (_, __) => const AssetImage(
+                        'assets/images/community/default_user.png',
+                      ),
                     ),
-                  ),
-                  CustomButton(
-                    fontSize: 14,
-                    width: 120,
-                    height: 36,
-                    label: 'Create Post',
-                    onPressed: () {
-                      Get.to(const CreatePostView());
-                    },
-                    bgClr: [AppColors.cardSky, AppColors.cardSky],
-                    txtClr: AppColors.appColor2,
-                    svgPath: 'assets/images/community/plus_icon_blue.svg',
-                  ),
-                ],
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Hello ${dashboardController.name ?? 'User'}!',
+                            style: h2.copyWith(
+                              fontSize: 24,
+                              color: AppColors.textColor,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            controller.currentUser.value?.email ?? '',
+                            style: h4.copyWith(
+                              fontSize: 16,
+                              color: AppColors.blurtext4,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    CustomButton(
+                      fontSize: 14,
+                      width: 120,
+                      height: 36,
+                      label: 'Create Post',
+                      onPressed: () {
+                        Get.to(const CreatePostView());
+                      },
+                      bgClr: [AppColors.cardSky, AppColors.cardSky],
+                      txtClr: AppColors.appColor2,
+                      svgPath: 'assets/images/community/plus_icon_blue.svg',
+                    ),
+                  ],
+                ),
               ),
-            )),
+            ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Divider(color: AppColors.dividerClr2),
@@ -107,21 +121,32 @@ class OwnProfileView extends GetView<CommunityController> {
                         color: AppColors.cardSky,
                         borderRadius: BorderRadius.circular(32),
                       ),
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
                       child: Row(
                         children: [
-                          SvgPicture.asset('assets/images/community/tic_blue.svg'),
+                          SvgPicture.asset(
+                            'assets/images/community/tic_blue.svg',
+                          ),
                           const SizedBox(width: 8),
-                          Obx(() => Text(
-                            controller.selectedMyPostFilter.value == 'filter_all'
-                                ? 'All'
-                                : controller.selectedMyPostFilter.value == 'filter_new'
-                                ? 'Newest'
-                                : 'Oldest',
-                            style: h4.copyWith(color: AppColors.appColor2),
-                          )),
+                          Obx(
+                            () => Text(
+                              controller.selectedMyPostFilter.value ==
+                                      'filter_all'
+                                  ? 'All'
+                                  : controller.selectedMyPostFilter.value ==
+                                        'filter_new'
+                                  ? 'Newest'
+                                  : 'Oldest',
+                              style: h4.copyWith(color: AppColors.appColor2),
+                            ),
+                          ),
                           const SizedBox(width: 8),
-                          SvgPicture.asset('assets/images/community/filter_icon.svg'),
+                          SvgPicture.asset(
+                            'assets/images/community/filter_icon.svg',
+                          ),
                         ],
                       ),
                     ),
@@ -130,7 +155,9 @@ class OwnProfileView extends GetView<CommunityController> {
                         value: 'filter_all',
                         child: Row(
                           children: [
-                            SvgPicture.asset('assets/images/community/tic_icon.svg'),
+                            SvgPicture.asset(
+                              'assets/images/community/tic_icon.svg',
+                            ),
                             const SizedBox(width: 8),
                             Text(
                               'All',
@@ -206,18 +233,17 @@ class OwnProfileView extends GetView<CommunityController> {
                   return Center(
                     child: Text(
                       'No posts found',
-                      style: h4.copyWith(
-                        fontSize: 16,
-                        color: AppColors.gray12,
-                      ),
+                      style: h4.copyWith(fontSize: 16, color: AppColors.gray12),
                     ),
                   );
                 }
                 return ListView.builder(
                   controller: scrollController,
-                  itemCount: posts.length +
+                  itemCount:
+                      posts.length +
                       (posts.isNotEmpty &&
-                          (controller.isLoadingMoreMyPosts.value || controller.hasMoreMyPosts.value)
+                              (controller.isLoadingMoreMyPosts.value ||
+                                  controller.hasMoreMyPosts.value)
                           ? 1
                           : 0),
                   itemBuilder: (context, index) {
@@ -228,22 +254,28 @@ class OwnProfileView extends GetView<CommunityController> {
                           child: controller.isLoadingMoreMyPosts.value
                               ? const CircularProgressIndicator()
                               : Text(
-                            'No more posts',
-                            style: h4.copyWith(
-                              fontSize: 16,
-                              color: AppColors.gray12,
-                            ),
-                          ),
+                                  'No more posts',
+                                  style: h4.copyWith(
+                                    fontSize: 16,
+                                    color: AppColors.gray12,
+                                  ),
+                                ),
                         ),
                       );
                     }
                     final post = posts[index];
                     final username = post.user.name ?? 'User';
                     final userAvatar = post.user.image ?? '';
-                    final timeAgo = getTimeAgo(DateTime.tryParse(post.createdAt));
+                    final timeAgo = getTimeAgo(
+                      DateTime.tryParse(post.createdAt),
+                    );
                     final content = post.content;
                     final images = post.images
-                        .where((imageData) => imageData.image != null && imageData.image.isNotEmpty)
+                        .where(
+                          (imageData) =>
+                              imageData.image != null &&
+                              imageData.image.isNotEmpty,
+                        )
                         .map((imageData) => {'image': imageData.image})
                         .toList();
 
@@ -292,9 +324,13 @@ class OwnProfileView extends GetView<CommunityController> {
                   radius: 20,
                   backgroundImage: userAvatar.isNotEmpty
                       ? NetworkImage(userAvatar)
-                      : const AssetImage('assets/images/community/default_user.png') as ImageProvider,
-                  onBackgroundImageError: (_, __) =>
-                  const AssetImage('assets/images/community/default_user.png'),
+                      : const AssetImage(
+                              'assets/images/community/default_user.png',
+                            )
+                            as ImageProvider,
+                  onBackgroundImageError: (_, __) => const AssetImage(
+                    'assets/images/community/default_user.png',
+                  ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -345,8 +381,7 @@ class OwnProfileView extends GetView<CommunityController> {
                   ],
                   onChanged: (value) {
                     if (value == 'edit_post') {
-                      print('Selected: Edit Post');
-                      // TODO: Implement edit post functionality
+                      Get.to(() => EditPostView(post: post));
                     }
                   },
                   dropdownStyleData: DropdownStyleData(
