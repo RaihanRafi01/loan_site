@@ -68,8 +68,11 @@ class HelpSupportView extends GetView<SettingsController> {
                   ),
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 40),
-                    child: CustomButton(label: 'Send', onPressed: () {}),
-                  ),
+                    child: Obx(
+                          () =>  CustomButton(label: 'Send', isLoading: controller.isLoading.value, onPressed: () {
+                      controller.sendHelpSupport();
+                    }),
+                  )),
                 ],
               ),
             ),

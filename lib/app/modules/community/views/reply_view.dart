@@ -3,12 +3,15 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import '../../../../common/appColors.dart';
 import '../../../../common/customFont.dart';
+import '../../../../common/widgets/community/speechToTextButton.dart';
+import '../../../core/services/stt_service.dart';
 import '../../../core/utils/image_utils.dart';
 import '../controllers/community_controller.dart';
 
 class ReplyView extends GetView<CommunityController> {
   final Comment comment;
   final TextEditingController _replyController = TextEditingController();
+  final SpeechToTextService _speechService = SpeechToTextService();
 
   ReplyView({super.key, required this.comment});
 
@@ -24,6 +27,12 @@ class ReplyView extends GetView<CommunityController> {
     } else {
       return 'Just now';
     }
+  }
+
+  @override
+  void dispose() {
+    _replyController.dispose();
+    _speechService.dispose();
   }
 
   @override
@@ -240,7 +249,10 @@ class ReplyView extends GetView<CommunityController> {
                       ),
                     ),
                   ),
-                  SvgPicture.asset('assets/images/home/mic_icon.svg'),
+                  SpeechToTextButton(
+                    speechService: _speechService,
+                    controller: _replyController,
+                  ),
                 ],
               ),
             ),

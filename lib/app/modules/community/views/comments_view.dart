@@ -4,10 +4,11 @@ import 'package:get/get.dart';
 import 'package:loan_site/app/modules/community/views/reply_view.dart';
 import 'package:loan_site/app/modules/community/views/share_post_view.dart';
 import 'dart:convert';
-import 'package:speech_to_text/speech_to_text.dart' as stt;
 import '../../../../common/appColors.dart';
 import '../../../../common/customFont.dart';
 import '../../../../common/widgets/community/communityWidgets.dart';
+import '../../../../common/widgets/community/speechToTextButton.dart';
+import '../../../core/services/stt_service.dart';
 import '../../../core/utils/image_utils.dart';
 import '../controllers/community_controller.dart';
 import '../../../core/constants/api.dart';
@@ -16,8 +17,7 @@ import '../../../core/services/base_client.dart';
 class CommentsView extends GetView<CommunityController> {
   final int postId;
   final TextEditingController _commentController = TextEditingController();
-  final stt.SpeechToText _speech = stt.SpeechToText(); // Initialize SpeechToText
-  final RxBool _isListening = false.obs; // Track listening state
+  final SpeechToTextService _speechService = SpeechToTextService();
 
   CommentsView({
     super.key,
@@ -38,38 +38,10 @@ class CommentsView extends GetView<CommunityController> {
     }
   }
 
-  // Initialize speech recognition
-  Future<void> _initSpeech() async {
-    bool available = await _speech.initialize(
-      onStatus: (status) {
-        if (status == 'notListening') {
-          _isListening.value = false;
-        }
-      },
-      onError: (error) => print('Speech recognition error: $error'),
-    );
-    if (!available) {
-      Get.snackbar('Error', 'Speech recognition not available');
-    }
-  }
-
-  // Toggle speech recognition
-  void _toggleListening() async {
-    if (!_isListening.value) {
-      await _initSpeech();
-      if (_speech.isAvailable) {
-        _isListening.value = true;
-        _speech.listen(
-          onResult: (result) {
-            _commentController.text = result.recognizedWords;
-          },
-          localeId: 'en_US', // Set desired language
-        );
-      }
-    } else {
-      _isListening.value = false;
-      _speech.stop();
-    }
+  @override
+  void dispose() {
+    _commentController.dispose();
+    _speechService.dispose();
   }
 
   @override
@@ -112,13 +84,10 @@ class CommentsView extends GetView<CommunityController> {
 
           return Column(
             children: [
-              // Original Post
               Container(
                 color: AppColors.appBc,
                 child: _buildOriginalPost(post, username, userAvatar, timeAgo, content, images),
               ),
-
-              // Comments Section Header
               Container(
                 color: AppColors.appBc,
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
@@ -134,8 +103,6 @@ class CommentsView extends GetView<CommunityController> {
                   ],
                 ),
               ),
-
-              // Comments List
               Expanded(
                 child: Obx(() {
                   final updatedPost = controller.allPosts.firstWhereOrNull((p) => p.id == postId) ?? post;
@@ -152,8 +119,6 @@ class CommentsView extends GetView<CommunityController> {
                   );
                 }),
               ),
-
-              // Comment Input
               Padding(
                 padding: const EdgeInsets.only(left: 16, right: 16, bottom: 6),
                 child: _buildCommentInput(),
@@ -171,7 +136,6 @@ class CommentsView extends GetView<CommunityController> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // User Info
           Row(
             children: [
               ImageUtils.buildAvatar(userAvatar),
@@ -197,23 +161,14 @@ class CommentsView extends GetView<CommunityController> {
               ),
             ],
           ),
-
           const SizedBox(height: 12),
-
-          // Caption
           Text(
             content,
             style: h4.copyWith(fontSize: 16, color: AppColors.textColor),
           ),
-
           const SizedBox(height: 12),
-
-          // Images
           buildImageGrid(images),
-
           const SizedBox(height: 16),
-
-          // Action Buttons
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -325,7 +280,6 @@ class CommentsView extends GetView<CommunityController> {
               ),
             ],
           ),
-          // Replies Section
           Obx(() {
             if (comment.replies.isEmpty) return const SizedBox.shrink();
             return Padding(
@@ -448,16 +402,13 @@ class CommentsView extends GetView<CommunityController> {
                           vertical: 12,
                         ),
                       ),
+                      onSubmitted: (_) => _addComment(),
                     ),
                   ),
-                  Obx(() => GestureDetector(
-                    onTap: _toggleListening,
-                    child: SvgPicture.asset(
-                      'assets/images/home/mic_icon.svg',
-                      width: _isListening.value
-                          ? 25 : 20,
-                    ),
-                  )),
+                  SpeechToTextButton(
+                    speechService: _speechService,
+                    controller: _commentController,
+                  ),
                 ],
               ),
             ),

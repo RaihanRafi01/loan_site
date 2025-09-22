@@ -32,7 +32,8 @@ class SettingsController extends GetxController {
   final notificationEnabled = true.obs;
 
   // Reference to DashboardController
-  final DashboardController dashboardController = Get.find<DashboardController>();
+  final DashboardController dashboardController =
+      Get.find<DashboardController>();
 
   @override
   void onInit() {
@@ -51,11 +52,51 @@ class SettingsController extends GetxController {
     phoneController.text = dashboardController.phone.value;
   }
 
+  Future<void> sendHelpSupport() async {
+    var body = jsonEncode({
+      'email': emailController.text,
+      'description': descriptionController.text,
+    });
+    isLoading.value = true;
+    try {
+      final response = await BaseClient.postRequest(
+        api: Api.sendHelp,
+        // Assuming profile API includes notification settings
+        headers: BaseClient.authHeaders(),
+        body: body,
+      );
+      await BaseClient.handleResponse(
+        response,
+        retryRequest: () => BaseClient.postRequest(
+          api: Api.sendHelp,
+          headers: BaseClient.authHeaders(), body: body,
+        ),
+      );
+      if(response.statusCode == 201){
+        descriptionController.clear();
+        kSnackBar(
+          title: 'Success',
+          message: 'Successfully Send',
+        );
+      }
+      true;
+    } catch (e) {
+      kSnackBar(
+        title: 'Warning',
+        message: 'Failed to Send',
+        bgColor: AppColors.snackBarWarning,
+      );
+    }finally {
+      isLoading.value = false;
+    }
+  }
+
   // Fetch initial notification preference from API
   Future<void> fetchNotificationPreference() async {
     try {
       final response = await BaseClient.getRequest(
-        api: Api.getProfile, // Assuming profile API includes notification settings
+        api: Api.getProfile,
+        // Assuming profile API includes notification settings
         headers: BaseClient.authHeaders(),
       );
       final result = await BaseClient.handleResponse(
@@ -65,7 +106,8 @@ class SettingsController extends GetxController {
           headers: BaseClient.authHeaders(),
         ),
       );
-      notificationEnabled.value = result['email_notifications'] ??
+      notificationEnabled.value =
+          result['email_notifications'] ??
           result['push_notifications'] ??
           result['sms_notifications'] ??
           true;
@@ -95,21 +137,25 @@ class SettingsController extends GetxController {
           selectedImage.value = File(pickedFile.path);
         } else {
           kSnackBar(
-              title: 'Warning',
-              message: 'No image selected',
-              bgColor: AppColors.snackBarWarning);
+            title: 'Warning',
+            message: 'No image selected',
+            bgColor: AppColors.snackBarWarning,
+          );
         }
       } catch (e) {
         kSnackBar(
-            title: 'Error',
-            message: 'Failed to pick image: $e',
-            bgColor: AppColors.snackBarWarning);
+          title: 'Error',
+          message: 'Failed to pick image: $e',
+          bgColor: AppColors.snackBarWarning,
+        );
       }
     } else if (status.isDenied || status.isPermanentlyDenied) {
       kSnackBar(
-          title: 'Warning',
-          message: 'Gallery access permission denied. Please enable it in settings.',
-          bgColor: AppColors.snackBarWarning);
+        title: 'Warning',
+        message:
+            'Gallery access permission denied. Please enable it in settings.',
+        bgColor: AppColors.snackBarWarning,
+      );
       if (status.isPermanentlyDenied) {
         await openAppSettings();
       }
@@ -120,9 +166,10 @@ class SettingsController extends GetxController {
   Future<void> updateProfile() async {
     if (nameController.text.isEmpty || phoneController.text.isEmpty) {
       kSnackBar(
-          title: 'Warning',
-          message: 'Name and phone number are required',
-          bgColor: AppColors.snackBarWarning);
+        title: 'Warning',
+        message: 'Name and phone number are required',
+        bgColor: AppColors.snackBarWarning,
+      );
       return;
     }
 
@@ -156,7 +203,11 @@ class SettingsController extends GetxController {
       // Sync local variables with updated DashboardController data
       syncWithDashboard();
     } catch (e) {
-      kSnackBar(title: 'Warning', message: e.toString(), bgColor: AppColors.snackBarWarning);
+      kSnackBar(
+        title: 'Warning',
+        message: e.toString(),
+        bgColor: AppColors.snackBarWarning,
+      );
     } finally {
       isLoading.value = false;
     }
@@ -180,12 +231,20 @@ class SettingsController extends GetxController {
     if (passwordController.text.isEmpty ||
         newPasswordController.text.isEmpty ||
         confirmPasswordController.text.isEmpty) {
-      kSnackBar(title: 'Warning', message: 'All fields are required', bgColor: AppColors.snackBarWarning);
+      kSnackBar(
+        title: 'Warning',
+        message: 'All fields are required',
+        bgColor: AppColors.snackBarWarning,
+      );
       return;
     }
 
     if (newPasswordController.text != confirmPasswordController.text) {
-      kSnackBar(title: 'Warning', message: 'New password and confirm password do not match', bgColor: AppColors.snackBarWarning);
+      kSnackBar(
+        title: 'Warning',
+        message: 'New password and confirm password do not match',
+        bgColor: AppColors.snackBarWarning,
+      );
       return;
     }
 
@@ -214,7 +273,11 @@ class SettingsController extends GetxController {
       newPasswordController.clear();
       confirmPasswordController.clear();
     } catch (e) {
-      kSnackBar(title: 'Warning', message: e.toString(), bgColor: AppColors.snackBarWarning);
+      kSnackBar(
+        title: 'Warning',
+        message: e.toString(),
+        bgColor: AppColors.snackBarWarning,
+      );
     } finally {
       isLoading.value = false;
     }
@@ -229,7 +292,8 @@ class SettingsController extends GetxController {
 
       if (Get.isRegistered<ProjectController>()) {
         final projectController = Get.find<ProjectController>();
-        projectController.reset(); // Assumes reset() is defined in ProjectController
+        projectController
+            .reset(); // Assumes reset() is defined in ProjectController
         Get.delete<ProjectController>();
       }
 
@@ -238,9 +302,7 @@ class SettingsController extends GetxController {
         Get.delete<HomeController>();
       }
 
-      final body = jsonEncode({
-        'refresh_token': refreshToken,
-      });
+      final body = jsonEncode({'refresh_token': refreshToken});
 
       final response = await BaseClient.postRequest(
         api: Api.logout,
@@ -258,12 +320,15 @@ class SettingsController extends GetxController {
       );
 
       if (response.statusCode == 200) {
-        final DashboardController dashboardController = Get.find<DashboardController>();
+        final DashboardController dashboardController =
+            Get.find<DashboardController>();
         dashboardController.selectedIndex.value = 0;
         await BaseClient.clearTokens();
       } else if (response.statusCode == 400) {
         final responseData = jsonDecode(response.body);
-        final message = responseData['error'] ?? 'Something went wrong please try again later';
+        final message =
+            responseData['error'] ??
+            'Something went wrong please try again later';
         kSnackBar(
           title: 'Warning',
           message: message,
@@ -271,10 +336,7 @@ class SettingsController extends GetxController {
         );
       }
 
-      kSnackBar(
-        title: 'Success',
-        message: 'Logged out successfully',
-      );
+      kSnackBar(title: 'Success', message: 'Logged out successfully');
 
       Get.offAll(const LoginScreen());
     } catch (e) {
@@ -300,12 +362,12 @@ class SettingsController extends GetxController {
     final bodyEnable = jsonEncode({
       "email_notifications": true,
       "push_notifications": true,
-      "sms_notifications": true
+      "sms_notifications": true,
     });
     final bodyDisable = jsonEncode({
       "email_notifications": false,
       "push_notifications": false,
-      "sms_notifications": false
+      "sms_notifications": false,
     });
 
     try {
@@ -322,11 +384,12 @@ class SettingsController extends GetxController {
           body: notificationEnabled.value ? bodyDisable : bodyEnable,
         ),
       );
-      notificationEnabled.value = result['email_notifications'] ?? result['push_notifications'] ?? result['sms_notifications'] ?? !notificationEnabled.value;
-      kSnackBar(
-        title: 'Success',
-        message: 'Notification preference updated',
-      );
+      notificationEnabled.value =
+          result['email_notifications'] ??
+          result['push_notifications'] ??
+          result['sms_notifications'] ??
+          !notificationEnabled.value;
+      kSnackBar(title: 'Success', message: 'Notification preference updated');
     } catch (e) {
       kSnackBar(
         title: 'Warning',

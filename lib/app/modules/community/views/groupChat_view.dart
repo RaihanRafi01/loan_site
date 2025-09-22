@@ -12,17 +12,25 @@ import 'package:loan_site/app/modules/community/views/comments_view.dart';
 import 'package:loan_site/common/appColors.dart';
 import 'package:loan_site/common/customFont.dart';
 import 'dart:developer' as developer;
+import '../../../../common/widgets/community/speechToTextButton.dart';
 import '../../../core/constants/api.dart';
+import '../../../core/services/camera_service.dart';
+import '../../../core/services/filePicker_service.dart';
+import '../../../core/services/stt_service.dart';
 import 'groupMembers_view.dart';
 
 const String mediaBaseUrl = Api.baseUrlPicture;
 
 class GroupChatView extends GetView<MessageController> {
+  final TextEditingController textController = TextEditingController();
+  final SpeechToTextService _speechService = SpeechToTextService();
+  final CameraService _cameraService = CameraService();
+  final FilePickerService _filePickerService = FilePickerService();
   final String groupName;
   final int roomId;
   final List<Map<String, dynamic>> participants;
 
-  const GroupChatView({
+  GroupChatView({
     super.key,
     required this.groupName,
     required this.roomId,
@@ -30,12 +38,17 @@ class GroupChatView extends GetView<MessageController> {
   });
 
   @override
+  void dispose() {
+    textController.dispose();
+    _speechService.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final ScrollController scrollController = ScrollController();
     Get.put(
       scrollController,
     ); // Register ScrollController for MessageController
-    final TextEditingController textController = TextEditingController();
 
     // Set room ID and fetch chat history
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -273,131 +286,31 @@ class GroupChatView extends GetView<MessageController> {
                 child: Row(
                   children: [
                     GestureDetector(
-                      onTap: () {
-                        developer.log(
-                          'Camera button tapped',
-                          name: 'GroupChatView',
-                        );
-                        Get.snackbar(
-                          'Info',
-                          'Camera functionality not implemented yet',
-                        );
+                      onTap: () async {
+                        final dataUri = await _cameraService.captureImage();
+                        if (dataUri != null) {
+                          controller.sendMessage(
+                            '',
+                            'image',
+                            file: dataUri,
+                          );
+                        }
                       },
-                      child: SvgPicture.asset(
-                        'assets/images/home/cam_icon.svg',
-                      ),
+                      child: SvgPicture.asset('assets/images/home/cam_icon.svg'),
                     ),
                     const SizedBox(width: 8),
                     GestureDetector(
                       onTap: () async {
-                        developer.log(
-                          'File picker button tapped',
-                          name: 'GroupChatView',
-                        );
-                        PermissionStatus permissionStatus = await Permission
-                            .photos
-                            .request();
-
-                        if (permissionStatus.isGranted) {
-                          try {
-                            final result = await FilePicker.platform.pickFiles(
-                              type: FileType.custom,
-                              allowedExtensions: ['jpg', 'jpeg', 'png', 'pdf'],
-                              allowMultiple: false,
-                            );
-                            if (result != null && result.files.isNotEmpty) {
-                              final file = result.files.single;
-                              String? base64File;
-                              String fileName = file.name;
-
-                              if (file.size > 10 * 1024 * 1024) {
-                                developer.log(
-                                  'File too large: $fileName, size: ${file.size} bytes',
-                                  name: 'GroupChatView',
-                                );
-                                Get.snackbar(
-                                  'Error',
-                                  'File size exceeds 10MB limit',
-                                );
-                                return;
-                              }
-
-                              if (file.bytes != null) {
-                                base64File = base64Encode(file.bytes!);
-                              } else if (file.path != null) {
-                                try {
-                                  final fileContent = await File(
-                                    file.path!,
-                                  ).readAsBytes();
-                                  base64File = base64Encode(fileContent);
-                                } catch (e) {
-                                  developer.log(
-                                    'Failed to read file from path: $fileName, error: $e',
-                                    name: 'GroupChatView',
-                                    error: e,
-                                  );
-                                  Get.snackbar(
-                                    'Error',
-                                    'Failed to read file: $e',
-                                  );
-                                  return;
-                                }
-                              } else {
-                                Get.snackbar(
-                                  'Error',
-                                  'Unable to read file content',
-                                );
-                                return;
-                              }
-
-                              final ext = (file.extension ?? '').toLowerCase();
-                              String mime;
-                              String messageType;
-                              if (ext == 'jpg' || ext == 'jpeg') {
-                                mime = 'image/jpeg';
-                                messageType = 'image';
-                              } else if (ext == 'png') {
-                                mime = 'image/png';
-                                messageType = 'image';
-                              } else if (ext == 'pdf') {
-                                mime = 'application/pdf';
-                                messageType = 'file';
-                              } else {
-                                mime = 'application/octet-stream';
-                                messageType = 'file';
-                              }
-
-                              final dataUri = 'data:$mime;base64,$base64File';
-
-                              controller.sendMessage(
-                                '',
-                                messageType,
-                                file: dataUri,
-                              );
-                            } else {
-                              Get.snackbar('Info', 'No file selected');
-                            }
-                          } catch (e) {
-                            developer.log(
-                              'File picker error: $e',
-                              name: 'GroupChatView',
-                              error: e,
-                            );
-                            Get.snackbar('Error', 'Failed to pick file: $e');
-                          }
-                        } else if (permissionStatus.isPermanentlyDenied) {
-                          Get.snackbar(
-                            'Error',
-                            'Please enable storage permission in settings',
+                        final result = await _filePickerService.pickFile();
+                        if (result != null) {
+                          controller.sendMessage(
+                            '',
+                            result['messageType']!,
+                            file: result['dataUri']!,
                           );
-                          await openAppSettings();
-                        } else {
-                          Get.snackbar('Error', 'Storage permission denied');
                         }
                       },
-                      child: SvgPicture.asset(
-                        'assets/images/home/image_icon.svg',
-                      ),
+                      child: SvgPicture.asset('assets/images/home/image_icon.svg'),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
@@ -427,7 +340,10 @@ class GroupChatView extends GetView<MessageController> {
                                 ),
                               ),
                             ),
-                            SvgPicture.asset('assets/images/home/mic_icon.svg'),
+                            SpeechToTextButton(
+                              speechService: _speechService,
+                              controller: textController,
+                            ),
                           ],
                         ),
                       ),

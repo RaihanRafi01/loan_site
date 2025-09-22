@@ -21,6 +21,7 @@ class Api {
   static const profileUpdate = "$baseUrl/accounts/profile/update/";   // done
   static const getProfile = "$baseUrl/accounts/profile/";   // done
 
+  static const sendHelp = "$baseUrl/setting/get-post-put/support/";   // done
   /// Project
 
   static const createProject = "$baseUrl/project/create/";   // done
