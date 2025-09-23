@@ -3,8 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 import 'package:loan_site/app/modules/project/views/set_milestone_view.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
 
 import '../../../../common/appColors.dart';
 import '../../../../common/customFont.dart';
@@ -12,6 +15,7 @@ import '../../../../common/widgets/customButton.dart';
 import '../../../core/constants/api.dart';
 import '../../../core/services/base_client.dart';
 import '../../../data/models/project.dart';
+import '../../../../common/widgets/custom_snackbar.dart';
 
 class ProjectDetail {
   final int id;
@@ -37,7 +41,7 @@ class ProjectDetail {
   factory ProjectDetail.fromJson(Map<String, dynamic> j) {
     try {
       return ProjectDetail(
-        id: (j['project_id'] as num?)?.toInt() ?? 0, // Handle int
+        id: (j['project_id'] as num?)?.toInt() ?? 0,
         name: j['project_name'] as String? ?? '',
         type: j['project_type'] as String? ?? '',
         manager: j['project_manager'] as String? ?? '',
@@ -203,8 +207,16 @@ class ProjectController extends GetxController {
   final isProjectLoading = false.obs;
   final projectError = Rxn<String>();
   final projectDetail = Rxn<ProjectDetail>();
-  ////////
+
   final activeProjectId = Rxn<int>();
+
+  // Image picker and related observables
+  final ImagePicker _picker = ImagePicker();
+  RxList<File> selectedImages = <File>[].obs;
+  RxInt currentImageIndex = 0.obs;
+  RxBool showImageOverlay = false.obs;
+  PageController pageController = PageController();
+  final isImageUploading = false.obs;
 
   @override
   void onInit() {
@@ -250,23 +262,18 @@ class ProjectController extends GetxController {
       debugPrint('ProjectController: Error fetching project details: $e\nStackTrace: $stackTrace');
       projectError.value = 'Failed to fetch project details: $e';
       projectDetail.value = null;
-      // Do not rethrow to avoid breaking the caller
     } finally {
       isProjectLoading.value = false;
     }
   }
 
-
-  // Fetch all projects
   Future<void> fetchProjects({String statusFilter = 'all'}) async {
     try {
-      // Make GET request to fetch projects
       final response = await BaseClient.getRequest(
         api: Api.getAllProject,
         headers: BaseClient.authHeaders(),
       );
 
-      // Handle the response
       final data = await BaseClient.handleResponse(
         response,
         retryRequest: () => BaseClient.getRequest(
@@ -276,26 +283,22 @@ class ProjectController extends GetxController {
       );
 
       if (data != null) {
-        // Map the response to the Project model
         List<Project> projectList = (data as List)
             .map((json) => Project.fromJson(json))
             .toList();
 
-        // Apply status filter
         if (statusFilter != 'all') {
           projectList = projectList
               .where((project) => project.status.toLowerCase() == statusFilter.toLowerCase())
               .toList();
         }
 
-        projects.value = projectList; // Update the project list
+        projects.value = projectList;
 
-        // Check if the project list is empty
         if (projectList.isEmpty) {
           Get.snackbar('Info', 'No $statusFilter projects are available');
         }
       } else {
-        // Handle case where data is null
         Get.snackbar('Error', 'Failed to fetch projects');
       }
     } catch (e) {
@@ -314,111 +317,290 @@ class ProjectController extends GetxController {
     });
   }
 
-  // Method to set the selected lender ID from SelectLenderView
   void setSelectedLenderId(int lenderId) {
     selectedLenderId.value = lenderId;
   }
 
-  // API call to create a project
-  Future<void> createProject() async {
-    try {
-      final projectData = {
-        "project": {
-          "name": projectNameController.text,
-          "type": projectTypeController.text,
-          "location": projectLocationController.text,
-          "budget": int.tryParse(projectBudgetController.text) ?? 0,
-          "project_manager": projectManagerNameController.text,
-          "start_date": projectStartDateController.text,
-          "end_date": projectEndDateController.text,
-          "description": projectDescriptionController.text,
-          "permit_number": permitNumberController.text,
-          "permit_type": permitTypeController.text,
-          "permit_issued_date": permitIssueDateController.text,
-          "permit_expiry_date": permitExpireDateController.text,
-        },
-        "contractor": contractorControllers
-            .map(
-              (controller) => {
-            "name": controller['name']!.text,
-            "email": controller['email']!.text,
-            "phone": controller['phone']!.text,
-            "address": controller['details']!.text,
-            // Assuming 'details' maps to 'address'
-            "license_number": controller['license']!.text,
-          },
-        )
-            .toList(),
-      };
+  Future<void> pickImages() async {
+    final List<XFile> images = await _picker.pickMultiImage();
+    if (images.isNotEmpty) {
+      selectedImages.addAll(images.map((xfile) => File(xfile.path)));
+    }
+  }
 
-      final response = await BaseClient.postRequest(
-        api: Api.createProject,
-        body: jsonEncode(projectData),
-        headers: BaseClient.authHeaders(),
+  Future<void> pickImageFromCamera() async {
+    final XFile? image = await _picker.pickImage(source: ImageSource.camera);
+    if (image != null) {
+      selectedImages.add(File(image.path));
+    }
+  }
+
+  void removeImage(int index) {
+    selectedImages.removeAt(index);
+    if (currentImageIndex.value >= selectedImages.length &&
+        selectedImages.isNotEmpty) {
+      currentImageIndex.value = selectedImages.length - 1;
+      pageController.jumpToPage(currentImageIndex.value);
+    } else if (selectedImages.isEmpty) {
+      showImageOverlay.value = false;
+    }
+  }
+
+  void showImageViewer(int index) {
+    currentImageIndex.value = index;
+    pageController = PageController(initialPage: index);
+    showImageOverlay.value = true;
+  }
+
+  void nextImage() {
+    if (currentImageIndex.value < selectedImages.length - 1) {
+      currentImageIndex.value++;
+      pageController.nextPage(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
       );
+    }
+  }
 
-      final result = await BaseClient.handleResponse(
-        response,
-        retryRequest: () => BaseClient.postRequest(
-          api: Api.createProject,
-          body: jsonEncode(projectData),
-          headers: BaseClient.authHeaders(),
+  void previousImage() {
+    if (currentImageIndex.value > 0) {
+      currentImageIndex.value--;
+      pageController.previousPage(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+    }
+  }
+
+  void closeImageViewer() {
+    showImageOverlay.value = false;
+  }
+
+  void showUploadOptions() {
+    Get.bottomSheet(
+      Container(
+        padding: const EdgeInsets.all(20),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
         ),
-      );
-
-      if (result['id'] != null) {
-        // Store project ID
-        projectId.value = result['id'];
-        // Store AI-suggested milestones
-        aiSuggestedMilestones.value = List<String>.from(
-          result['ai_suggested_milestones'] ?? [],
-        );
-
-        // Show confirmation dialog
-        Get.dialog(
-          Dialog(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            elevation: 8,
-            child: Container(
-              width: 300,
-              padding: const EdgeInsets.all(30),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  SvgPicture.asset(
-                    'assets/images/auth/tic_icon.svg',
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    'Your project has been created successfully!',
-                    style: h4.copyWith(
-                      fontSize: 20,
-                      color: AppColors.textColor,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 20),
-                  CustomButton(
-                    label: 'OK',
-                    onPressed: () {
-                      Get.back(); // Close the dialog
-                      // Navigate to SetMilestoneView after dialog is closed
-                      Get.to(() => const SetMilestoneView());
-                    },
-                  ),
-                ],
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(2),
               ),
             ),
-          ),
-          barrierDismissible: true, // Allow dismissing by tapping outside
-        );
+            const SizedBox(height: 20),
+            Text(
+              'Upload Photos',
+              style: h3.copyWith(fontSize: 18, color: AppColors.textColor),
+            ),
+            const SizedBox(height: 20),
+            Row(
+              children: [
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () {
+                      Get.back();
+                      pickImageFromCamera();
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 15),
+                      decoration: BoxDecoration(
+                        color: AppColors.chatCard,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: AppColors.gray5),
+                      ),
+                      child: Column(
+                        children: [
+                          Icon(
+                            Icons.camera_alt,
+                            size: 30,
+                            color: AppColors.clrBlue1,
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Camera',
+                            style: h4.copyWith(color: AppColors.textColor),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 15),
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () {
+                      Get.back();
+                      pickImages();
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 15),
+                      decoration: BoxDecoration(
+                        color: AppColors.chatCard,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: AppColors.gray5),
+                      ),
+                      child: Column(
+                        children: [
+                          Icon(
+                            Icons.photo_library,
+                            size: 30,
+                            color: AppColors.clrBlue1,
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Gallery',
+                            style: h4.copyWith(color: AppColors.textColor),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showWarning(String message, {String title = 'Warning'}) {
+    kSnackBar(
+      title: title,
+      message: message,
+      bgColor: AppColors.snackBarWarning,
+    );
+  }
+
+  Future<void> createProject() async {
+    try {
+      if (selectedImages.isEmpty) {
+        _showWarning('Please select at least one image to upload');
+        return;
+      }
+
+      isImageUploading.value = true;
+
+      var uri = Uri.parse(Api.createProject);
+      var request = http.MultipartRequest('POST', uri);
+      request.headers.addAll(await BaseClient.authHeaders());
+
+      // Separate project and contractor data
+      final projectData = {
+        "name": projectNameController.text,
+        "type": projectTypeController.text,
+        "location": projectLocationController.text,
+        "budget": int.tryParse(projectBudgetController.text) ?? 0,
+        "project_manager": projectManagerNameController.text,
+        "start_date": projectStartDateController.text,
+        "end_date": projectEndDateController.text,
+        "description": projectDescriptionController.text,
+        "permit_number": permitNumberController.text,
+        "permit_type": permitTypeController.text,
+        "permit_issued_date": permitIssueDateController.text,
+        "permit_expiry_date": permitExpireDateController.text,
+      };
+
+      final contractorData = contractorControllers
+          .map(
+            (controller) => {
+          "name": controller['name']!.text,
+          "email": controller['email']!.text,
+          "phone": controller['phone']!.text,
+          "address": controller['details']!.text,
+          "license_number": controller['license']!.text,
+        },
+      )
+          .toList();
+
+      // Add project and contractor data as separate fields
+      request.fields['project'] = jsonEncode(projectData);
+      request.fields['contractor'] = jsonEncode(contractorData);
+
+      // Add multiple image files
+      for (var file in selectedImages) {
+        var multipartFile = await http.MultipartFile.fromPath('images', file.path);
+        request.files.add(multipartFile);
+      }
+
+      var streamedResponse = await request.send();
+      var response = await http.Response.fromStream(streamedResponse);
+
+      debugPrint("API Hit: $uri");
+      debugPrint('Response Code: ${response.statusCode}');
+      debugPrint('Response Body: ${response.body}');
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final result = jsonDecode(response.body);
+
+        if (result['id'] != null) {
+          projectId.value = result['id'];
+          aiSuggestedMilestones.value = List<String>.from(
+            result['ai_suggested_milestones'] ?? [],
+          );
+
+          Get.dialog(
+            Dialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              elevation: 8,
+              child: Container(
+                width: 300,
+                padding: const EdgeInsets.all(30),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SvgPicture.asset(
+                      'assets/images/auth/tic_icon.svg',
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      'Your project has been created successfully!',
+                      style: h4.copyWith(
+                        fontSize: 20,
+                        color: AppColors.textColor,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 20),
+                    CustomButton(
+                      label: 'OK',
+                      onPressed: () {
+                        Get.back();
+                        Get.to(() => const SetMilestoneView());
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            barrierDismissible: true,
+          );
+
+          // Clear selected images after successful upload
+          selectedImages.clear();
+        } else {
+          Get.snackbar(
+            'Error',
+            'Failed to create project: Invalid response',
+            backgroundColor: AppColors.snackBarWarning,
+            colorText: AppColors.textColor,
+          );
+        }
       } else {
-        // Handle case where result['id'] is null
         Get.snackbar(
           'Error',
-          'Failed to create project: Invalid response',
+          'Failed to create project: ${response.reasonPhrase}',
           backgroundColor: AppColors.snackBarWarning,
           colorText: AppColors.textColor,
         );
@@ -431,7 +613,9 @@ class ProjectController extends GetxController {
         backgroundColor: AppColors.snackBarWarning,
         colorText: AppColors.textColor,
       );
-      rethrow; // Rethrow to allow caller (e.g., SelectLenderController) to handle
+      rethrow;
+    } finally {
+      isImageUploading.value = false;
     }
   }
 
@@ -439,7 +623,7 @@ class ProjectController extends GetxController {
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
-      firstDate: DateTime.now().subtract(Duration(days: 365)), // Allow past dates
+      firstDate: DateTime.now().subtract(Duration(days: 365)),
       lastDate: DateTime(2026, 12, 31),
     );
     if (picked != null) {
@@ -450,19 +634,15 @@ class ProjectController extends GetxController {
 
   void removeContractor(int index) {
     if (index >= 0 && index < contractorControllers.length) {
-      // Dispose of the TextEditingControllers to prevent memory leaks
       contractorControllers[index].forEach((key, controller) {
         controller.dispose();
       });
-      // Remove the contractor from the list
       contractorControllers.removeAt(index);
-      // Update the UI reactively
       contractorControllers.refresh();
     }
   }
 
   void reset() {
-    // Clear text controllers
     projectNameController.clear();
     projectTypeController.clear();
     projectBudgetController.clear();
@@ -476,13 +656,16 @@ class ProjectController extends GetxController {
     permitIssueDateController.clear();
     permitExpireDateController.clear();
 
-    // Clear contractor controllers
     for (var controllerMap in contractorControllers) {
       controllerMap.forEach((key, controller) => controller.dispose());
     }
     contractorControllers.clear();
 
-    // Reset observables
+    selectedImages.clear();
+    currentImageIndex.value = 0;
+    showImageOverlay.value = false;
+    pageController.dispose();
+
     currentStep.value = 1;
     selectedLenderId.value = 0;
     aiSuggestedMilestones.clear();
@@ -492,8 +675,14 @@ class ProjectController extends GetxController {
     activeProjectId.value = null;
     isProjectLoading.value = false;
     projectError.value = null;
+    isImageUploading.value = false;
   }
 
+  @override
+  void onClose() {
+    pageController.dispose();
+    super.onClose();
+  }
 }
 
 class ProjectPrefs {
@@ -501,7 +690,6 @@ class ProjectPrefs {
 
   static Future<void> saveContext({required ProjectDetail projectDetail}) async {
     final sp = await SharedPreferences.getInstance();
-    // Convert ProjectDetail to JSON
     final projectJson = jsonEncode({
       "project_id": projectDetail.id,
       'project_name': projectDetail.name,
