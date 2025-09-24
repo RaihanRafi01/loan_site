@@ -14,6 +14,7 @@ class OnboardingProjectView extends GetView {
 
   @override
   Widget build(BuildContext context) {
+    Get.put(DashboardController());
     final DashboardController dashboardController =
     Get.find<DashboardController>();
     dashboardController.fetchProfile();

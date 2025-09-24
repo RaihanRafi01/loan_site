@@ -20,7 +20,8 @@ class DashboardLenderView extends GetView<DashboardLenderController> {
 
   @override
   Widget build(BuildContext context) {
-    final DashboardController dashboardController = Get.find<DashboardController>();
+    Get.put(DashboardLenderController());
+    final DashboardController dashboardController = Get.put(DashboardController());
     dashboardController.fetchProfile();
     // Initialize the controller
     //final DashboardController controller = Get.put(DashboardController());

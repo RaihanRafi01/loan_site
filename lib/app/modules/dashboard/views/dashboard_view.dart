@@ -18,6 +18,7 @@ class DashboardView extends GetView<DashboardController> {
 
   @override
   Widget build(BuildContext context) {
+    Get.put(DashboardController());
     Get.put(MessageController());
     // Initialize the controller
     //final DashboardController controller = Get.put(DashboardController());

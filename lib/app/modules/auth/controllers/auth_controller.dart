@@ -92,7 +92,7 @@ class AuthController extends GetxController {
     showConfirm.value = true;
     Future.delayed(_confirmationDelay, () {
       showConfirm.value = false;
-      Get.offAll(() => VerificationScreen());
+      Get.off(() => VerificationScreen());
     });
   }
 

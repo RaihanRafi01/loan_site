@@ -239,7 +239,7 @@ class MessageController extends GetxController {
   }
 
   Future<void> connectWebSocket() async {
-    const wsBaseUrl = 'ws://10.10.13.73:7000';
+    final wsBaseUrl = Api.wsBaseUrl;
     final token = await BaseClient.getAccessToken();
     if (token == null || token.isEmpty) {
       developer.log(

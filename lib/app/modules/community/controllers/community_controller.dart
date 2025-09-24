@@ -599,11 +599,38 @@ class CommunityController extends GetxController {
       request.fields['title'] = title;
       request.fields['content'] = content;
 
-      // Add new images
-      for (var file in newImages) {
-        debugPrint('Uploading image: ${file.path}');
-        var multipartFile = await http.MultipartFile.fromPath('images', file.path);
-        request.files.add(multipartFile);
+      // Prepare images to upload
+      List<File> imagesToUpload = [...newImages];
+
+      // If adding new images, download and re-upload existing (kept) images to preserve them
+      if (newImages.isNotEmpty && existingImages.isNotEmpty) {
+        for (var existingImage in existingImages) {
+          if (removedImageIds.contains(existingImage.id)) continue; // Skip removed images
+          try {
+            final imageResponse = await http.get(Uri.parse(existingImage.image));
+            if (imageResponse.statusCode == 200) {
+              final tempDir = await Directory.systemTemp.createTemp('post_update_');
+              final fileName = existingImage.image.split('/').last;
+              final tempFile = File('${tempDir.path}/$fileName');
+              await tempFile.writeAsBytes(imageResponse.bodyBytes);
+              imagesToUpload.add(tempFile);
+              debugPrint('Downloaded and prepared existing image for re-upload: ${existingImage.image}');
+            } else {
+              debugPrint('Failed to download existing image: ${existingImage.image} (status: ${imageResponse.statusCode})');
+            }
+          } catch (e) {
+            debugPrint('Error downloading existing image: ${existingImage.image} - $e');
+          }
+        }
+      }
+
+      // Add images to request (only if there are any to upload)
+      if (imagesToUpload.isNotEmpty) {
+        for (var file in imagesToUpload) {
+          debugPrint('Uploading image: ${file.path}');
+          var multipartFile = await http.MultipartFile.fromPath('images', file.path);
+          request.files.add(multipartFile);
+        }
       }
 
       // Send removed image IDs if any
@@ -627,57 +654,35 @@ class CommunityController extends GetxController {
         final postInAll = allPosts.firstWhereOrNull((p) => p.id == postId);
         final postInMy = myPosts.firstWhereOrNull((p) => p.id == postId);
 
-        // Optimistic update: Append new images if response images are invalid
-        List<ImageData> newImageData = [];
-        if (newImages.isNotEmpty && (responseData['images'] == null || (responseData['images'] as List).every((img) => img == null))) {
-          newImageData = newImages.asMap().entries.map((entry) {
-            final index = entry.key;
-            final file = entry.value;
-            // Placeholder URL (replace with actual backend URL when fixed)
-            return ImageData(
-              id: DateTime.now().millisecondsSinceEpoch + index,
-              post: postId,
-              image: 'pending_upload_${file.path.split('/').last}', // Temporary placeholder
-            );
-          }).toList();
-          debugPrint('Optimistic append: Added ${newImageData.length} new images');
-        }
-
-        // Update posts
+        // Update title, content, tags
         if (postInAll != null) {
           postInAll.title = responseData['title'] ?? postInAll.title;
           postInAll.content = responseData['content'] ?? postInAll.content;
           postInAll.tags = responseData['tags'] ?? postInAll.tags;
-          if (responseData['images'] != null && !(responseData['images'] as List).every((img) => img == null)) {
-            final imageList = (responseData['images'] as List)
-                .where((imageData) => imageData != null && imageData is Map<String, dynamic>)
-                .map((imageData) => ImageData.fromJson(imageData as Map<String, dynamic>))
-                .toList();
-            postInAll.images = imageList;
-            debugPrint('Updated images for postInAll: ${imageList.map((img) => img.image).toList()}');
-          } else if (newImageData.isNotEmpty) {
-            postInAll.images.addAll(newImageData);
-            debugPrint('Applied optimistic images for postInAll: ${postInAll.images.map((img) => img.image).toList()}');
-          }
         }
         if (postInMy != null) {
           postInMy.title = responseData['title'] ?? postInMy.title;
           postInMy.content = responseData['content'] ?? postInMy.content;
           postInMy.tags = responseData['tags'] ?? postInMy.tags;
-          if (responseData['images'] != null && !(responseData['images'] as List).every((img) => img == null)) {
-            final imageList = (responseData['images'] as List)
-                .where((imageData) => imageData != null && imageData is Map<String, dynamic>)
-                .map((imageData) => ImageData.fromJson(imageData as Map<String, dynamic>))
-                .toList();
+        }
+
+        // Update images from server response
+        if (responseData['images'] != null && (responseData['images'] as List).isNotEmpty) {
+          final imageList = (responseData['images'] as List)
+              .where((imageData) => imageData != null && imageData is Map<String, dynamic>)
+              .map((imageData) => ImageData.fromJson(imageData as Map<String, dynamic>))
+              .toList();
+          if (postInAll != null) {
+            postInAll.images = imageList;
+            debugPrint('Updated images for postInAll: ${imageList.map((img) => img.image).toList()}');
+          }
+          if (postInMy != null) {
             postInMy.images = imageList;
             debugPrint('Updated images for postInMy: ${imageList.map((img) => img.image).toList()}');
-          } else if (newImageData.isNotEmpty) {
-            postInMy.images.addAll(newImageData);
-            debugPrint('Applied optimistic images for postInMy: ${postInMy.images.map((img) => img.image).toList()}');
           }
         }
 
-        // Refresh posts from server to sync with actual data
+        // Refresh posts from server to sync any additional data
         await fetchMyPosts();
         allPosts.refresh();
         myPosts.refresh();
@@ -694,6 +699,7 @@ class CommunityController extends GetxController {
       isLoading.value = false;
     }
   }
+
 
   Future<void> toggleLike(int postId, bool currentlyLiked) async {
     final post = myPosts.firstWhereOrNull((p) => p.id == postId);

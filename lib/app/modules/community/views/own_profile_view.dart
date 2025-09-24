@@ -10,6 +10,7 @@ import '../../../../common/widgets/community/communityWidgets.dart';
 import '../../dashboard/controllers/dashboard_controller.dart';
 import '../controllers/community_controller.dart';
 import 'editPost_view.dart';
+import 'package:share_plus/share_plus.dart';
 
 class OwnProfileView extends GetView<CommunityController> {
   const OwnProfileView({super.key});
@@ -432,6 +433,16 @@ class OwnProfileView extends GetView<CommunityController> {
               buildActionButton(
                 'assets/images/community/share_icon.svg',
                 share.toString(),
+                onPressed: () async {
+                  final deepLink = 'yourapp://post/view/${post.id}';
+                  await SharePlus.instance.share(
+                    ShareParams(
+                      text: 'Check out this post: $deepLink',
+                      subject: 'Shared Post from Loan App',
+                    ),
+                  );
+                  print('Share Clicked for post: ${post.id}, Deep Link: $deepLink');
+                }
               ),
             ],
           ),

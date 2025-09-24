@@ -19,7 +19,29 @@ class EditPostView extends GetView<CommunityController> {
     final TextEditingController contentController = TextEditingController(text: post.content);
     final RxList<int> removedImageIds = RxList<int>([]);
 
-    controller.pickedMedia.clear();
+    // Create a reactive copy of images to display, combining existing and new
+    final RxList<Map<String, dynamic>> displayedImages = RxList<Map<String, dynamic>>([
+      ...post.images
+          .asMap()
+          .entries
+          .map((entry) => {
+        'image': entry.value.image,
+        'isNetwork': true,
+        'index': entry.key,
+        'id': entry.value.id,
+      })
+          .toList(),
+    ]);
+
+    // Update displayedImages when pickedMedia changes
+    ever(controller.pickedMedia, (List<File> newMedia) {
+      displayedImages.addAll(newMedia.asMap().entries.map((entry) => {
+        'image': entry.value.path,
+        'isNetwork': false,
+        'index': entry.key + post.images.length,
+        'id': null,
+      }));
+    });
 
     return Scaffold(
       backgroundColor: AppColors.appBc,
@@ -90,32 +112,13 @@ class EditPostView extends GetView<CommunityController> {
               ),
               const SizedBox(height: 16),
               Obx(() {
-                final images = [
-                  ...post.images
-                      .asMap()
-                      .entries
-                      .where((entry) => entry.value.image.isNotEmpty)
-                      .map((entry) => {
-                    'image': entry.value.image,
-                    'isNetwork': true,
-                    'index': entry.key,
-                    'id': entry.value.id,
-                  }),
-                  ...controller.pickedMedia.asMap().entries.map((entry) => {
-                    'image': entry.value.path,
-                    'isNetwork': false,
-                    'index': entry.key + post.images.length,
-                    'id': null,
-                  }),
-                ];
-                debugPrint('Images data in EditPostView: ${images.map((img) => {'image': img['image'], 'isNetwork': img['isNetwork'], 'id': img['id']}).toList()}');
-                if (images.isEmpty) {
+                if (displayedImages.isEmpty) {
                   return const SizedBox.shrink();
                 }
                 return Wrap(
                   spacing: 8,
                   runSpacing: 8,
-                  children: images.map((imageData) {
+                  children: displayedImages.map((imageData) {
                     final index = imageData['index'] as int;
                     final imagePath = imageData['image'] as String;
                     final isNetwork = imageData['isNetwork'] as bool;
@@ -152,9 +155,14 @@ class EditPostView extends GetView<CommunityController> {
                             onTap: () {
                               if (isNetwork && imageId != null) {
                                 removedImageIds.add(imageId);
-                                post.images.removeAt(index < post.images.length ? index : 0);
+                                displayedImages.removeWhere((img) => img['id'] == imageId);
+                                post.images.removeWhere((img) => img.id == imageId);
                               } else {
-                                controller.pickedMedia.removeAt(index - post.images.length);
+                                final pickedIndex = index - post.images.length;
+                                if (pickedIndex >= 0 && pickedIndex < controller.pickedMedia.length) {
+                                  controller.pickedMedia.removeAt(pickedIndex);
+                                  displayedImages.removeWhere((img) => img['image'] == imagePath);
+                                }
                               }
                             },
                             child: Container(
@@ -175,7 +183,7 @@ class EditPostView extends GetView<CommunityController> {
               Obx(() => CustomButton(
                 label: controller.isLoading.value ? 'Updating...' : 'Update Post',
                 onPressed: controller.isLoading.value
-                    ? (){}
+                    ? () {}
                     : () => controller.updatePost(
                   post.id,
                   titleController.text,

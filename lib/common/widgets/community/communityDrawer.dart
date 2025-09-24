@@ -39,25 +39,27 @@ Widget buildDrawer() {
                       const AssetImage('assets/images/community/default_user.png'),
                     ),
                     const SizedBox(width: 20),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Hello ${dashboardController.name.value ?? 'User'}!',
-                          style: h2.copyWith(
-                            fontSize: 24,
-                            color: AppColors.textColor,
+                    Flexible(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Hello ${dashboardController.name.value ?? 'User'}!',
+                            style: h2.copyWith(
+                              fontSize: 24,
+                              color: AppColors.textColor,
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          dashboardController.email.value ?? '',
-                          style: h4.copyWith(
-                            fontSize: 16,
-                            color: AppColors.blurtext4,
+                          const SizedBox(height: 4),
+                          Text(
+                            dashboardController.email.value ?? '',
+                            style: h4.copyWith(
+                              fontSize: 16,
+                              color: AppColors.blurtext4,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     )
                   ],
                 ),
