@@ -2,13 +2,12 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:app_links/app_links.dart';
+import 'package:share_plus/share_plus.dart';
 import 'dart:async';
 import 'app/core/dependency_injection.dart';
 import 'app/core/dependency_injection_lender.dart';
 import 'app/core/services/base_client.dart';
 import 'app/core/services/notification_service.dart';
-import 'app/modules/auth/controllers/auth_controller.dart';
-import 'app/modules/community/controllers/community_controller.dart';
 import 'app/modules/community/views/comments_view.dart';
 import 'app/routes/app_pages.dart';
 
@@ -16,10 +15,6 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
   await NotificationService().initializeNotifications();
-
-  // Initialize CommunityController for post-related operations
-  //Get.put(CommunityController());
-
   runApp(const MyApp());
 }
 
@@ -31,15 +26,19 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  final appLinks = AppLinks(); // AppLinks is singleton
+  final appLinks = AppLinks();
   StreamSubscription<Uri>? _linkSubscription;
   String? _initialRoute;
+  bool _initialLinkHandled = false;
+  DateTime? _lastLinkHandled;
 
   @override
   void initState() {
     super.initState();
     _setInitialRoute();
-    _initAppLinks();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initAppLinks();
+    });
   }
 
   Future<void> _setInitialRoute() async {
@@ -50,17 +49,18 @@ class _MyAppState extends State<MyApp> {
   Future<void> _initAppLinks() async {
     try {
       final initialUri = await appLinks.getInitialLink();
-      if (initialUri != null) {
-        await _handleDeepLink(initialUri);  // Handle the initial link when the app is opened
+      if (initialUri != null && !_initialLinkHandled) {
+        _initialLinkHandled = true;
+        await _handleDeepLink(initialUri);
       }
     } catch (e) {
       print('Error getting initial link: $e');
     }
 
-    // Subscribe to all events (initial link and further)
     _linkSubscription = appLinks.uriLinkStream.listen(
           (uri) {
-        _handleDeepLink(uri);  // Handle deep links coming in while the app is in the foreground
+        print('Handling deep link: $uri');
+        _handleDeepLink(uri);
       },
       onError: (err) {
         print('Error in link stream: $err');
@@ -68,23 +68,41 @@ class _MyAppState extends State<MyApp> {
     );
   }
 
-
   Future<void> _handleDeepLink(Uri uri) async {
-    if (uri.scheme == 'yourapp' && uri.host == 'post' && uri.pathSegments.contains('view')) {
+    if (_lastLinkHandled != null &&
+        DateTime.now().difference(_lastLinkHandled!).inMilliseconds < 1000) {
+      print('Deep link debounced (duplicate call ignored)');
+      return;
+    }
+    _lastLinkHandled = DateTime.now();
+
+    if ((uri.scheme == 'loanapp' && uri.host == 'post' && uri.pathSegments.contains('view')) ||
+        (uri.scheme == 'https' && uri.host == 'c81a4b08983f.ngrok-free.app' && uri.pathSegments.length >= 3 && uri.pathSegments[0] == 'deeplink' && uri.pathSegments[1] == 'post' && uri.pathSegments[2] == 'view')) {
       final postIdStr = uri.pathSegments.last;
       final postId = int.tryParse(postIdStr);
       if (postId != null) {
         if (await BaseClient.isLoggedIn()) {
-          Get.to(() => CommentsView(postId: postId));  // Navigate to the post's comment view
+          if (Get.currentRoute != Routes.COMMENTS) {
+            Get.to(() => CommentsView(postId: postId));
+          }
         } else {
-          Get.toNamed(Routes.AUTH, arguments: {'redirectToPostId': postId});  // If not logged in, redirect to the login page
+          if (Get.currentRoute != Routes.AUTH) {
+            Get.offAndToNamed(Routes.AUTH, arguments: {'redirectToPostId': postId});
+          }
         }
       } else {
         Get.snackbar('Error', 'Invalid post ID in deep link');
+        if (Get.currentRoute != Routes.DASHBOARD) {
+          Get.offAndToNamed(Routes.DASHBOARD);
+        }
+      }
+    } else {
+      Get.snackbar('Error', 'Invalid deep link format');
+      if (Get.currentRoute != Routes.DASHBOARD) {
+        Get.offAndToNamed(Routes.DASHBOARD);
       }
     }
   }
-
 
   @override
   void dispose() {
@@ -94,34 +112,29 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    // Show a loading screen while initial route is being determined
     if (_initialRoute == null) {
-      return const MaterialApp(
-        home: Scaffold(
-          body: Center(child: CircularProgressIndicator()),
-        ),
-      );
+      return const Center(child: CircularProgressIndicator());
     }
 
     return GetMaterialApp(
       title: "Application",
       initialRoute: _initialRoute!,
       getPages: AppPages.routes,
+      navigatorKey: Get.key, // Ensure single Navigator key
     );
   }
 }
 
 Future<String> _getInitialRoute() async {
-  // Check if user is logged in via stored token
   if (await BaseClient.isLoggedIn()) {
     final role = await BaseClient.getStoredRole();
     if (role == 'borrower') {
       setupDependencies();
-      return Routes.DASHBOARD; // Routes to DashboardView (borrower)
+      return Routes.DASHBOARD;
     } else if (role == 'private_lender') {
       setupDependenciesLender();
-      return Routes.DASHBOARD_LENDER; // Routes to HomeLenderView (lender)
+      return Routes.DASHBOARD_LENDER;
     }
   }
-  return Routes.AUTH; // Routes to LoginScreen (auth)
+  return Routes.AUTH;
 }

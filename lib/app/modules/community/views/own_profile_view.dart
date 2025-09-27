@@ -431,19 +431,19 @@ class OwnProfileView extends GetView<CommunityController> {
                 postId: post.id,
               ),
               buildActionButton(
-                'assets/images/community/share_icon.svg',
-                share.toString(),
-                onPressed: () async {
-                  final deepLink = 'yourapp://post/view/${post.id}';
-                  await SharePlus.instance.share(
-                    ShareParams(
-                      text: 'Check out this post: $deepLink',
-                      subject: 'Shared Post from Loan App',
-                    ),
-                  );
-                  print('Share Clicked for post: ${post.id}, Deep Link: $deepLink');
-                }
-              ),
+                  'assets/images/community/share_icon.svg',
+                  share.toString(),
+                  onPressed: () async {
+                    final deepLink = 'https://c81a4b08983f.ngrok-free.app/deeplink/post/view/${post.id}'; // Replace with your ngrok domain
+                    await SharePlus.instance.share(
+                      ShareParams(
+                        text: 'Check out this post: $deepLink',
+                        subject: 'Shared Post from Loan App',
+                      ),
+                    );
+                    print('Share Clicked for post: ${post.id}, Deep Link: $deepLink');
+                  }
+              )
             ],
           ),
         ],

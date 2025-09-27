@@ -11,18 +11,33 @@ import '../../../../common/widgets/community/speechToTextButton.dart';
 import '../../../core/services/stt_service.dart';
 import '../../../core/utils/image_utils.dart';
 import '../controllers/community_controller.dart';
-import '../../../core/constants/api.dart';
-import '../../../core/services/base_client.dart';
 
-class CommentsView extends GetView<CommunityController> {
+class CommentsView extends StatefulWidget {
   final int postId;
+  const CommentsView({Key? key, required this.postId}) : super(key: key);
+
+  @override
+  _CommentsViewState createState() => _CommentsViewState();
+}
+
+class _CommentsViewState extends State<CommentsView> {
+  final CommunityController controller = Get.find<CommunityController>();
   final TextEditingController _commentController = TextEditingController();
   final SpeechToTextService _speechService = SpeechToTextService();
 
-  CommentsView({
-    super.key,
-    required this.postId,
-  });
+  @override
+  void initState() {
+    super.initState();
+    print('CommentsView initState with postId: ${widget.postId}');
+  }
+
+  @override
+  void dispose() {
+    print('Disposing CommentsView with postId: ${widget.postId}');
+    _commentController.dispose();
+    _speechService.dispose();
+    super.dispose();
+  }
 
   String getTimeAgo(DateTime dateTime) {
     final now = DateTime.now();
@@ -39,13 +54,8 @@ class CommentsView extends GetView<CommunityController> {
   }
 
   @override
-  void dispose() {
-    _commentController.dispose();
-    _speechService.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
+    print('Building CommentsView with postId: ${widget.postId}');
     return Scaffold(
       backgroundColor: AppColors.appBc,
       appBar: AppBar(
@@ -54,7 +64,10 @@ class CommentsView extends GetView<CommunityController> {
         scrolledUnderElevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () {
+            print('Back button pressed in CommentsView');
+            Get.back();
+          },
         ),
         title: Text(
           'Comments',
@@ -63,7 +76,7 @@ class CommentsView extends GetView<CommunityController> {
         centerTitle: true,
       ),
       body: FutureBuilder<Post?>(
-        future: controller.fetchPostIfNeeded(postId),
+        future: controller.fetchPostIfNeeded(widget.postId),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -105,7 +118,7 @@ class CommentsView extends GetView<CommunityController> {
               ),
               Expanded(
                 child: Obx(() {
-                  final updatedPost = controller.allPosts.firstWhereOrNull((p) => p.id == postId) ?? post;
+                  final updatedPost = controller.allPosts.firstWhereOrNull((p) => p.id == widget.postId) ?? post;
                   return Container(
                     color: AppColors.appBc,
                     child: ListView.builder(
@@ -425,7 +438,8 @@ class CommentsView extends GetView<CommunityController> {
 
   void _addComment() {
     if (_commentController.text.trim().isNotEmpty) {
-      controller.postComment(postId, _commentController.text);
+      print('Posting comment for postId: ${widget.postId}');
+      controller.postComment(widget.postId, _commentController.text);
       _commentController.clear();
     }
   }

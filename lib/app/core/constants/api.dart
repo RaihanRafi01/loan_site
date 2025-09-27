@@ -2,9 +2,9 @@ class Api {
   /// base url
 
 
-  static const baseUrl = "https://a82e3d99df4f.ngrok-free.app/api/v1";
-  static const baseUrlPicture = "https://a82e3d99df4f.ngrok-free.app";
-  static const wsBaseUrl = 'ws://a82e3d99df4f.ngrok-free.app';
+  static const baseUrl = "https://c81a4b08983f.ngrok-free.app/api/v1";
+  static const baseUrlPicture = "https://c81a4b08983f.ngrok-free.app";
+  static const wsBaseUrl = 'ws://c81a4b08983f.ngrok-free.app';
   //static const socket = "https://socket.thirdshotslot.co.uk/";    /// https://a82e3d99df4f.ngrok-free.app   /// http://10.10.13.73:7000/api/v1
 
 

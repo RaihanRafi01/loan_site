@@ -8,6 +8,7 @@ import 'package:loan_site/app/modules/project/views/project_list_view.dart';
 import '../modules/auth/bindings/auth_binding.dart';
 import '../modules/auth/views/create_password_view.dart';
 import '../modules/community/bindings/community_binding.dart';
+import '../modules/community/views/comments_view.dart';
 import '../modules/community/views/community_view.dart';
 import '../modules/contractor/bindings/contractor_binding.dart';
 import '../modules/contractor/views/contractor_view.dart';
@@ -109,6 +110,11 @@ class AppPages {
       name: _Paths.PROJECT_REQUEST,
       page: () => const ProjectRequestView(),
       binding: ProjectRequestBinding(),
+    ),
+    GetPage(
+      name: _Paths.COMMENTS,
+      page: () => CommentsView(postId: Get.arguments['postId'] ?? 0),
+      binding: CommunityBinding(),
     ),
   ];
 }

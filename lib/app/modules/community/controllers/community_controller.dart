@@ -234,6 +234,7 @@ class CommunityController extends GetxController {
         headers: BaseClient.authHeaders(),
       );
 
+
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         if (data is Map<String, dynamic>) {

@@ -21,21 +21,25 @@ Widget buildImageGrid(List<Map<String, dynamic>> images) {
 
   if (imageUrls.isEmpty) return const SizedBox.shrink();
 
-
   // Handle image grid layouts for 1, 2, 3, or more images
   if (imageUrls.length == 1) {
     return SizedBox(
       width: double.infinity,
       height: 300,
-      child: Image.network(
-        imageUrls[0],
-        fit: BoxFit.cover,
-        loadingBuilder: (context, child, loadingProgress) =>
-        loadingProgress == null ? child : const Center(child: CircularProgressIndicator()),
-        errorBuilder: (context, error, stackTrace) {
-          debugPrint("Error loading image: $error");
-          return const Center(child: Icon(Icons.error));
-        },
+      child: GestureDetector(
+        onTap: () => Get.to(() => FullImageView(imageUrls: imageUrls)),
+        child: Image.network(
+          imageUrls[0],
+          fit: BoxFit.cover,
+          loadingBuilder: (context, child, loadingProgress) =>
+          loadingProgress == null
+              ? child
+              : const Center(child: CircularProgressIndicator()),
+          errorBuilder: (context, error, stackTrace) {
+            debugPrint("Error loading image: $error");
+            return const Center(child: Icon(Icons.error));
+          },
+        ),
       ),
     );
   } else if (imageUrls.length == 2) {
@@ -47,16 +51,21 @@ Widget buildImageGrid(List<Map<String, dynamic>> images) {
             .entries
             .map(
               (entry) => Expanded(
-            child: Container(
-              margin: EdgeInsets.only(right: entry.key == 0 ? 1 : 0),
-              child: Image.network(
-                entry.value,
-                fit: BoxFit.cover,
-                height: double.infinity,
-                loadingBuilder: (context, child, loadingProgress) =>
-                loadingProgress == null ? child : const Center(child: CircularProgressIndicator()),
-                errorBuilder: (context, error, stackTrace) =>
-                const Center(child: Icon(Icons.error)),
+            child: GestureDetector(
+              onTap: () => Get.to(() => FullImageView(imageUrls: imageUrls)),
+              child: Container(
+                margin: EdgeInsets.only(right: entry.key == 0 ? 1 : 0),
+                child: Image.network(
+                  entry.value,
+                  fit: BoxFit.cover,
+                  height: double.infinity,
+                  loadingBuilder: (context, child, loadingProgress) =>
+                  loadingProgress == null
+                      ? child
+                      : const Center(child: CircularProgressIndicator()),
+                  errorBuilder: (context, error, stackTrace) =>
+                  const Center(child: Icon(Icons.error)),
+                ),
               ),
             ),
           ),
@@ -70,14 +79,19 @@ Widget buildImageGrid(List<Map<String, dynamic>> images) {
       child: Row(
         children: [
           Expanded(
-            child: Image.network(
-              imageUrls[0],
-              fit: BoxFit.cover,
-              height: double.infinity,
-              loadingBuilder: (context, child, loadingProgress) =>
-              loadingProgress == null ? child : const Center(child: CircularProgressIndicator()),
-              errorBuilder: (context, error, stackTrace) =>
-              const Center(child: Icon(Icons.error)),
+            child: GestureDetector(
+              onTap: () => Get.to(() => FullImageView(imageUrls: imageUrls)),
+              child: Image.network(
+                imageUrls[0],
+                fit: BoxFit.cover,
+                height: double.infinity,
+                loadingBuilder: (context, child, loadingProgress) =>
+                loadingProgress == null
+                    ? child
+                    : const Center(child: CircularProgressIndicator()),
+                errorBuilder: (context, error, stackTrace) =>
+                const Center(child: Icon(Icons.error)),
+              ),
             ),
           ),
           const SizedBox(width: 1),
@@ -85,30 +99,40 @@ Widget buildImageGrid(List<Map<String, dynamic>> images) {
             child: Column(
               children: [
                 Expanded(
-                  child: Container(
-                    margin: const EdgeInsets.only(bottom: 0.5),
-                    child: Image.network(
-                      imageUrls[1],
-                      fit: BoxFit.cover,
-                      width: double.infinity,
-                      loadingBuilder: (context, child, loadingProgress) =>
-                      loadingProgress == null ? child : const Center(child: CircularProgressIndicator()),
-                      errorBuilder: (context, error, stackTrace) =>
-                      const Center(child: Icon(Icons.error)),
+                  child: GestureDetector(
+                    onTap: () => Get.to(() => FullImageView(imageUrls: imageUrls)),
+                    child: Container(
+                      margin: const EdgeInsets.only(bottom: 0.5),
+                      child: Image.network(
+                        imageUrls[1],
+                        fit: BoxFit.cover,
+                        width: double.infinity,
+                        loadingBuilder: (context, child, loadingProgress) =>
+                        loadingProgress == null
+                            ? child
+                            : const Center(child: CircularProgressIndicator()),
+                        errorBuilder: (context, error, stackTrace) =>
+                        const Center(child: Icon(Icons.error)),
+                      ),
                     ),
                   ),
                 ),
                 Expanded(
-                  child: Container(
-                    margin: const EdgeInsets.only(top: 0.5),
-                    child: Image.network(
-                      imageUrls[2],
-                      fit: BoxFit.cover,
-                      width: double.infinity,
-                      loadingBuilder: (context, child, loadingProgress) =>
-                      loadingProgress == null ? child : const Center(child: CircularProgressIndicator()),
-                      errorBuilder: (context, error, stackTrace) =>
-                      const Center(child: Icon(Icons.error)),
+                  child: GestureDetector(
+                    onTap: () => Get.to(() => FullImageView(imageUrls: imageUrls)),
+                    child: Container(
+                      margin: const EdgeInsets.only(top: 0.5),
+                      child: Image.network(
+                        imageUrls[2],
+                        fit: BoxFit.cover,
+                        width: double.infinity,
+                        loadingBuilder: (context, child, loadingProgress) =>
+                        loadingProgress == null
+                            ? child
+                            : const Center(child: CircularProgressIndicator()),
+                        errorBuilder: (context, error, stackTrace) =>
+                        const Center(child: Icon(Icons.error)),
+                      ),
                     ),
                   ),
                 ),
@@ -128,30 +152,40 @@ Widget buildImageGrid(List<Map<String, dynamic>> images) {
             child: Row(
               children: [
                 Expanded(
-                  child: Container(
-                    margin: const EdgeInsets.only(right: 0.5, bottom: 0.5),
-                    child: Image.network(
-                      imageUrls[0],
-                      fit: BoxFit.cover,
-                      height: double.infinity,
-                      loadingBuilder: (context, child, loadingProgress) =>
-                      loadingProgress == null ? child : const Center(child: CircularProgressIndicator()),
-                      errorBuilder: (context, error, stackTrace) =>
-                      const Center(child: Icon(Icons.error)),
+                  child: GestureDetector(
+                    onTap: () => Get.to(() => FullImageView(imageUrls: imageUrls)),
+                    child: Container(
+                      margin: const EdgeInsets.only(right: 0.5, bottom: 0.5),
+                      child: Image.network(
+                        imageUrls[0],
+                        fit: BoxFit.cover,
+                        height: double.infinity,
+                        loadingBuilder: (context, child, loadingProgress) =>
+                        loadingProgress == null
+                            ? child
+                            : const Center(child: CircularProgressIndicator()),
+                        errorBuilder: (context, error, stackTrace) =>
+                        const Center(child: Icon(Icons.error)),
+                      ),
                     ),
                   ),
                 ),
                 Expanded(
-                  child: Container(
-                    margin: const EdgeInsets.only(left: 0.5, bottom: 0.5),
-                    child: Image.network(
-                      imageUrls[1],
-                      fit: BoxFit.cover,
-                      height: double.infinity,
-                      loadingBuilder: (context, child, loadingProgress) =>
-                      loadingProgress == null ? child : const Center(child: CircularProgressIndicator()),
-                      errorBuilder: (context, error, stackTrace) =>
-                      const Center(child: Icon(Icons.error)),
+                  child: GestureDetector(
+                    onTap: () => Get.to(() => FullImageView(imageUrls: imageUrls)),
+                    child: Container(
+                      margin: const EdgeInsets.only(left: 0.5, bottom: 0.5),
+                      child: Image.network(
+                        imageUrls[1],
+                        fit: BoxFit.cover,
+                        height: double.infinity,
+                        loadingBuilder: (context, child, loadingProgress) =>
+                        loadingProgress == null
+                            ? child
+                            : const Center(child: CircularProgressIndicator()),
+                        errorBuilder: (context, error, stackTrace) =>
+                        const Center(child: Icon(Icons.error)),
+                      ),
                     ),
                   ),
                 ),
@@ -162,48 +196,58 @@ Widget buildImageGrid(List<Map<String, dynamic>> images) {
             child: Row(
               children: [
                 Expanded(
-                  child: Container(
-                    margin: const EdgeInsets.only(right: 0.5, top: 0.5),
-                    child: Image.network(
-                      imageUrls[2],
-                      fit: BoxFit.cover,
-                      height: double.infinity,
-                      loadingBuilder: (context, child, loadingProgress) =>
-                      loadingProgress == null ? child : const Center(child: CircularProgressIndicator()),
-                      errorBuilder: (context, error, stackTrace) =>
-                      const Center(child: Icon(Icons.error)),
+                  child: GestureDetector(
+                    onTap: () => Get.to(() => FullImageView(imageUrls: imageUrls)),
+                    child: Container(
+                      margin: const EdgeInsets.only(right: 0.5, top: 0.5),
+                      child: Image.network(
+                        imageUrls[2],
+                        fit: BoxFit.cover,
+                        height: double.infinity,
+                        loadingBuilder: (context, child, loadingProgress) =>
+                        loadingProgress == null
+                            ? child
+                            : const Center(child: CircularProgressIndicator()),
+                        errorBuilder: (context, error, stackTrace) =>
+                        const Center(child: Icon(Icons.error)),
+                      ),
                     ),
                   ),
                 ),
                 Expanded(
-                  child: Container(
-                    margin: const EdgeInsets.only(left: 0.5, top: 0.5),
-                    child: Stack(
-                      fit: StackFit.expand,
-                      children: [
-                        Image.network(
-                          imageUrls[3],
-                          fit: BoxFit.cover,
-                          loadingBuilder: (context, child, loadingProgress) =>
-                          loadingProgress == null ? child : const Center(child: CircularProgressIndicator()),
-                          errorBuilder: (context, error, stackTrace) =>
-                          const Center(child: Icon(Icons.error)),
-                        ),
-                        if (imageUrls.length > 4)
-                          Container(
-                            color: Colors.black54,
-                            child: Center(
-                              child: Text(
-                                '+${imageUrls.length - 4}',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
+                  child: GestureDetector(
+                    onTap: () => Get.to(() => FullImageView(imageUrls: imageUrls)),
+                    child: Container(
+                      margin: const EdgeInsets.only(left: 0.5, top: 0.5),
+                      child: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          Image.network(
+                            imageUrls[3],
+                            fit: BoxFit.cover,
+                            loadingBuilder: (context, child, loadingProgress) =>
+                            loadingProgress == null
+                                ? child
+                                : const Center(child: CircularProgressIndicator()),
+                            errorBuilder: (context, error, stackTrace) =>
+                            const Center(child: Icon(Icons.error)),
+                          ),
+                          if (imageUrls.length > 4)
+                            Container(
+                              color: Colors.black54,
+                              child: Center(
+                                child: Text(
+                                  '+${imageUrls.length - 4}',
+                                  style: h3.copyWith(
+                                    color: Colors.white,
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -275,4 +319,52 @@ String getTimeAgo(DateTime? dateTime) {
   if (difference.inHours > 0) return '${difference.inHours}h';
   if (difference.inMinutes > 0) return '${difference.inMinutes}m';
   return 'Just now';
+}
+
+
+class FullImageView extends StatelessWidget {
+  final List<String> imageUrls;
+
+  const FullImageView({super.key, required this.imageUrls});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      appBar: AppBar(
+        backgroundColor: Colors.black,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Get.back(),
+        ),
+        title: Text(
+          'View Images',
+          style: h2.copyWith(color: Colors.white, fontSize: 20),
+        ),
+      ),
+      body: PageView.builder(
+        itemCount: imageUrls.length,
+        itemBuilder: (context, index) {
+          final imageUrl = imageUrls[index];
+          return Center(
+            child: Image.network(
+              imageUrl,
+              fit: BoxFit.contain,
+              loadingBuilder: (context, child, loadingProgress) =>
+              loadingProgress == null
+                  ? child
+                  : const Center(child: CircularProgressIndicator()),
+              errorBuilder: (context, error, stackTrace) {
+                debugPrint("Error loading image in FullImageView: $error");
+                return Container(
+                  color: Colors.grey[300],
+                  child: const Icon(Icons.error, color: Colors.red, size: 50),
+                );
+              },
+            ),
+          );
+        },
+      ),
+    );
+  }
 }

@@ -244,7 +244,7 @@ class CommunityView extends GetView<CommunityController> {
                 style: h2.copyWith(fontSize: 16, color: AppColors.textColor),
               ),
             ),
-          buildImageGrid(images),
+          buildImageGrid(images), // Ensure full images list is passed
           const SizedBox(height: 16),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
