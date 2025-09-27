@@ -96,6 +96,7 @@ class MessageView extends GetView<MessageController> {
   Widget _buildTabItem(String title, int index) {
     return Expanded(
       child: Obx(() => GestureDetector(
+        behavior: HitTestBehavior.opaque, // Added to make the full tab area clickable
         onTap: () => controller.selectTab(index),
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 8),
@@ -283,6 +284,7 @@ class MessageView extends GetView<MessageController> {
     }
 
     return GestureDetector(
+      behavior: HitTestBehavior.opaque, // Added to make the full item area clickable
       onTap: () async {
         if (roomType == 'group') {
           Get.to(() => GroupChatView(
@@ -358,6 +360,7 @@ class MessageView extends GetView<MessageController> {
     required int userId,
   }) {
     return GestureDetector(
+      behavior: HitTestBehavior.opaque, // Added to make the full item area clickable
       onTap: () async {
         final createdRoomId = await controller.createChatRoom(userId);
         if (createdRoomId != null) {
@@ -473,7 +476,7 @@ class MessageView extends GetView<MessageController> {
                   radius: 18,
                   backgroundColor: Colors.grey[300],
                   backgroundImage: (groupAvatars?.length ?? 0) > 1 && groupAvatars![1].isNotEmpty
-                      ? NetworkImage(groupAvatars![1])
+                      ? NetworkImage(groupAvatars[1])
                       : null,
                 ),
               ),
