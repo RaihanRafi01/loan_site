@@ -3,6 +3,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:loan_site/app/modules/community/views/create_post_view.dart';
+import 'package:share_plus/share_plus.dart';
 import '../../../../common/widgets/community/communityDrawer.dart';
 import '../../../../common/widgets/community/communityWidgets.dart';
 import '../../../../common/appColors.dart';
@@ -267,10 +268,10 @@ class CommunityView extends GetView<CommunityController> {
                 postId: post.id,
               ),
               buildActionButton(
-                'assets/images/community/share_icon.svg',
-                '',
+                  'assets/images/community/share_icon.svg',
+                  '',
                 postId: post.id,
-              ),
+              )
             ],
           ),
         ],

@@ -1,94 +1,102 @@
 class Api {
   /// base url
+  static const baseUrl = "https://c81a4b08983f.ngrok-free.app";
+  static const baseUrlApi = "$baseUrl/api/v1";
+  static const baseUrlPicture = baseUrl;
+  static const deepLink = '$baseUrl/deeplink/post/view';
+
+  static String getBaseUrlWithoutProtocol() {
+    return baseUrl.replaceFirst('https://', '');
+  }
+
+  static String wsBaseUrl() => 'ws://${getBaseUrlWithoutProtocol()}';
 
 
-  static const baseUrl = "https://c81a4b08983f.ngrok-free.app/api/v1";
-  static const baseUrlPicture = "https://c81a4b08983f.ngrok-free.app";
-  static const wsBaseUrl = 'ws://c81a4b08983f.ngrok-free.app';
   //static const socket = "https://socket.thirdshotslot.co.uk/";    /// https://a82e3d99df4f.ngrok-free.app   /// http://10.10.13.73:7000/api/v1
 
 
   ///auth
-  static const signup = "$baseUrl/accounts/signup/";     //done
-  static const login = "$baseUrl/accounts/login/";    //done
-  static const socialAuth = "$baseUrl/accounts/social-signup-signin/";
-  static const logout = "$baseUrl/accounts/logout/";    // done
-  static const verifyOtp = "$baseUrl/accounts/activate/";    //done
-  static const resendOtp = "$baseUrl/accounts/resend-otp/";    //done
-  static const resetPasswordRequest = "$baseUrl/accounts/pass-reset-request/";    //done
-  static const resetPasswordActivate = "$baseUrl/accounts/reset-request-activate/";     //done
-  static const resetPassword = "$baseUrl/accounts/reset-password/";     //done
-  static const createToken = "$baseUrl/accounts/custom-token-refresh/";   // done
-  static const profileChangePassword = "$baseUrl/accounts/profile/change-password/";   // done
-  static const profileUpdate = "$baseUrl/accounts/profile/update/";   // done
-  static const getProfile = "$baseUrl/accounts/profile/";   // done
+  static const signup = "$baseUrlApi/accounts/signup/";     //done
+  static const login = "$baseUrlApi/accounts/login/";    //done
+  static const socialAuth = "$baseUrlApi/accounts/social-signup-signin/";
+  static const logout = "$baseUrlApi/accounts/logout/";    // done
+  static const verifyOtp = "$baseUrlApi/accounts/activate/";    //done
+  static const resendOtp = "$baseUrlApi/accounts/resend-otp/";    //done
+  static const resetPasswordRequest = "$baseUrlApi/accounts/pass-reset-request/";    //done
+  static const resetPasswordActivate = "$baseUrlApi/accounts/reset-request-activate/";     //done
+  static const resetPassword = "$baseUrlApi/accounts/reset-password/";     //done
+  static const createToken = "$baseUrlApi/accounts/custom-token-refresh/";   // done
+  static const profileChangePassword = "$baseUrlApi/accounts/profile/change-password/";   // done
+  static const profileUpdate = "$baseUrlApi/accounts/profile/update/";   // done
+  static const getProfile = "$baseUrlApi/accounts/profile/";   // done
 
-  static const sendHelp = "$baseUrl/setting/get-post-put/support/";   // done
+  static const sendHelp = "$baseUrlApi/setting/get-post-put/support/";   // done
   /// Project
 
-  static const createProject = "$baseUrl/project/create/";   // done
-  static  setProjectMilestone(project_id) => "$baseUrl/project/set-milestone/$project_id/";   // done
-  static const getAllProject = "$baseUrl/project/list/all/";   // done
-  static  projectDetails(project_id) => "$baseUrl/project/details/$project_id/";   // done
+  static const createProject = "$baseUrlApi/project/create/";   // done
+  static  setProjectMilestone(project_id) => "$baseUrlApi/project/set-milestone/$project_id/";   // done
+  static const getAllProject = "$baseUrlApi/project/list/all/";   // done
+  static  projectDetails(project_id) => "$baseUrlApi/project/details/$project_id/";   // done
 
-  static  startMilestone(project_id) => "$baseUrl/project/milestone/get-post/$project_id/";
+  static  startMilestone(project_id) => "$baseUrlApi/project/milestone/get-post/$project_id/";
 
-  static uploadMilestonePhoto(project_id,milestone_id) => "$baseUrl/project/milestone-complete-chatbot/$project_id/$milestone_id/";
+  static uploadMilestonePhoto(project_id,milestone_id) => "$baseUrlApi/project/milestone-complete-chatbot/$project_id/$milestone_id/";
 
-  static  getContractors(milestone_id) => "$baseUrl/project/get_contractors/?milestone_id=$milestone_id";
+  static  getContractors(milestone_id) => "$baseUrlApi/project/get_contractors/?milestone_id=$milestone_id";
 
   /// lender project
 
-  static const getLenderDashboardData = "$baseUrl/dashboard/data/";  //done
-  static const getLenderProjects = "$baseUrl/dashboard/projects/";  //done
+  static const getLenderDashboardData = "$baseUrlApi/dashboard/data/";  //done
+  static const getLenderProjects = "$baseUrlApi/dashboard/projects/";  //done
 
   /// community
-  static const createPost = "$baseUrl/community/posts/";  //done
+  static const createPost = "$baseUrlApi/community/posts/";  //done
 
-  static const myPosts = "$baseUrl/community/posts/my/"; //done
-  static const allPosts = "$baseUrl/community/posts/"; //done
+  static const myPosts = "$baseUrlApi/community/posts/my/"; //done
+  static const allPosts = "$baseUrlApi/community/posts/"; //done
 
-  static likePost(post_id) => "$baseUrl/community/posts/$post_id/like/"; // done
+  static likePost(post_id) => "$baseUrlApi/community/posts/$post_id/like/"; // done
 
-  static likeComment(comment_id) => "$baseUrl/community/comments/$comment_id/like/"; // working
+  static likeComment(comment_id) => "$baseUrlApi/community/comments/$comment_id/like/"; // working
 
-  static createComment(post_id) => "$baseUrl/community/posts/$post_id/comments/";  // done
-  static commentReplies(comment_id) => "$baseUrl/community/comments/$comment_id/reply/"; // done
+  static createComment(post_id) => "$baseUrlApi/community/posts/$post_id/comments/";  // done
+  static commentReplies(comment_id) => "$baseUrlApi/community/comments/$comment_id/reply/"; // done
 
-  static fetchPost(post_id) => "$baseUrl/community/posts/$post_id/"; // done
+  static fetchPost(post_id) => "$baseUrlApi/community/posts/$post_id/"; // done
 
-  static String notInterestedPost(String postId) => '$baseUrl/community/posts/$postId/not-interested/';
+  static String notInterestedPost(String postId) => '$baseUrlApi/community/posts/$postId/not-interested/';
 
-  static String updatePost(String postId) => '$baseUrl/community/posts/$postId/';
+  static updatePost(postId) => '$baseUrlApi/community/posts/$postId/';
+
 
 
   /// chat
 
-  static const chatAssistant = '$baseUrl/project/ai-assistant/';
-  static const chatHistory = '$baseUrl/project/ai-assistant/';
-  static const createChatRoom = '$baseUrl/chat/direct-message/';
+  static const chatAssistant = '$baseUrlApi/project/ai-assistant/';
+  static const chatHistory = '$baseUrlApi/project/ai-assistant/';
+  static const createChatRoom = '$baseUrlApi/chat/direct-message/';
 
 
 
 
-  static const getAllUsers = '$baseUrl/chat/all-users/';
-  static const createGroup = '$baseUrl/chat/rooms/';
+  static const getAllUsers = '$baseUrlApi/chat/all-users/';
+  static const createGroup = '$baseUrlApi/chat/rooms/';
 
-  static const getChatRooms = '$baseUrl/chat/rooms/';
-  static setChatRoomRead(room_id) => '$baseUrl/chat/rooms/$room_id/mark-read/';
+  static const getChatRooms = '$baseUrlApi/chat/rooms/';
+  static setChatRoomRead(room_id) => '$baseUrlApi/chat/rooms/$room_id/mark-read/';
 
   /// notification
 
-  static const registerDeviceToken = '$baseUrl/notification/register_unregister_device_token/';
-  static const updateNotificationPreference = '$baseUrl/notification/notification_settings/update/';
+  static const registerDeviceToken = '$baseUrlApi/notification/register_unregister_device_token/';
+  static const updateNotificationPreference = '$baseUrlApi/notification/notification_settings/update/';
 
-  static const getNotifications = '$baseUrl/notification/get_notification/';
-  static markNotificationRead(notification_id) => '$baseUrl/notification/mark_notification_as_read/$notification_id/';
-  static deleteNotification(notification_id) => '$baseUrl/notification/delete_notification/$notification_id/';
-  static const deleteAllNotifications = '$baseUrl/notification/delete_all_notifications/';
+  static const getNotifications = '$baseUrlApi/notification/get_notification/';
+  static markNotificationRead(notification_id) => '$baseUrlApi/notification/mark_notification_as_read/$notification_id/';
+  static deleteNotification(notification_id) => '$baseUrlApi/notification/delete_notification/$notification_id/';
+  static const deleteAllNotifications = '$baseUrlApi/notification/delete_all_notifications/';
   /// chat
 
-  static const getActiveUsers = '$baseUrl/chat/active-users/';
-  static getMessages(room_id) => '$baseUrl/chat/rooms/$room_id/messages/';
+  static const getActiveUsers = '$baseUrlApi/chat/active-users/';
+  static getMessages(room_id) => '$baseUrlApi/chat/rooms/$room_id/messages/';
 
 }

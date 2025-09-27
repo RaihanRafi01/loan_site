@@ -4,6 +4,7 @@ import 'package:app_links/app_links.dart';
 import 'package:loan_site/app/modules/auth/views/login_view.dart';
 import 'package:loan_site/app/modules/auth/views/signUp_view.dart';
 
+import '../../../core/constants/api.dart';
 import '../../../core/services/base_client.dart';
 import '../../../routes/app_pages.dart';
 import '../../../core/dependency_injection.dart';
@@ -66,7 +67,7 @@ class _SplashViewState extends State<SplashView> {
 
     if ((uri.scheme == 'loanapp' && uri.host == 'post' && uri.pathSegments.contains('view')) ||
         (uri.scheme == 'https' &&
-            uri.host == 'c81a4b08983f.ngrok-free.app' &&
+            uri.host == Api.getBaseUrlWithoutProtocol() &&
             uri.pathSegments.length >= 3 &&
             uri.pathSegments[0] == 'deeplink' &&
             uri.pathSegments[1] == 'post' &&

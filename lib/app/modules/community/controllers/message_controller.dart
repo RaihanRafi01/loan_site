@@ -239,7 +239,9 @@ class MessageController extends GetxController {
   }
 
   Future<void> connectWebSocket() async {
-    final wsBaseUrl = Api.wsBaseUrl;
+    final wsBaseUrl = Api.wsBaseUrl(); // Call the function to get the URL string
+
+    print('base URL of WS ===== >>>> 👾👾👾👾👾 $wsBaseUrl');
     final token = await BaseClient.getAccessToken();
     if (token == null || token.isEmpty) {
       developer.log(

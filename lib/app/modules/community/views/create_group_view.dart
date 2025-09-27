@@ -10,6 +10,8 @@ import 'package:loan_site/common/widgets/custom_snackbar.dart';
 import '../../../core/constants/api.dart';
 import '../../../core/services/base_client.dart';
 import '../../dashboard/controllers/dashboard_controller.dart';
+import '../controllers/message_controller.dart';
+import 'message_view.dart';
 
 const String mediaBaseUrl = Api.baseUrlPicture;
 
@@ -126,7 +128,7 @@ class CreateGroupController extends GetxController {
   Future<void> createGroup() async {
     if (nameController.text.trim().isEmpty) {
       kSnackBar(
-        title: 'Error',
+        title: 'Warning',
         message: 'Group name is required',
         bgColor: AppColors.snackBarWarning,
       );
@@ -136,7 +138,7 @@ class CreateGroupController extends GetxController {
     final currentUserId = getCurrentUserId();
     if (currentUserId == null) {
       kSnackBar(
-        title: 'Error',
+        title: 'Warning',
         message: 'Unable to retrieve current user ID',
         bgColor: AppColors.snackBarWarning,
       );
@@ -180,6 +182,7 @@ class CreateGroupController extends GetxController {
         headers: BaseClient.authHeaders(),
         body: jsonEncode(body),
       );
+
       final result = await BaseClient.handleResponse(
         response,
         retryRequest: () => BaseClient.postRequest(
@@ -188,11 +191,17 @@ class CreateGroupController extends GetxController {
           body: jsonEncode(body),
         ),
       );
+
+      // Show success snackbar and delay navigation
       kSnackBar(
         title: 'Success',
         message: 'Group created successfully',
+        duration: const Duration(seconds: 2), // Optional: Set duration for snackbar
       );
-      Get.back();
+
+      final messageController = Get.find<MessageController>();
+      await messageController.fetchChatRooms();
+      Get.to(MessageView());
     } catch (e) {
       developer.log(
         'Failed to create group: $e',

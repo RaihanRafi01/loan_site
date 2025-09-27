@@ -592,7 +592,7 @@ class CommunityController extends GetxController {
 
     isLoading.value = true;
     try {
-      var uri = Uri.parse('${Api.baseUrl}/community/posts/$postId/');
+      var uri = Uri.parse(Api.updatePost(postId));
       var request = http.MultipartRequest('PATCH', uri);
       request.headers.addAll(await BaseClient.authHeaders());
 

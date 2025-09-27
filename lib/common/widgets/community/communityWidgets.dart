@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
+import 'package:share_plus/share_plus.dart';
 
+import '../../../app/core/constants/api.dart';
 import '../../../app/modules/community/views/comments_view.dart';
 import '../../../app/modules/community/views/share_post_view.dart';
 import '../../appColors.dart';
@@ -272,7 +274,7 @@ Widget buildActionButton(
     }) {
   return GestureDetector(
     onTap: onPressed ??
-            () {
+            () async {
           if (svgPath.contains('comment_icon') && postId != null) {
            Get.to(() => CommentsView(postId: postId));
           }
@@ -280,7 +282,14 @@ Widget buildActionButton(
             Get.to(() => SharePostView(postId: postId));
           }
           else if (svgPath.contains('share_icon') && postId != null) {
-            //Get.to(() => CommentsView(postId: postId));
+            final deepLink = '${Api.deepLink}/$postId'; // Replace with your ngrok domain
+            await SharePlus.instance.share(
+              ShareParams(
+                text: 'Check out this post: $deepLink',
+                subject: 'Shared Post from Loan App',
+              ),
+            );
+            print('Share Clicked for post: $postId, Deep Link: $deepLink');
           }
         },
     child: Container(

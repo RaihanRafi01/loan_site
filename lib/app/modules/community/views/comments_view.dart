@@ -3,6 +3,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:loan_site/app/modules/community/views/reply_view.dart';
 import 'package:loan_site/app/modules/community/views/share_post_view.dart';
+import 'package:share_plus/share_plus.dart';
 import 'dart:convert';
 import '../../../../common/appColors.dart';
 import '../../../../common/customFont.dart';
@@ -206,18 +207,12 @@ class _CommentsViewState extends State<CommentsView> {
                   currentPost.commentCount.toString(),
                 );
               }),
-              GestureDetector(
-                onTap: () {
-                  Get.to(() => SharePostView(postId: post.id));
-                },
-                child: _buildActionButton('assets/images/community/typing_icon.svg', ''),
-              ),
-              GestureDetector(
-                onTap: () {
-                  Get.to(() => SharePostView(postId: post.id));
-                },
-                child: _buildActionButton('assets/images/community/share_icon.svg', ''),
-              ),
+              buildActionButton('assets/images/community/typing_icon.svg', '',postId: post.id),
+              buildActionButton(
+                  'assets/images/community/share_icon.svg',
+                  '',
+                  postId: post.id
+              )
             ],
           ),
         ],
