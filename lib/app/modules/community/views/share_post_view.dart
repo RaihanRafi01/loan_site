@@ -126,6 +126,7 @@ class SharePostController extends GetxController {
       'Success',
       'Post shared with selected rooms',
     );
+    await messageController.fetchChatRooms();
     // Reset checks
     for (var r in selected) {
       r.isChecked.value = false;

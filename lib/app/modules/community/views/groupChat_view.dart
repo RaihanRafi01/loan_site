@@ -222,6 +222,7 @@ class GroupChatView extends GetView<MessageController> {
                     final isMe =
                         msg['sender']['id'] == controller.getCurrentUserId();
                     final createdAt = msg['created_at'] ?? '';
+                    final content = msg['content'] as String? ?? '';
                     final time = _formatTime(createdAt);
                     final type = (msg['message_type'] ?? '').toString();
                     final senderId = msg['sender']['id'] as int;
@@ -240,6 +241,14 @@ class GroupChatView extends GetView<MessageController> {
                         senderName,
                         senderAvatar,
                       );
+                    }
+
+                    if (content.startsWith('postShareUniqueKey001')) {
+                      final parts = content.split(' ');
+                      if (parts.length > 1 && int.tryParse(parts[1]) != null) {
+                        final postId = int.parse(parts[1]);
+                        return _buildSharedPostBubble(postId, senderName, senderAvatar);
+                      }
                     }
 
                     if (type == 'file' || type == 'image') {
