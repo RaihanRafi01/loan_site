@@ -1,18 +1,17 @@
 import 'package:get/get.dart';
-import 'package:loan_site/app/modules/auth/views/login_view.dart';
-import 'package:loan_site/app/modules/community/views/message_view.dart';
-import 'package:loan_site/app/modules/dashboard/views/dashboard_lender_view.dart';
-import 'package:loan_site/app/modules/project/views/create_project_view.dart';
-import 'package:loan_site/app/modules/project/views/onboarding_project_view.dart';
-import 'package:loan_site/app/modules/project/views/project_list_view.dart';
+
+import '../../main.dart';
 import '../modules/auth/bindings/auth_binding.dart';
 import '../modules/auth/views/create_password_view.dart';
+import '../modules/auth/views/login_view.dart';
 import '../modules/community/bindings/community_binding.dart';
 import '../modules/community/views/comments_view.dart';
 import '../modules/community/views/community_view.dart';
+import '../modules/community/views/message_view.dart';
 import '../modules/contractor/bindings/contractor_binding.dart';
 import '../modules/contractor/views/contractor_view.dart';
 import '../modules/dashboard/bindings/dashboard_binding.dart';
+import '../modules/dashboard/views/dashboard_lender_view.dart';
 import '../modules/dashboard/views/dashboard_view.dart';
 import '../modules/home/bindings/home_binding.dart';
 import '../modules/home/views/home_view.dart';
@@ -25,6 +24,9 @@ import '../modules/onboarding/views/onboarding_steps_view.dart';
 import '../modules/progress/bindings/progress_binding.dart';
 import '../modules/progress/views/progress_view.dart';
 import '../modules/project/bindings/project_binding.dart';
+import '../modules/project/views/create_project_view.dart';
+import '../modules/project/views/onboarding_project_view.dart';
+import '../modules/project/views/project_list_view.dart';
 import '../modules/project/views/project_view.dart';
 import '../modules/project_lender/bindings/project_lender_binding.dart';
 import '../modules/project_lender/views/project_lender_view.dart';
@@ -32,6 +34,8 @@ import '../modules/project_request/bindings/project_request_binding.dart';
 import '../modules/project_request/views/project_request_view.dart';
 import '../modules/settings/bindings/settings_binding.dart';
 import '../modules/settings/views/settings_view.dart';
+import '../modules/splash/bindings/splash_binding.dart';
+import '../modules/splash/views/splash_view.dart';
 
 part 'app_routes.dart';
 
@@ -41,6 +45,11 @@ class AppPages {
   static const INITIAL = Routes.AUTH;
 
   static final routes = [
+    // In app_pages.dart, add to the list of routes:
+    GetPage(
+      name: Routes.COMMENTS,
+      page: () => CommentsView(postId: Get.arguments['postId'] as int),
+    ),
     GetPage(
       name: _Paths.HOME,
       page: () => const HomeView(),
@@ -58,7 +67,8 @@ class AppPages {
     ),
     GetPage(
       name: _Paths.DASHBOARD,
-      page: () => const OnboardingProjectView(),   /// change to OnboardingProjectView()  MessageView
+      page: () => const OnboardingProjectView(),
+      /// change to OnboardingProjectView()  MessageView
       binding: DashboardBinding(),
     ),
     GetPage(
@@ -112,9 +122,9 @@ class AppPages {
       binding: ProjectRequestBinding(),
     ),
     GetPage(
-      name: _Paths.COMMENTS,
-      page: () => CommentsView(postId: Get.arguments['postId'] ?? 0),
-      binding: CommunityBinding(),
+      name: _Paths.SPLASH,
+      page: () => const SplashView(),
+      binding: SplashBinding(),
     ),
   ];
 }

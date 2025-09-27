@@ -19,6 +19,7 @@ abstract class Routes {
   static const PROJECT_LENDER = _Paths.PROJECT_LENDER;
   static const HOME_LENDER = _Paths.HOME_LENDER;
   static const PROJECT_REQUEST = _Paths.PROJECT_REQUEST;
+  static const SPLASH = _Paths.SPLASH;
 }
 
 abstract class _Paths {
@@ -39,4 +40,5 @@ abstract class _Paths {
   static const PROJECT_LENDER = '/project-lender';
   static const HOME_LENDER = '/home-lender';
   static const PROJECT_REQUEST = '/project-request';
+  static const SPLASH = '/splash';
 }
