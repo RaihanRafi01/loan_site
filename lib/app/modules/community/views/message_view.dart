@@ -249,10 +249,14 @@ class MessageView extends GetView<MessageController> {
     if (image == null || image.isEmpty) {
       return '';
     }
-    if (image.startsWith('http://') || image.startsWith('https://')) {
-      return image;
+    String url = image;
+    if (url.startsWith('http://')) {
+      url = url.replaceFirst('http://', 'https://'); // Force HTTPS
+    } else if (!url.startsWith('https://')) {
+      url = '$baseUrl$url';
     }
-    return '$baseUrl$image';
+    print('Resolved avatar URL: $url'); // Log for debugging
+    return url;
   }
 
   Widget _buildMessageItem(Map<String, dynamic> room, int currentUserId) {
@@ -423,6 +427,19 @@ class MessageView extends GetView<MessageController> {
   }
 
   Widget buildAvatar(String type, String avatar, List<String>? groupAvatars) {
+    Widget buildAvatarImage(String? imageUrl) {
+      return imageUrl != null && imageUrl.isNotEmpty
+          ? Image.network(
+        imageUrl,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) {
+          print('Failed to load avatar: $imageUrl, error: $error'); // Log for debugging
+          return Image.asset('assets/images/community/person_placeholder.jpg', fit: BoxFit.cover);
+        },
+      )
+          : Image.asset('assets/images/community/person_placeholder.jpg', fit: BoxFit.cover);
+    }
+
     switch (type) {
       case 'active':
         return Padding(
@@ -433,7 +450,7 @@ class MessageView extends GetView<MessageController> {
               CircleAvatar(
                 radius: 25,
                 backgroundColor: Colors.grey[300],
-                backgroundImage: avatar.isNotEmpty ? NetworkImage(avatar) : null,
+                child: ClipOval(child: buildAvatarImage(avatar)),
               ),
               const Positioned(
                 bottom: -3,
@@ -464,9 +481,11 @@ class MessageView extends GetView<MessageController> {
                 child: CircleAvatar(
                   radius: 18,
                   backgroundColor: Colors.grey[300],
-                  backgroundImage: (groupAvatars?.isNotEmpty ?? false) && groupAvatars![0].isNotEmpty
-                      ? NetworkImage(groupAvatars![0])
-                      : null,
+                  child: ClipOval(
+                    child: buildAvatarImage(
+                      (groupAvatars?.isNotEmpty ?? false) ? groupAvatars![0] : null,
+                    ),
+                  ),
                 ),
               ),
               Positioned(
@@ -475,9 +494,11 @@ class MessageView extends GetView<MessageController> {
                 child: CircleAvatar(
                   radius: 18,
                   backgroundColor: Colors.grey[300],
-                  backgroundImage: (groupAvatars?.length ?? 0) > 1 && groupAvatars![1].isNotEmpty
-                      ? NetworkImage(groupAvatars[1])
-                      : null,
+                  child: ClipOval(
+                    child: buildAvatarImage(
+                      (groupAvatars?.length ?? 0) > 1 ? groupAvatars![1] : null,
+                    ),
+                  ),
                 ),
               ),
             ],
@@ -487,7 +508,7 @@ class MessageView extends GetView<MessageController> {
         return CircleAvatar(
           radius: 25,
           backgroundColor: Colors.grey[300],
-          backgroundImage: avatar.isNotEmpty ? NetworkImage(avatar) : null,
+          child: ClipOval(child: buildAvatarImage(avatar)),
         );
     }
   }
