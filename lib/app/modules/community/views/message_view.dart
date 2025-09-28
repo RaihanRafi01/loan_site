@@ -431,13 +431,25 @@ class MessageView extends GetView<MessageController> {
       return imageUrl != null && imageUrl.isNotEmpty
           ? Image.network(
         imageUrl,
-        fit: BoxFit.cover,
+        fit: BoxFit.cover, // Ensure the image fills the circular area
+        width: double.infinity, // Ensure the image takes full width
+        height: double.infinity, // Ensure the image takes full height
         errorBuilder: (context, error, stackTrace) {
           print('Failed to load avatar: $imageUrl, error: $error'); // Log for debugging
-          return Image.asset('assets/images/community/person_placeholder.jpg', fit: BoxFit.cover);
+          return Image.asset(
+            'assets/images/community/person_placeholder.jpg',
+            fit: BoxFit.cover,
+            width: double.infinity,
+            height: double.infinity,
+          );
         },
       )
-          : Image.asset('assets/images/community/person_placeholder.jpg', fit: BoxFit.cover);
+          : Image.asset(
+        'assets/images/community/person_placeholder.jpg',
+        fit: BoxFit.cover,
+        width: double.infinity,
+        height: double.infinity,
+      );
     }
 
     switch (type) {
@@ -450,7 +462,13 @@ class MessageView extends GetView<MessageController> {
               CircleAvatar(
                 radius: 25,
                 backgroundColor: Colors.grey[300],
-                child: ClipOval(child: buildAvatarImage(avatar)),
+                child: ClipOval(
+                  child: SizedBox(
+                    width: 50, // Explicitly set width to match diameter (2 * radius)
+                    height: 50, // Explicitly set height to match diameter
+                    child: buildAvatarImage(avatar),
+                  ),
+                ),
               ),
               const Positioned(
                 bottom: -3,
@@ -482,8 +500,12 @@ class MessageView extends GetView<MessageController> {
                   radius: 18,
                   backgroundColor: Colors.grey[300],
                   child: ClipOval(
-                    child: buildAvatarImage(
-                      (groupAvatars?.isNotEmpty ?? false) ? groupAvatars![0] : null,
+                    child: SizedBox(
+                      width: 36, // Match diameter (2 * radius)
+                      height: 36,
+                      child: buildAvatarImage(
+                        (groupAvatars?.isNotEmpty ?? false) ? groupAvatars![0] : null,
+                      ),
                     ),
                   ),
                 ),
@@ -495,8 +517,12 @@ class MessageView extends GetView<MessageController> {
                   radius: 18,
                   backgroundColor: Colors.grey[300],
                   child: ClipOval(
-                    child: buildAvatarImage(
-                      (groupAvatars?.length ?? 0) > 1 ? groupAvatars![1] : null,
+                    child: SizedBox(
+                      width: 36, // Match diameter (2 * radius)
+                      height: 36,
+                      child: buildAvatarImage(
+                        (groupAvatars?.length ?? 0) > 1 ? groupAvatars![1] : null,
+                      ),
                     ),
                   ),
                 ),
@@ -508,7 +534,13 @@ class MessageView extends GetView<MessageController> {
         return CircleAvatar(
           radius: 25,
           backgroundColor: Colors.grey[300],
-          child: ClipOval(child: buildAvatarImage(avatar)),
+          child: ClipOval(
+            child: SizedBox(
+              width: 50, // Match diameter (2 * radius)
+              height: 50,
+              child: buildAvatarImage(avatar),
+            ),
+          ),
         );
     }
   }
