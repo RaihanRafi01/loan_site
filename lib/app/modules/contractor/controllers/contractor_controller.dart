@@ -46,7 +46,7 @@ class Contractor {
       phone: json['phone'] ?? 'N/A',
       email: json['email'] ?? 'N/A',
       website: json['website'] ?? 'N/A',
-      rating: (json['rating'] ?? 0).toDouble(),
+      rating: json['rating'] ?? 0,
       totalReviews: json['total_reviews'] ?? 0,
       specialties: List<String>.from(json['specialties'] ?? []),
       servicesIncluded: List<String>.from(json['services_included'] ?? []),
@@ -63,6 +63,7 @@ class ContractorController extends GetxController {
   var contractors = <Contractor>[].obs; // Observable list for contractors
   var isContractorsLoading = false.obs; // Loading state
   var contractorsError = Rxn<String>(); // Error state
+  var hasMilestone = true.obs; // New observable to track milestone availability
 
   final PageController pageController = PageController();
 
@@ -119,17 +120,35 @@ class ContractorController extends GetxController {
     final HomeController homeController = Get.find<HomeController>();
     final currentProject = homeController.currentProject.value;
 
-    if(currentProject == null){
+    if (currentProject == null || currentProject.milestones.isEmpty) {
+      hasMilestone.value = false; // No milestones available
+      contractors.clear();
+      debugPrint('ContractorController: No project or milestones available');
       return;
     }
 
-
     // Find the first milestone with 'on_going' status
-    final milestone = currentProject?.milestones
+    var milestone = currentProject.milestones
         .firstWhereOrNull((m) => m.status == 'on_going');
 
-    debugPrint('Milestone: ${milestone?.id} - ${milestone?.name}');
+    // If no ongoing milestone, check for completed milestones
+    if (milestone == null) {
+      final completedMilestones = currentProject.milestones
+          .where((m) => m.status == 'completed')
+          .toList();
+      if (completedMilestones.isNotEmpty) {
+        // Select the last completed milestone
+        milestone = completedMilestones.last;
+        debugPrint('ContractorController: Using last completed milestone: ${milestone.id} - ${milestone.name}');
+      } else {
+        hasMilestone.value = false; // No ongoing or completed milestones
+        contractors.clear();
+        debugPrint('ContractorController: No ongoing or completed milestones');
+        return;
+      }
+    }
 
+    debugPrint('ContractorController: Selected milestone: ${milestone?.id} - ${milestone?.name}');
 
     try {
       isContractorsLoading.value = true;

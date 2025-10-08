@@ -5,6 +5,7 @@ import 'package:loan_site/common/widgets/custom_snackbar.dart';
 import '../../../../common/appColors.dart';
 import '../../../core/constants/api.dart';
 import '../../../core/services/base_client.dart';
+import '../../contractor/controllers/contractor_controller.dart';
 import '../../dashboard/views/dashboard_view.dart';
 import '../../project/controllers/project_controller.dart';
 import 'chat_controller.dart';
@@ -34,8 +35,10 @@ class HomeController extends GetxController {
     try {
       final project = await ProjectPrefs.getCurrentProject();
       currentProject.value = project;
+      final milestone = currentProject.value?.milestones
+          .firstWhereOrNull((m) => m.status == 'on_going');
       debugPrint('===========================HomeController: Loaded project: ${project?.name}');
-      debugPrint('===========================HomeController: Loaded project: ${currentProject.value?.milestones[2].status}');
+      debugPrint('===========================HomeController: Loaded project: $milestone');
     } catch (e) {
       debugPrint('💥💥💥 HomeController: Error loading project context: $e');
     }
@@ -140,6 +143,13 @@ class HomeController extends GetxController {
       // Step 4: Load context from preferences
       loadContextFromPrefs();
 
+      // Update ChatController (if applicable)
+      if (Get.isRegistered<ChatController>()) {
+        Get.find<ChatController>().refreshContext();
+      }
+      if (Get.isRegistered<ContractorController>()) {
+        Get.find<ContractorController>().fetchContractors();
+      }
       // Step 5: Navigate to DashboardView
       Get.to(() => const DashboardView());
     } catch (e, stackTrace) {

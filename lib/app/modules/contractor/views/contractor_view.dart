@@ -3,7 +3,11 @@ import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import '../../../../common/appColors.dart';
 import '../../../../common/customFont.dart';
+import '../../../../common/widgets/customButton.dart';
+import '../../home/controllers/home_controller.dart';
 import '../../home/views/chat_home_view.dart';
+import '../../home/views/upload_photo_view.dart';
+import '../../project/views/startMilestone_view.dart';
 import 'contractor_details_view.dart';
 import '../controllers/contractor_controller.dart';
 
@@ -67,7 +71,7 @@ class ContractorView extends GetView<ContractorController> {
                 ],
               ),
             ),
-            // Contractor list
+            // Contractor list or button when no milestone
             Expanded(
               flex: 5,
               child: controller.isContractorsLoading.value
@@ -80,11 +84,39 @@ class ContractorView extends GetView<ContractorController> {
                   textAlign: TextAlign.center,
                 ),
               )
+                  : !controller.hasMilestone.value
+                  ? Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(40),
+                  child: CustomButton(
+                    label: 'Start Next Phase',
+                    onPressed: () {
+                      final HomeController homeController = Get.find<HomeController>();
+                      final project = homeController.currentProject.value;
+                      final ongoingMilestone = project?.milestones
+                          .firstWhereOrNull((m) => m.status == 'on_going');
+                      if (ongoingMilestone != null) {
+                        // Assuming a method exists in the controller to handle completion
+                        // controller.completeCurrentMilestone();
+                        //Get.to(StartMilestoneView());
+                        Get.to(UploadPhotoView());
+                      } else {
+                        Get.to(StartMilestoneView());
+                      }
+                    },
+                    radius: 6,
+                    svgPath2: 'assets/images/home/double_arrow_icon.svg',
+                    height: 45,
+                    fontSize: 15,
+                  ),
+                ),
+              )
                   : controller.contractors.isEmpty
                   ? Center(
                 child: Text(
-                  'No contractors available please select a project first',
+                  'No contractors available for the selected milestone.',
                   style: h4.copyWith(color: AppColors.textColor),
+                  textAlign: TextAlign.center,
                 ),
               )
                   : ListView(
@@ -97,7 +129,7 @@ class ContractorView extends GetView<ContractorController> {
                         SvgPicture.asset('assets/images/contractor/arrow.svg'),
                         const SizedBox(width: 10),
                         Text(
-                          'Popular contactor in your city',
+                          'Popular contractors in your city',
                           style: h3.copyWith(
                             fontSize: 20,
                             color: AppColors.textColor,

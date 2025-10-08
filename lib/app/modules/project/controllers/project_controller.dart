@@ -482,19 +482,9 @@ class ProjectController extends GetxController {
   }
 
   Future<void> createProject() async {
+    isImageUploading.value = true;
     try {
-      if (selectedImages.isEmpty) {
-        _showWarning('Please select at least one image to upload');
-        return;
-      }
-
-      isImageUploading.value = true;
-
-      var uri = Uri.parse(Api.createProject);
-      var request = http.MultipartRequest('POST', uri);
-      request.headers.addAll(await BaseClient.authHeaders());
-
-      // Separate project and contractor data
+      // Prepare project data
       final projectData = {
         "name": projectNameController.text,
         "type": projectTypeController.text,
@@ -510,6 +500,7 @@ class ProjectController extends GetxController {
         "permit_expiry_date": permitExpireDateController.text,
       };
 
+      // Prepare contractor data
       final contractorData = contractorControllers
           .map(
             (controller) => {
@@ -522,20 +513,20 @@ class ProjectController extends GetxController {
       )
           .toList();
 
-      // Add project and contractor data as separate fields
-      request.fields['project'] = jsonEncode(projectData);
-      request.fields['contractor'] = jsonEncode(contractorData);
+      // Prepare JSON body
+      final requestBody = {
+        "project": projectData,
+        "contractor": contractorData,
+      };
 
-      // Add multiple image files
-      for (var file in selectedImages) {
-        var multipartFile = await http.MultipartFile.fromPath('images', file.path);
-        request.files.add(multipartFile);
-      }
+      // Send POST request with JSON body
+      final response = await BaseClient.postRequest(
+        api: Api.createProject,
+        headers: BaseClient.authHeaders(),
+        body: jsonEncode(requestBody),
+      );
 
-      var streamedResponse = await request.send();
-      var response = await http.Response.fromStream(streamedResponse);
-
-      debugPrint("API Hit: $uri");
+      debugPrint("API Hit: ${Api.createProject}");
       debugPrint('Response Code: ${response.statusCode}');
       debugPrint('Response Body: ${response.body}');
 

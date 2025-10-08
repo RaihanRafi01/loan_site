@@ -49,7 +49,7 @@
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data
                     android:scheme="https"
-                    android:host="c81a4b08983f.ngrok-free.app"
+                    android:host="e3cdd9637d85.ngrok-free.app"
                     android:pathPrefix="/deeplink/post/view" />
             </intent-filter>
         </activity>
