@@ -197,25 +197,20 @@ class CommunityController extends GetxController {
 
   Future<Post?> fetchPostIfNeeded(int postId) async {
     final post = allPosts.firstWhereOrNull((p) => p.id == postId);
-    if (post != null) {
-      return post;
-    }
+    if (post != null) return post;
 
     try {
-      final apiUrl = Api.fetchPost(postId);
-      final response = await BaseClient.getRequest(
-        api: apiUrl,
-        headers: BaseClient.authHeaders(),
-      );
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        final fetchedPost = Post.fromJson(data);
-        allPosts.add(fetchedPost);
-        return fetchedPost;
-      } else {
-        throw Exception('Failed to fetch post: ${response.reasonPhrase}');
+      Future<http.Response> makeRequest() async {
+        return await BaseClient.getRequest(
+          api: Api.fetchPost(postId),
+          headers: BaseClient.authHeaders(),
+        );
       }
+      final response = await makeRequest();
+      final data = await BaseClient.handleResponse(response, retryRequest: makeRequest);
+      final fetchedPost = Post.fromJson(data);
+      allPosts.add(fetchedPost);
+      return fetchedPost;
     } catch (e) {
       print('Fetch post error: $e');
       return null;
@@ -223,57 +218,69 @@ class CommunityController extends GetxController {
   }
 
   Future<void> fetchAllPosts({bool isLoadMore = false}) async {
-    if (isLoadMore && (!hasMoreAllPosts.value || isLoadingMoreAllPosts.value))
-      return;
+    if (isLoadMore && (!hasMoreAllPosts.value || isLoadingMoreAllPosts.value)) return;
 
     try {
       isLoadingMoreAllPosts.value = true;
       if (!isLoadMore) isInitialLoading.value = true;
-      final response = await BaseClient.getRequest(
-        api: isLoadMore ? nextUrlAllPosts.value : Api.allPosts,
-        headers: BaseClient.authHeaders(),
-      );
 
+      // Closure for retry with fresh headers/URL
+      Future<http.Response> makeRequest() async {
+        String url = isLoadMore ? nextUrlAllPosts.value : Api.allPosts;
+        // Force HTTPS if needed
+        if (url.startsWith('http://')) {
+          url = url.replaceFirst('http://', 'https://');
+        }
+        return await BaseClient.getRequest(
+          api: url,
+          headers: BaseClient.authHeaders(),  // Fresh each time
+        );
+      }
 
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        if (data is Map<String, dynamic>) {
-          final List<dynamic> list = data['results'] ?? [];
-          final newPosts = list
-              .map((e) {
-                if (e is Map<String, dynamic>) {
-                  return Post.fromJson(e);
-                }
-                print('Invalid item found: $e');
-                return null;
-              })
-              .whereType<Post>()
-              .toList();
+      final response = await makeRequest();
+      final data = await BaseClient.handleResponse(
+        response,
+        retryRequest: makeRequest,
+      );  // Throws on error, returns decoded Map on success
 
-          if (isLoadMore) {
-            allPosts.addAll(newPosts);
-          } else {
-            allPosts.assignAll(newPosts);
+      // Use the returned data directly (no statusCode check or re-decode)
+      if (data is Map<String, dynamic>) {
+        final List<dynamic> list = data['results'] ?? [];
+        final newPosts = list
+            .map((e) {
+          if (e is Map<String, dynamic>) {
+            return Post.fromJson(e);
           }
+          print('Invalid item found: $e');
+          return null;
+        })
+            .whereType<Post>()
+            .toList();
 
-          nextUrlAllPosts.value = data['next'] ?? '';
-          hasMoreAllPosts.value = data['next'] != null;
-
-          if (currentUser.value == null && myPosts.isNotEmpty) {
-            currentUser.value = myPosts.first.user;
-          }
+        if (isLoadMore) {
+          allPosts.addAll(newPosts);
         } else {
-          _showWarning('Unexpected response format. The data is not a Map.');
+          allPosts.assignAll(newPosts);
+        }
+
+        // Normalize next URL to HTTPS
+        String nextUrl = data['next'] ?? '';
+        if (nextUrl.startsWith('http://')) {
+          nextUrl = nextUrl.replaceFirst('http://', 'https://');
+        }
+        nextUrlAllPosts.value = nextUrl;
+        hasMoreAllPosts.value = data['next'] != null;
+
+        if (currentUser.value == null && myPosts.isNotEmpty) {
+          currentUser.value = myPosts.first.user;
         }
       } else {
-        _showWarning('Failed to fetch all posts: ${response.reasonPhrase}');
+        _showWarning('Unexpected response format. The data is not a Map.');
       }
     } catch (e) {
       print('Fetch all posts error: $e');
       _showWarning('Failed to fetch all posts. Please try again.');
-      if (!isLoadMore) {
-        allPosts.clear();
-      }
+      if (!isLoadMore) allPosts.clear();
     } finally {
       isLoadingMoreAllPosts.value = false;
       isInitialLoading.value = false;
@@ -281,55 +288,64 @@ class CommunityController extends GetxController {
   }
 
   Future<void> fetchMyPosts({bool isLoadMore = false}) async {
-    if (isLoadMore && (!hasMoreMyPosts.value || isLoadingMoreMyPosts.value))
-      return;
+    if (isLoadMore && (!hasMoreMyPosts.value || isLoadingMoreMyPosts.value)) return;
 
     try {
       isLoadingMoreMyPosts.value = true;
-      final response = await BaseClient.getRequest(
-        api: isLoadMore ? nextUrlMyPosts.value : Api.myPosts,
-        headers: BaseClient.authHeaders(),
+
+      Future<http.Response> makeRequest() async {
+        String url = isLoadMore ? nextUrlMyPosts.value : Api.myPosts;
+        if (url.startsWith('http://')) {
+          url = url.replaceFirst('http://', 'https://');
+        }
+        return await BaseClient.getRequest(
+          api: url,
+          headers: BaseClient.authHeaders(),
+        );
+      }
+
+      final response = await makeRequest();
+      final data = await BaseClient.handleResponse(
+        response,
+        retryRequest: makeRequest,
       );
 
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        if (data is Map<String, dynamic>) {
-          final List<dynamic> list = data['results'] ?? [];
-          final newPosts = list
-              .map((e) {
-                if (e is Map<String, dynamic>) {
-                  return Post.fromJson(e);
-                }
-                print('Invalid item found: $e');
-                return null;
-              })
-              .whereType<Post>()
-              .toList();
-
-          if (isLoadMore) {
-            myPosts.addAll(newPosts);
-          } else {
-            myPosts.assignAll(newPosts);
+      if (data is Map<String, dynamic>) {
+        final List<dynamic> list = data['results'] ?? [];
+        final newPosts = list
+            .map((e) {
+          if (e is Map<String, dynamic>) {
+            return Post.fromJson(e);
           }
+          print('Invalid item found: $e');
+          return null;
+        })
+            .whereType<Post>()
+            .toList();
 
-          nextUrlMyPosts.value = data['next'] ?? '';
-          hasMoreMyPosts.value = data['next'] != null;
-
-          if (currentUser.value == null && newPosts.isNotEmpty) {
-            currentUser.value = newPosts.first.user;
-          }
+        if (isLoadMore) {
+          myPosts.addAll(newPosts);
         } else {
-          _showWarning('Unexpected response format. The data is not a Map.');
+          myPosts.assignAll(newPosts);
+        }
+
+        String nextUrl = data['next'] ?? '';
+        if (nextUrl.startsWith('http://')) {
+          nextUrl = nextUrl.replaceFirst('http://', 'https://');
+        }
+        nextUrlMyPosts.value = nextUrl;
+        hasMoreMyPosts.value = data['next'] != null;
+
+        if (currentUser.value == null && newPosts.isNotEmpty) {
+          currentUser.value = newPosts.first.user;
         }
       } else {
-        _showWarning('Failed to fetch my posts: ${response.reasonPhrase}');
+        _showWarning('Unexpected response format. The data is not a Map.');
       }
     } catch (e) {
       print('Fetch my posts error: $e');
       _showWarning('Failed to fetch my posts. Please try again.');
-      if (!isLoadMore) {
-        myPosts.clear();
-      }
+      if (!isLoadMore) myPosts.clear();
     } finally {
       isLoadingMoreMyPosts.value = false;
     }

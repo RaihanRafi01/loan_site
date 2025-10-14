@@ -20,18 +20,23 @@ class BaseClient {
 
   static Future<void> storeRole({required String role}) async {
     await _storage.write(key: 'user_role', value: role);
-    }
+  }
 
-// Get stored user role (e.g., 'borrower' or 'private_lender')
+  // Get stored user role (e.g., 'borrower' or 'private_lender')
   static Future<String?> getStoredRole() async {
     return await _storage.read(key: 'user_role');
   }
 
   // Store tokens in secure storage
-  static Future<void> storeTokens({required String accessToken, required String refreshToken}) async {
+  static Future<void> storeTokens({
+    required String accessToken,
+    required String refreshToken,
+  }) async {
     await _storage.write(key: 'access_token', value: accessToken);
     await _storage.write(key: 'refresh_token', value: refreshToken);
-    print('access =======================>>>>>>>>>>>>> $accessToken  \n refresh =======================>>>>>>>>>>>>> refreshToken ');
+    print(
+      'access =======================>>>>>>>>>>>>> $accessToken  \n refresh =======================>>>>>>>>>>>>> refreshToken ',
+    );
   }
 
   // Retrieve access token from secure storage
@@ -77,17 +82,23 @@ class BaseClient {
     debugPrint("Header: $resolvedHeaders");
 
     try {
-      http.Response response = await http.get(
-        Uri.parse(api).replace(queryParameters: params),
-        headers: resolvedHeaders,
-      ).timeout(const Duration(seconds: 30), onTimeout: () {
-        kSnackBar(
-          title: "Request Timeout",
-          message: "The request took too long. Please check your connection and try again.",
-          bgColor: AppColors.snackBarWarning,
-        );
-        throw TimeoutException("Request timed out");
-      });
+      http.Response response = await http
+          .get(
+            Uri.parse(api).replace(queryParameters: params),
+            headers: resolvedHeaders,
+          )
+          .timeout(
+            const Duration(seconds: 30),
+            onTimeout: () {
+              kSnackBar(
+                title: "Request Timeout",
+                message:
+                    "The request took too long. Please check your connection and try again.",
+                bgColor: AppColors.snackBarWarning,
+              );
+              throw TimeoutException("Request timed out");
+            },
+          );
       debugPrint('💥💥💥💥💥💥💥💥💥💥 🚀 ➤➤➤ Code: ${response.statusCode}');
       debugPrint('💥💥💥💥💥💥💥💥💥💥 🚀 ➤➤➤ Response: ${response.body}');
       return response;
@@ -118,18 +129,20 @@ class BaseClient {
     final resolvedHeaders = headers != null ? await headers : null;
 
     try {
-      http.Response response = await http.post(
-        Uri.parse(api),
-        body: body,
-        headers: resolvedHeaders,
-      ).timeout(const Duration(seconds: 30), onTimeout: () {
-        kSnackBar(
-          title: "Request Timeout",
-          message: "The request took too long. Please check your connection and try again.",
-          bgColor: AppColors.snackBarWarning,
-        );
-        throw TimeoutException("Request timed out");
-      });
+      http.Response response = await http
+          .post(Uri.parse(api), body: body, headers: resolvedHeaders)
+          .timeout(
+            const Duration(seconds: 30),
+            onTimeout: () {
+              kSnackBar(
+                title: "Request Timeout",
+                message:
+                    "The request took too long. Please check your connection and try again.",
+                bgColor: AppColors.snackBarWarning,
+              );
+              throw TimeoutException("Request timed out");
+            },
+          );
       debugPrint('💥💥💥💥💥💥💥💥💥💥 🚀 ➤➤➤ Code: ${response.statusCode}');
       debugPrint('💥💥💥💥💥💥💥💥💥💥 🚀 ➤➤➤ Response: ${response.body}');
       return response;
@@ -160,18 +173,20 @@ class BaseClient {
     final resolvedHeaders = headers != null ? await headers : null;
 
     try {
-      http.Response response = await http.patch(
-        Uri.parse(api),
-        body: body,
-        headers: resolvedHeaders,
-      ).timeout(const Duration(seconds: 30), onTimeout: () {
-        kSnackBar(
-          title: "Request Timeout",
-          message: "The request took too long. Please check your connection and try again.",
-          bgColor: AppColors.snackBarWarning,
-        );
-        throw TimeoutException("Request timed out");
-      });
+      http.Response response = await http
+          .patch(Uri.parse(api), body: body, headers: resolvedHeaders)
+          .timeout(
+            const Duration(seconds: 30),
+            onTimeout: () {
+              kSnackBar(
+                title: "Request Timeout",
+                message:
+                    "The request took too long. Please check your connection and try again.",
+                bgColor: AppColors.snackBarWarning,
+              );
+              throw TimeoutException("Request timed out");
+            },
+          );
       debugPrint('💥💥💥💥💥💥💥💥💥💥 🚀 ➤➤➤ Code: ${response.statusCode}');
       debugPrint('💥💥💥💥💥💥💥💥💥💥 🚀 ➤➤➤ Response: ${response.body}');
       return response;
@@ -202,18 +217,20 @@ class BaseClient {
     final resolvedHeaders = headers != null ? await headers : null;
 
     try {
-      http.Response response = await http.put(
-        Uri.parse(api),
-        body: body,
-        headers: resolvedHeaders,
-      ).timeout(const Duration(seconds: 30), onTimeout: () {
-        kSnackBar(
-          title: "Request Timeout",
-          message: "The request took too long. Please check your connection and try again.",
-          bgColor: AppColors.snackBarWarning,
-        );
-        throw TimeoutException("Request timed out");
-      });
+      http.Response response = await http
+          .put(Uri.parse(api), body: body, headers: resolvedHeaders)
+          .timeout(
+            const Duration(seconds: 30),
+            onTimeout: () {
+              kSnackBar(
+                title: "Request Timeout",
+                message:
+                    "The request took too long. Please check your connection and try again.",
+                bgColor: AppColors.snackBarWarning,
+              );
+              throw TimeoutException("Request timed out");
+            },
+          );
       debugPrint('💥💥💥💥💥💥💥💥💥💥 🚀 ➤➤➤ Code: ${response.statusCode}');
       debugPrint('💥💥💥💥💥💥💥💥💥💥 🚀 ➤➤➤ Response: ${response.body}');
       return response;
@@ -242,25 +259,35 @@ class BaseClient {
   }) async {
     debugPrint("🪙🪙🪙🪙🪙 MULTIPART API Hit (Multipart): $api");
     debugPrint("Fields: $fields");
-    final resolvedHeaders = headers != null ? await headers : <String, String>{};
+    final resolvedHeaders = headers != null
+        ? await headers
+        : <String, String>{};
 
     try {
       var request = http.MultipartRequest('PUT', Uri.parse(api));
       request.headers.addAll(resolvedHeaders);
       request.fields.addAll(fields);
       if (image != null) {
-        request.files.add(await http.MultipartFile.fromPath('image', image.path));
-      }
-      final response = await request.send().timeout(const Duration(seconds: 30), onTimeout: () {
-        kSnackBar(
-          title: "Request Timeout",
-          message: "The request took too long. Please check your connection and try again.",
-          bgColor: AppColors.snackBarWarning,
+        request.files.add(
+          await http.MultipartFile.fromPath('image', image.path),
         );
-        throw TimeoutException("Request timed out");
-      });
+      }
+      final response = await request.send().timeout(
+        const Duration(seconds: 30),
+        onTimeout: () {
+          kSnackBar(
+            title: "Request Timeout",
+            message:
+                "The request took too long. Please check your connection and try again.",
+            bgColor: AppColors.snackBarWarning,
+          );
+          throw TimeoutException("Request timed out");
+        },
+      );
       final responseBody = await http.Response.fromStream(response);
-      debugPrint('💥💥💥💥💥💥💥💥💥💥 🚀 ➤➤➤ Code: ${responseBody.statusCode}');
+      debugPrint(
+        '💥💥💥💥💥💥💥💥💥💥 🚀 ➤➤➤ Code: ${responseBody.statusCode}',
+      );
       debugPrint('💥💥💥💥💥💥💥💥💥💥 🚀 ➤➤➤ Response: ${responseBody.body}');
       return responseBody;
     } on SocketException {
@@ -290,18 +317,20 @@ class BaseClient {
     final resolvedHeaders = headers != null ? await headers : null;
 
     try {
-      http.Response response = await http.delete(
-        Uri.parse(api),
-        headers: resolvedHeaders,
-        body: body,
-      ).timeout(const Duration(seconds: 30), onTimeout: () {
-        kSnackBar(
-          title: "Request Timeout",
-          message: "The request took too long. Please check your connection and try again.",
-          bgColor: AppColors.snackBarWarning,
-        );
-        throw TimeoutException("Request timed out");
-      });
+      http.Response response = await http
+          .delete(Uri.parse(api), headers: resolvedHeaders, body: body)
+          .timeout(
+            const Duration(seconds: 30),
+            onTimeout: () {
+              kSnackBar(
+                title: "Request Timeout",
+                message:
+                    "The request took too long. Please check your connection and try again.",
+                bgColor: AppColors.snackBarWarning,
+              );
+              throw TimeoutException("Request timed out");
+            },
+          );
       return response;
     } on SocketException {
       kSnackBar(
@@ -321,10 +350,19 @@ class BaseClient {
   }
 
   // Handle response with retry logic for 401 errors
-  static Future<dynamic> handleResponse(http.Response response, {Future<http.Response> Function()? retryRequest}) async {
+  static Future<dynamic> handleResponse(
+    http.Response response, {
+        int retryCount = 0,
+        int maxRetries = 3,
+    Future<http.Response> Function()? retryRequest,
+  }) async {
     try {
-      debugPrint('💥💥💥💥💥💥💥💥💥💥 handleResponse 🚀 ➤➤➤ Code: ${response.statusCode}');
-      debugPrint('💥💥💥💥💥💥💥💥💥💥 handleResponse 🚀 ➤➤➤ Response: ${response.body}');
+      debugPrint(
+        '💥💥💥💥💥💥💥💥💥💥 handleResponse 🚀 ➤➤➤ Code: ${response.statusCode}',
+      );
+      debugPrint(
+        '💥💥💥💥💥💥💥💥💥💥 handleResponse 🚀 ➤➤➤ Response: ${response.body}',
+      );
       if (response.statusCode >= 200 && response.statusCode <= 210) {
         if (response.body.isNotEmpty) {
           return json.decode(response.body);
@@ -332,16 +370,23 @@ class BaseClient {
           return response.body;
         }
       } else if (response.statusCode == 401) {
-        if (retryRequest == null) {
+        if (retryCount >= maxRetries) {
+          // Stop after max retries, show once, logout
           kSnackBar(
-            title: "Unauthorized",
-            message: "Your session has expired. Please log in again.",
+            title: "Session Expired",
+            message: "Your session has expired after multiple attempts. Please log in again.",
             bgColor: AppColors.snackBarWarning,
           );
-          throw _extractErrorMessage(response, "Unauthorized");
+          throw "Max retries exceeded: Unauthorized";
         }
-        // Attempt to refresh token and retry
-        return await _refreshTokenAndRetry(response, retryRequest);
+
+        // Increment and retry with refresh
+        return await _refreshTokenAndRetry(
+          originalResponse: response,
+          retryRequest: retryRequest!,
+          retryCount: retryCount + 1,
+          maxRetries: maxRetries,
+        );
       } else if (response.statusCode == 404) {
         debugPrint('NotFoundResponse: ${response.body}');
         kSnackBar(
@@ -422,12 +467,17 @@ class BaseClient {
   }
 
   // Extract error message from response
-  static String _extractErrorMessage(http.Response response, String defaultMessage) {
+  static String _extractErrorMessage(
+    http.Response response,
+    String defaultMessage,
+  ) {
     if (response.body.isNotEmpty) {
       try {
         final data = jsonDecode(response.body);
         if (data['errors'] != null) {
-          return data['errors'] is String ? data['errors'] : data['errors']['email']?[0] ?? defaultMessage;
+          return data['errors'] is String
+              ? data['errors']
+              : data['errors']['email']?[0] ?? defaultMessage;
         } else if (data['detail'] != null) {
           return data['detail'];
         }
@@ -440,20 +490,15 @@ class BaseClient {
   }
 
   // Refresh token and retry the original request
-  static Future<dynamic> _refreshTokenAndRetry(
-      http.Response originalResponse,
-      Future<http.Response> Function() retryRequest,
-      ) async {
+  static Future<dynamic> _refreshTokenAndRetry({
+    required http.Response originalResponse,
+    required Future<http.Response> Function() retryRequest,
+    required int retryCount,
+    required int maxRetries,
+  }) async {
     try {
       final refreshToken = await getRefreshToken();
-      final accessToken = await getAccessToken();
-
-      if (refreshToken == null || accessToken == null) {
-        kSnackBar(
-          title: "Session Expired",
-          message: "Please log in again.",
-          bgColor: AppColors.snackBarWarning,
-        );
+      if (refreshToken == null) {
         throw "No refresh token available";
       }
 
@@ -465,15 +510,8 @@ class BaseClient {
       final response = await http.post(
         Uri.parse(Api.createToken),
         body: body,
-        headers: await basicHeaders,
-      ).timeout(const Duration(seconds: 30), onTimeout: () {
-        kSnackBar(
-          title: "Request Timeout",
-          message: "The request took too long. Please check your connection and try again.",
-          bgColor: AppColors.snackBarWarning,
-        );
-        throw TimeoutException("Request timed out");
-      });
+        headers: {'Content-Type': 'application/json'},  // Ensure matches backend
+      ).timeout(const Duration(seconds: 30));
 
       if (response.statusCode >= 200 && response.statusCode <= 210) {
         final responseData = jsonDecode(response.body);
@@ -481,41 +519,41 @@ class BaseClient {
         if (newAccessToken != null) {
           await _storage.write(key: 'access_token', value: newAccessToken);
           debugPrint('New access token stored: $newAccessToken');
-          // Retry the original request
+
+          // Retry: Ensure retryRequest uses fresh authHeaders() internally
+          // If your retryRequest is a closure from caller, make sure caller does: headers: BaseClient.authHeaders()
           final retryResponse = await retryRequest();
-          return await handleResponse(retryResponse, retryRequest: retryRequest);
-        } else {
-          kSnackBar(
-            title: "Authentication Error",
-            message: "Failed to obtain new access token.",
-            bgColor: AppColors.snackBarWarning,
+          return await handleResponse(
+            retryResponse,
+            retryCount: retryCount,
+            maxRetries: maxRetries,
+            retryRequest: retryRequest,
           );
+        } else {
           throw "No access token in refresh response";
         }
       } else {
-        debugPrint('Refresh token failed: ${response.statusCode}');
-        kSnackBar(
-          title: "Authentication Error",
-          message: "Failed to refresh token. Please log in again.",
-          bgColor: AppColors.snackBarWarning,
-        );
+        debugPrint('Refresh failed: ${response.statusCode} ${response.body}');
+        // On refresh fail, increment retry in handleResponse caller will handle max
+        if (retryCount >= maxRetries) {
+          kSnackBar(
+            title: "Authentication Failed",
+            message: "Failed to refresh session. Logging out.",
+            bgColor: AppColors.snackBarWarning,
+          );
+        }
         throw "Failed to refresh token";
       }
-    } on SocketException {
-      kSnackBar(
-        title: "No Internet",
-        message: "Please check your internet connection and try again.",
-        bgColor: AppColors.snackBarWarning,
-      );
-      throw "Unable to refresh token please try again later";
     } catch (e) {
-      debugPrint('Refresh token error: $e');
-      kSnackBar(
-        title: "Authentication Error",
-        message: "Unable to refresh token. Please try again later.",
-        bgColor: AppColors.snackBarWarning,
-      );
-      throw "Unable to refresh token please try again later";
+      debugPrint('Refresh error: $e');
+      if (retryCount >= maxRetries) {
+        kSnackBar(
+          title: "Authentication Error",
+          message: "Unable to refresh token after retries. Please log in again.",
+          bgColor: AppColors.snackBarWarning,
+        );
+      }
+      rethrow;  // Let handleResponse catch and decide
     }
   }
 

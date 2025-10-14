@@ -46,8 +46,8 @@ class Contractor {
       phone: json['phone'] ?? 'N/A',
       email: json['email'] ?? 'N/A',
       website: json['website'] ?? 'N/A',
-      rating: json['rating'] ?? 0,
-      totalReviews: json['total_reviews'] ?? 0,
+      rating: (json['rating'] ?? 0).toDouble(), // Keep as double
+      totalReviews: json['total_reviews'] ?? 0, // Keep as int
       specialties: List<String>.from(json['specialties'] ?? []),
       servicesIncluded: List<String>.from(json['services_included'] ?? []),
       pricing: Map<String, String>.from(json['pricing'] ?? {}),

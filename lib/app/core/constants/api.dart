@@ -1,6 +1,6 @@
 class Api {
   /// base url
-  static const baseUrl = "https://e3cdd9637d85.ngrok-free.app";
+  static const baseUrl = "https://58adc986591f.ngrok-free.app";
   static const baseUrlApi = "$baseUrl/api/v1";
   static const baseUrlPicture = baseUrl;
   static const deepLink = '$baseUrl/deeplink/post/view';

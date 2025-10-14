@@ -80,10 +80,10 @@ class DashboardLenderView extends GetView<DashboardLenderController> {
               GButton(
                 icon: Icons.settings,
                 text: 'Settings',
-                textStyle: h2.copyWith(fontSize: 16,color: controller.selectedIndex.value == 3 ? AppColors.appColor2 : null),
+                textStyle: h2.copyWith(fontSize: 16,color: controller.selectedIndex.value == 2 ? AppColors.appColor2 : null),
                 leading: SvgPicture.asset(
                   'assets/images/nav/settings_icon.svg',
-                  color: controller.selectedIndex.value == 3 ? AppColors.appColor2 : null,
+                  color: controller.selectedIndex.value == 2 ? AppColors.appColor2 : null,
                 ),
                 iconActiveColor: Colors.white,
                 iconColor: Colors.black,

@@ -5,6 +5,7 @@ import 'package:loan_site/common/widgets/custom_snackbar.dart';
 import 'package:loan_site/common/appColors.dart';
 import '../../../core/constants/api.dart';
 import '../../../core/services/base_client.dart';
+import 'package:http/http.dart' as http;
 
 class DashboardLenderController extends GetxController {
   var selectedIndex = 0.obs;
@@ -29,19 +30,22 @@ class DashboardLenderController extends GetxController {
 
   Future<Map<String, dynamic>> fetchOverviewData() async {
     try {
-      final response = await BaseClient.getRequest(
-        api: Api.getLenderDashboardData,
-        headers: BaseClient.authHeaders(),
-      );
-      final result = await BaseClient.handleResponse(
-        response,
-        retryRequest: () => BaseClient.getRequest(
+      Future<http.Response> makeRequest() async {
+        return await BaseClient.getRequest(
           api: Api.getLenderDashboardData,
           headers: BaseClient.authHeaders(),
-        ),
-      );
-      return result;
+        );
+      }
+      final response = await makeRequest();
+      final result = await BaseClient.handleResponse(response, retryRequest: makeRequest);
+      return result is Map<String, dynamic> ? result : {};
     } catch (e) {
+      print('Fetch overview error: $e');
+      kSnackBar(
+        title: 'Warning',
+        message: 'Failed to load overview: $e',
+        bgColor: AppColors.snackBarWarning,
+      );
       return {};
     }
   }
@@ -51,29 +55,53 @@ class DashboardLenderController extends GetxController {
 
     try {
       isLoadingMore.value = true;
-      final response = await BaseClient.getRequest(
-        api: isLoadMore ? nextUrl.value : Api.getLenderProjects,
-        headers: BaseClient.authHeaders(),
-      );
-      final result = await BaseClient.handleResponse(
-        response,
-        retryRequest: () => BaseClient.getRequest(
-          api: isLoadMore ? nextUrl.value : Api.getLenderProjects,
-          headers: BaseClient.authHeaders(),
-        ),
-      );
 
-      // Append new projects to the existing list
-      if (isLoadMore) {
-        projectList.addAll(List<Map<String, dynamic>>.from(result['results'] ?? []));
-      } else {
-        projectList.assignAll(List<Map<String, dynamic>>.from(result['results'] ?? []));
+      // Dynamic closure: Uses fresh state each retry, forces HTTPS
+      Future<http.Response> makeRequest() async {
+        String url = isLoadMore ? nextUrl.value : Api.getLenderProjects;
+        // Force HTTPS to prevent header drops
+        if (url.startsWith('http://')) {
+          url = url.replaceFirst('http://', 'https://');
+        }
+        return await BaseClient.getRequest(
+          api: url,
+          headers: BaseClient.authHeaders(),  // Fresh headers each time
+        );
       }
 
-      // Update next URL and check if more projects are available
-      nextUrl.value = result['next'] ?? '';
-      hasMoreProjects.value = result['next'] != null;
+      final response = await makeRequest();
+      final result = await BaseClient.handleResponse(
+        response,
+        retryRequest: makeRequest,  // Will retry with fresh URL/headers
+      );
+
+      // Ensure result is a Map
+      if (result is Map<String, dynamic>) {
+        final List<dynamic> results = result['results'] ?? [];
+        final newProjects = results.cast<Map<String, dynamic>>();  // Safe cast
+
+        if (isLoadMore) {
+          projectList.addAll(newProjects);
+        } else {
+          projectList.assignAll(newProjects);
+        }
+
+        // Normalize next URL to HTTPS
+        String newNextUrl = result['next'] ?? '';
+        if (newNextUrl.startsWith('http://')) {
+          newNextUrl = newNextUrl.replaceFirst('http://', 'https://');
+        }
+        nextUrl.value = newNextUrl;
+        hasMoreProjects.value = result['next'] != null;
+      } else {
+        kSnackBar(
+          title: 'Warning',
+          message: 'Unexpected response format. Data is not a Map.',
+          bgColor: AppColors.snackBarWarning,
+        );
+      }
     } catch (e) {
+      print('Fetch projects error: $e');  // For debugging
       kSnackBar(
         title: 'Warning',
         message: 'Failed to load projects: $e',
