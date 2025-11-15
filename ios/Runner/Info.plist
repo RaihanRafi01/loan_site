@@ -5,7 +5,7 @@
 	<key>CFBundleDevelopmentRegion</key>
     <string>$(CFBundleDevelopmentRegion)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Loan Site</string>
+	<string>LoanBuild.ai</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>

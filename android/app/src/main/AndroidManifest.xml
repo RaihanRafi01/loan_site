@@ -13,7 +13,7 @@
     <uses-permission android:name="android.permission.CAMERA" />
 
     <application
-        android:label="Loan Build AI"
+        android:label="LoanBuild.ai"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
