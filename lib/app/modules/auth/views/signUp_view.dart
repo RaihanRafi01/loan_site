@@ -65,7 +65,7 @@ class SignUpScreen extends GetView<AuthController> {
                     obscureText: controller.isPasswordHidden.value,
                     labelText: 'Password',
                     prefixSvgPath: 'assets/images/auth/lock_icon.svg',
-                    suffixSvgPath: 'assets/images/auth/eye_icon.svg',
+                    suffixSvgPath: controller.isPasswordHidden.value ? 'assets/images/auth/eye_close_icon.svg' : 'assets/images/auth/eye_icon.svg',
                     onSuffixTap: controller.togglePasswordVisibility,
                     controller: controller.passwordController,
                   )),
@@ -73,7 +73,7 @@ class SignUpScreen extends GetView<AuthController> {
                     obscureText: controller.isConfirmPasswordHidden.value,
                     labelText: 'Confirm Password',
                     prefixSvgPath: 'assets/images/auth/lock_icon.svg',
-                    suffixSvgPath: 'assets/images/auth/eye_icon.svg',
+                    suffixSvgPath: controller.isConfirmPasswordHidden.value ? 'assets/images/auth/eye_close_icon.svg' : 'assets/images/auth/eye_icon.svg',
                     onSuffixTap: controller.toggleConfirmPasswordVisibility,
                     controller: controller.confirmPasswordController,
                   )),
@@ -84,7 +84,7 @@ class SignUpScreen extends GetView<AuthController> {
                     isLoading: controller.isLoading.value,
                   )),
                   const SizedBox(height: 24),
-                  Row(
+                  /*Row(
                     children: [
                       Expanded(child: Divider(color: Colors.grey[300])),
                       Padding(
@@ -111,7 +111,7 @@ class SignUpScreen extends GetView<AuthController> {
                       SvgPicture.asset('assets/images/auth/apple_icon.svg'),
                     ],
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 24),*/
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [

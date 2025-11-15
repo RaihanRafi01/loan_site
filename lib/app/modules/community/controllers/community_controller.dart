@@ -228,9 +228,9 @@ class CommunityController extends GetxController {
       Future<http.Response> makeRequest() async {
         String url = isLoadMore ? nextUrlAllPosts.value : Api.allPosts;
         // Force HTTPS if needed
-        if (url.startsWith('http://')) {
+        /*if (url.startsWith('http://')) {
           url = url.replaceFirst('http://', 'https://');
-        }
+        }*/
         return await BaseClient.getRequest(
           api: url,
           headers: BaseClient.authHeaders(),  // Fresh each time
@@ -265,9 +265,9 @@ class CommunityController extends GetxController {
 
         // Normalize next URL to HTTPS
         String nextUrl = data['next'] ?? '';
-        if (nextUrl.startsWith('http://')) {
+        /*if (nextUrl.startsWith('http://')) {
           nextUrl = nextUrl.replaceFirst('http://', 'https://');
-        }
+        }*/
         nextUrlAllPosts.value = nextUrl;
         hasMoreAllPosts.value = data['next'] != null;
 
@@ -295,9 +295,9 @@ class CommunityController extends GetxController {
 
       Future<http.Response> makeRequest() async {
         String url = isLoadMore ? nextUrlMyPosts.value : Api.myPosts;
-        if (url.startsWith('http://')) {
+        /*if (url.startsWith('http://')) {
           url = url.replaceFirst('http://', 'https://');
-        }
+        }*/
         return await BaseClient.getRequest(
           api: url,
           headers: BaseClient.authHeaders(),
@@ -330,9 +330,9 @@ class CommunityController extends GetxController {
         }
 
         String nextUrl = data['next'] ?? '';
-        if (nextUrl.startsWith('http://')) {
+        /*if (nextUrl.startsWith('http://')) {
           nextUrl = nextUrl.replaceFirst('http://', 'https://');
-        }
+        }*/
         nextUrlMyPosts.value = nextUrl;
         hasMoreMyPosts.value = data['next'] != null;
 

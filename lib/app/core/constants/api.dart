@@ -1,12 +1,12 @@
 class Api {
   /// base url
-  static const baseUrl = "https://58adc986591f.ngrok-free.app";
+  static const baseUrl = "http://206.162.244.150:7100";
   static const baseUrlApi = "$baseUrl/api/v1";
   static const baseUrlPicture = baseUrl;
   static const deepLink = '$baseUrl/deeplink/post/view';
 
   static String getBaseUrlWithoutProtocol() {
-    return baseUrl.replaceFirst('https://', '');
+    return baseUrl.replaceFirst('http://', '');
   }
 
   static String wsBaseUrl() => 'ws://${getBaseUrlWithoutProtocol()}';

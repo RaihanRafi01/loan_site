@@ -99,8 +99,7 @@ class BaseClient {
               throw TimeoutException("Request timed out");
             },
           );
-      debugPrint('💥💥💥💥💥💥💥💥💥💥 🚀 ➤➤➤ Code: ${response.statusCode}');
-      debugPrint('💥💥💥💥💥💥💥💥💥💥 🚀 ➤➤➤ Response: ${response.body}');
+      debugPrint('💥💥💥💥💥💥💥💥💥💥 🚀 ➤➤➤ Code: ${response.statusCode} ➤➤➤ Api : $api ➤➤➤ Response: ${response.body}');
       return response;
     } on SocketException {
       kSnackBar(
@@ -110,11 +109,7 @@ class BaseClient {
       );
       rethrow;
     } catch (e) {
-      kSnackBar(
-        title: "Network Error",
-        message: "A network error occurred. Please try again later.",
-        bgColor: AppColors.snackBarWarning,
-      );
+      print('Network Error ---> api : $api Error ---> $e');
       rethrow;
     }
   }
@@ -143,8 +138,7 @@ class BaseClient {
               throw TimeoutException("Request timed out");
             },
           );
-      debugPrint('💥💥💥💥💥💥💥💥💥💥 🚀 ➤➤➤ Code: ${response.statusCode}');
-      debugPrint('💥💥💥💥💥💥💥💥💥💥 🚀 ➤➤➤ Response: ${response.body}');
+      debugPrint('💥💥💥💥💥💥💥💥💥💥 🚀 ➤➤➤ Code: ${response.statusCode} ➤➤➤ Api : $api ➤➤➤ Response: ${response.body}');
       return response;
     } on SocketException {
       kSnackBar(
@@ -154,11 +148,7 @@ class BaseClient {
       );
       rethrow;
     } catch (e) {
-      kSnackBar(
-        title: "Network Error",
-        message: "A network error occurred. Please try again later.",
-        bgColor: AppColors.snackBarWarning,
-      );
+      print('Network Error ---> api : $api Error ---> $e');
       rethrow;
     }
   }
@@ -187,8 +177,7 @@ class BaseClient {
               throw TimeoutException("Request timed out");
             },
           );
-      debugPrint('💥💥💥💥💥💥💥💥💥💥 🚀 ➤➤➤ Code: ${response.statusCode}');
-      debugPrint('💥💥💥💥💥💥💥💥💥💥 🚀 ➤➤➤ Response: ${response.body}');
+      debugPrint('💥💥💥💥💥💥💥💥💥💥 🚀 ➤➤➤ Code: ${response.statusCode} ➤➤➤ Api : $api ➤➤➤ Response: ${response.body}');
       return response;
     } on SocketException {
       kSnackBar(
@@ -198,11 +187,7 @@ class BaseClient {
       );
       rethrow;
     } catch (e) {
-      kSnackBar(
-        title: "Network Error",
-        message: "A network error occurred. Please try again later.",
-        bgColor: AppColors.snackBarWarning,
-      );
+      print('Network Error ---> api : $api Error ---> $e');
       rethrow;
     }
   }
@@ -231,8 +216,7 @@ class BaseClient {
               throw TimeoutException("Request timed out");
             },
           );
-      debugPrint('💥💥💥💥💥💥💥💥💥💥 🚀 ➤➤➤ Code: ${response.statusCode}');
-      debugPrint('💥💥💥💥💥💥💥💥💥💥 🚀 ➤➤➤ Response: ${response.body}');
+      debugPrint('💥💥💥💥💥💥💥💥💥💥 🚀 ➤➤➤ Code: ${response.statusCode} ➤➤➤ Api : $api ➤➤➤ Response: ${response.body}');
       return response;
     } on SocketException {
       kSnackBar(
@@ -242,11 +226,7 @@ class BaseClient {
       );
       rethrow;
     } catch (e) {
-      kSnackBar(
-        title: "Network Error",
-        message: "A network error occurred. Please try again later.",
-        bgColor: AppColors.snackBarWarning,
-      );
+      print('Network Error ---> api : $api Error ---> $e');
       rethrow;
     }
   }
@@ -285,10 +265,7 @@ class BaseClient {
         },
       );
       final responseBody = await http.Response.fromStream(response);
-      debugPrint(
-        '💥💥💥💥💥💥💥💥💥💥 🚀 ➤➤➤ Code: ${responseBody.statusCode}',
-      );
-      debugPrint('💥💥💥💥💥💥💥💥💥💥 🚀 ➤➤➤ Response: ${responseBody.body}');
+      debugPrint('💥💥💥💥💥💥💥💥💥💥 🚀 ➤➤➤ Code: ${response.statusCode} ➤➤➤ Api : $api ➤➤➤ Response: ${responseBody.body}');
       return responseBody;
     } on SocketException {
       kSnackBar(
@@ -298,11 +275,7 @@ class BaseClient {
       );
       rethrow;
     } catch (e) {
-      kSnackBar(
-        title: "Network Error",
-        message: "A network error occurred. Please try again later.",
-        bgColor: AppColors.snackBarWarning,
-      );
+      print('Network Error ---> api : $api Error ---> $e');
       rethrow;
     }
   }
@@ -340,11 +313,7 @@ class BaseClient {
       );
       rethrow;
     } catch (e) {
-      kSnackBar(
-        title: "Network Error",
-        message: "A network error occurred. Please try again later.",
-        bgColor: AppColors.snackBarWarning,
-      );
+      print('Network Error ---> api : $api Error ---> $e');
       rethrow;
     }
   }

@@ -34,6 +34,7 @@ class FCMService {
         "device_token": token,
         "device_type": "android"
       });
+      print('device_token: $token');
       await BaseClient.postRequest(
         api: Api.registerDeviceToken,
         body: body,

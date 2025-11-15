@@ -37,9 +37,9 @@ class MessageController extends GetxController {
 
   @override
   void onClose() {
-    developer.log('Closing WebSocket connection', name: 'MessageController');
-    _channel?.sink.close();
-    isWebSocketConnected.value = false;
+    //developer.log('Closing WebSocket connection', name: 'MessageController');
+    //_channel?.sink.close();
+    //isWebSocketConnected.value = false;
     super.onClose();
   }
 
@@ -57,9 +57,22 @@ class MessageController extends GetxController {
           headers: BaseClient.authHeaders(),
         ),
       );
-      activeUsers.value = List<Map<String, dynamic>>.from(result);
+
+      final int? myId = getCurrentUserId();          // <-- NEW
+      final filtered = result
+          .where((item) {
+        // The API returns something like { "user": { "id": 123, ... }, "is_online": true }
+        final userMap = item['user'] as Map<String, dynamic>?;
+        final id = userMap?['id'] as int?;
+        return id != null && id != myId;           // <-- FILTER OUT SELF
+      })
+          .map((e) => Map<String, dynamic>.from(e as Map))
+          .toList();
+
+      activeUsers.value = List<Map<String, dynamic>>.from(filtered);
+
       developer.log(
-        'Active users fetched: ${activeUsers.length} users',
+        'Active users fetched (self excluded): ${activeUsers.length} users',
         name: 'MessageController',
       );
     } catch (e) {

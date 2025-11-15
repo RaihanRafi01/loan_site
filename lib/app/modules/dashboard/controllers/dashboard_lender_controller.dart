@@ -59,10 +59,6 @@ class DashboardLenderController extends GetxController {
       // Dynamic closure: Uses fresh state each retry, forces HTTPS
       Future<http.Response> makeRequest() async {
         String url = isLoadMore ? nextUrl.value : Api.getLenderProjects;
-        // Force HTTPS to prevent header drops
-        if (url.startsWith('http://')) {
-          url = url.replaceFirst('http://', 'https://');
-        }
         return await BaseClient.getRequest(
           api: url,
           headers: BaseClient.authHeaders(),  // Fresh headers each time
@@ -88,9 +84,6 @@ class DashboardLenderController extends GetxController {
 
         // Normalize next URL to HTTPS
         String newNextUrl = result['next'] ?? '';
-        if (newNextUrl.startsWith('http://')) {
-          newNextUrl = newNextUrl.replaceFirst('http://', 'https://');
-        }
         nextUrl.value = newNextUrl;
         hasMoreProjects.value = result['next'] != null;
       } else {
@@ -102,11 +95,11 @@ class DashboardLenderController extends GetxController {
       }
     } catch (e) {
       print('Fetch projects error: $e');  // For debugging
-      kSnackBar(
+      /*kSnackBar(
         title: 'Warning',
         message: 'Failed to load projects: $e',
         bgColor: AppColors.snackBarWarning,
-      );
+      );*/
       if (!isLoadMore) {
         projectList.clear();
       }

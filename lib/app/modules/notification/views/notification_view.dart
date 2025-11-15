@@ -12,7 +12,7 @@ class NotificationView extends GetView<NotificationController> {
 
   @override
   Widget build(BuildContext context) {
-    final HomeController homeController = Get.find<HomeController>();
+    final HomeController homeController = Get.put(HomeController());
     return Scaffold(
       backgroundColor: AppColors.appBc,
       appBar: AppBar(

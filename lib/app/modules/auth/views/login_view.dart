@@ -43,7 +43,7 @@ class LoginScreen extends GetView<AuthController> {
                     // Use reactive value
                     labelText: 'Password',
                     prefixSvgPath: 'assets/images/auth/lock_icon.svg',
-                    suffixSvgPath: 'assets/images/auth/eye_icon.svg',
+                    suffixSvgPath: controller.isPasswordHidden.value ? 'assets/images/auth/eye_close_icon.svg' : 'assets/images/auth/eye_icon.svg',
                     onSuffixTap: controller.togglePasswordVisibility,
                     controller: controller.passwordController,
                   ),
@@ -81,7 +81,7 @@ class LoginScreen extends GetView<AuthController> {
                     isLoading: controller.isLoading.value,
                   ),
                 ),
-                const SizedBox(height: 24),
+                /*const SizedBox(height: 24),
                 Row(
                   children: [
                     Expanded(child: Divider(color: Colors.grey[300])),
@@ -107,6 +107,7 @@ class LoginScreen extends GetView<AuthController> {
                     SvgPicture.asset('assets/images/auth/apple_icon.svg'),
                   ],
                 ),
+                */
                 const SizedBox(height: 50),
                 Center(
                   child: GestureDetector(
@@ -117,7 +118,7 @@ class LoginScreen extends GetView<AuthController> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 30),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [

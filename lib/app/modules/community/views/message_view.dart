@@ -250,9 +250,7 @@ class MessageView extends GetView<MessageController> {
       return '';
     }
     String url = image;
-    if (url.startsWith('http://')) {
-      url = url.replaceFirst('http://', 'https://'); // Force HTTPS
-    } else if (!url.startsWith('https://')) {
+    if (!url.startsWith('http://')) {
       url = '$baseUrl$url';
     }
     print('Resolved avatar URL: $url'); // Log for debugging

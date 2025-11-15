@@ -204,6 +204,7 @@ class AuthController extends GetxController {
       final responseData = jsonDecode(response.body);
       final message = responseData['message'] ?? 'A new OTP has been sent to your email.';
       kSnackBar(title: 'Info', message: message);
+      Get.off(() => VerificationScreen());
     }else if (response.statusCode == 400) {
       final responseData = jsonDecode(response.body);
       final message = responseData['error'] ?? 'Something went wrong please try again';
@@ -364,7 +365,20 @@ class AuthController extends GetxController {
       if (isForgot == true) {
         navigateToCreatePassword();
       } else {
-        isFirstTime ? Get.offAll(() => DashboardView()) : navigateToLogin();
+        if (isFirstTime) {
+          // First-time user: route based on role
+          if (responseData['role'] == 'borrower') {
+            Get.offAll(() => OnboardingProjectView());
+          } else if (responseData['role'] == 'private_lender') {
+            Get.offAll(() => DashboardLenderView());
+          } else {
+            // Optional: fallback for unexpected roles
+            Get.offAll(() => OnboardingProjectView()); // or show error
+          }
+        } else {
+          // Not first time: go to login
+          navigateToLogin();
+        }
       }
     } else if (response.statusCode == 400) {
       _showWarning('Please provide correct OTP', title: 'Invalid OTP');
